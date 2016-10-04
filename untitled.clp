@@ -18,7 +18,7 @@
 
 (deftemplate disposizione
 	(slot value
-		(allowed-symbols diagonale normale)))
+		(allowed-symbols diagonale normale sfalsato spina_dritta spina_obliqua)))
 
 (deftemplate piastrella_quadrata
 	(slot value
@@ -98,8 +98,6 @@
 	(bind ?answer (yes-or-no-p "Hai mai realizzato prima la posa di un pavimento? "))
 	(assert (utente_esperto ?answer)))
 
-
-
 (defrule ask-interno-esterno
 	(declare (salience ?*low-priority*))
 	(not (interno (value ?)))
@@ -149,6 +147,11 @@
 	=>
 	(bind ?answer (yes-or-no-p "Il pavimento prevede greche o decorazioni?"))
 	(assert (decorazioni (value ?answer))))
+	
+	
+	asd
+
+
 
 
 
