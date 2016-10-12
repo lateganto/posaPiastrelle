@@ -18,9 +18,27 @@
 
 ;; Routines for question-driven interaction
 ;; Modified from Riley's& Giarratano's
+;(deffunction ask_question (?question $?allowed_values)
+;  (printout t ?question " ")
+;  (bind ?answer (read))
+;  (if (lexemep ?answer) ;; TRUE is ?answer is a STRING or SYMBOL
+;      then (bind ?answer (lowcase ?answer)))
+;
+;  (while (not (member ?answer ?allowed_values)) do
+;	    (printout t ?question " ")
+;	    (bind ?answer (read))
+;	    (if (lexemep ?answer) 
+;		      then (bind ?answer (lowcase ?answer))))
+;     ?answer)
+
+
 (deffunction ask_question (?question $?allowed_values)
   (printout t ?question " ")
   (bind ?answer (read))
+  (if (eq (lowcase ?answer) help)
+  	then (if (eq (length$ ?*help*) 0)
+  		then (printout t "No help found!" crlf)
+  		else (printout t ?*help* crlf)))
   (if (lexemep ?answer) ;; TRUE is ?answer is a STRING or SYMBOL
       then (bind ?answer (lowcase ?answer)))
 
@@ -30,6 +48,8 @@
 	    (if (lexemep ?answer) 
 		      then (bind ?answer (lowcase ?answer))))
      ?answer)
+
+
 
 (deffunction yes_or_no_p (?question)
   (bind ?question (sym-cat ?question " (si/s/no/n): "))
@@ -221,6 +241,7 @@
 	(declare (salience ?*low_priority*))
 	(not (interno ?))
 	=>
+	(bind ?*help* "Dipende dal fatto che il pavimento potrebbe essere esposto agli agenti atmosferici oppure no e quindi richiede alcune accortezze, come l'uso di piastrelle apposite e colle antigelive.")
 	(bind ?risposta (yes_or_no_p "Il lavoro è per interno?"))
 	(assert (interno ?risposta)))
 
@@ -229,6 +250,7 @@
 	(not (tipo_stanza))
 	(interno TRUE)
 	=>
+	(bind ?*help* "Questo perchè bla bla bla")
 	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno, cucina, altro):" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
@@ -236,6 +258,7 @@
 	(declare (salience ?*low_priority*))
 	(not (formato_piastrella ?))
 	=>
+	(bind ?*help* "")
 	(bind ?risposta (ask_question "Qual è il formato della piastrella? (quadrata, rettangolare):" quadrata rettangolare))
 	(assert (formato_piastrella ?risposta)))
 
@@ -244,6 +267,7 @@
 	(formato_piastrella quadrata)
 	(not (disposizione ?))
 	=>
+	(bind ?*help* "")
 	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta, sfalsata, diagonale):" dritta sfalsata diagonale))
 	(assert (disposizione ?risposta)))
 
@@ -259,6 +283,7 @@
 	(declare (salience ?*low_priority*))
 	(not (dimensioni-stanza ?))
 	=>
+	(bind ?*help* "")
 	(bind ?risposta (ask_number "Inserire la dimensione dell'area da pavimentare in metri quadri:"))
 	(assert (dimensione_area ?risposta)))
 
@@ -266,6 +291,7 @@
 	(declare (salience ?*low_priority*))
 	(not (presenza_pavimento ?))
 	=>
+	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "E' già presente un pavimento?"))
 	(assert (presenza_pavimento ?risposta)))
 
@@ -274,6 +300,7 @@
 	(declare (salience ?*low_priority*))
 	(not (decorazioni ?))
 	=>
+	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Ci sono decorazioni nel pavimento da posare?"))
 	(assert (decorazioni ?risposta)))
 
@@ -281,6 +308,7 @@
 	(declare (salience ?*low_priority*))
 	(not (dim_distanziatori ?))
 	=>
+	(bind ?*help* "")
 	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?"))
 	(assert (dim_distanziatori ?risposta)))
 
