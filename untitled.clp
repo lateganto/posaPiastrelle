@@ -6,27 +6,27 @@
 ;; Routines for question-driven interaction
 ;; Modified from Riley's& Giarratano's
 (deffunction ask_question (?question $?allowed_values)
-  (printout t ?question)
+  (printout t ?question " ")
   (bind ?answer (read))
   (if (lexemep ?answer) ;; TRUE is ?answer is a STRING or SYMBOL
       then (bind ?answer (lowcase ?answer)))
 
   (while (not (member ?answer ?allowed_values)) do
-	    (printout t ?question)
+	    (printout t ?question " ")
 	    (bind ?answer (read))
 	    (if (lexemep ?answer) 
 		      then (bind ?answer (lowcase ?answer))))
      ?answer)
 
 (deffunction yes_or_no_p (?question)
-  (bind ?question (sym-cat ?question " (yes/y/no/n): "))
-     (bind ?response (ask_question ?question yes no y n))
-     (if (or (eq ?response yes) (eq ?response y))
+  (bind ?question (sym-cat ?question " (si/s/no/n): "))
+     (bind ?response (ask_question ?question si no s n))
+     (if (or (eq ?response si) (eq ?response s))
          then TRUE 
          else FALSE))
 
 (deffunction ask_number (?question)
-  (printout t ?question)
+  (printout t ?question " ")
   (bind ?answer (read))
   (while (not (numberp ?answer)) do  ;check if answer is a NUMBER
 	    (printout t ?question)
@@ -44,7 +44,7 @@
 
 (deffunction esperienza_utente
 	(?num)
-	(if (> ?num 4)
+	(if (> ?num 3)
 		then (return intermedio)
 		else (return principiante)))
 
@@ -56,13 +56,15 @@
 	(slot numero))
 
 ;--------------START---------------
+
+;--------------Domande per capire il tipo di utente-------------
 (defrule inizio
 	(declare (salience ?*highest_priority*))
 	=>
 	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
 
 (defrule chiedi_esperto
-	(declare (salience ?*low_priority*))
+	;(declare (salience ?*low_priority*))
 	=>
 	(bind ?risposta (yes_or_no_p "Hai mai realizzato prima d'ora la posa di un pavimento?"))
 	(assert (utente_esperto ?risposta)))
@@ -93,7 +95,7 @@
 	=>
 	(retract ?d)
 	(retract ?i)
-	(assert (inizia_domande))
+	(assert (inizia_domande))   ;;;controllare se corretto!!
 	(bind ?risposta (yes_or_no_p "Sai cos'è una spatola dentellata?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -197,60 +199,75 @@
 	(retract ?a ?b ?c)
 	(assert (utente (esperienza_utente ?x))))
 
+;----------Domande per inquadrare la situazione-----------
 
+(defrule domanda_interno_esterno
+	(declare (salience ?*low_priority*))
+	(not (interno ?))
+	=>
+	(bind ?risposta (yes_or_no_p "Il lavoro è per interno?"))
+	(assert (interno ?risposta)))
 
-;(defrule ask-interno-esterno
-;	(declare (salience ?*low-priority*))
-;	(not (interno (value ?)))
-;	=>
-;	(bind ?answer (yes-or-no-p "E' un pavimento per interni? "))
-;	(assert (interno (value ?answer))))
-;
-;(defrule ask-tipo-stanza
-;	(declare (salience ?*low-priority*))
-;	(not (tipo_stanza (value ?)))
-;	=>
-;	(bind ?answer (ask-question "Indicare in quale stanza si deve effettuare la posa? (cucina, bagno, altro): " cucina bagno altro))
-;	(assert (tipo_stanza (value ?answer))))
-;
-;(defrule ask-dimensioni-stanza
-;	(declare (salience ?*low-priority*))
-;	(not (dimensioni_stanza (value ?)))
-;	=>
-;	(bind ?length (ask-number "Indicare la lunghezza della stanza in metri: "))
-;	(bind ?width (ask-number "Indicare la larghezza della stanza in metri: "))
-;	(assert (dimensioni_stanza (value (* ?length ?width)))))
-;
-;(defrule ask-piastrella-quadrata
-;	(declare (salience ?*low-priority*))
-;	(not (piastrella_quadrata (value ?)))
-;	=>
-;	(bind ?answer (yes-or-no-p "La piastrella è quadrata?"))
-;	(assert (piastrella_quadrata (value ?answer))))
-;
-;(defrule ask-disposizione
-;	(declare (salience ?*low-priority*))
-;	(not (disposizione (value ?)))
-;	=>
-;	(bind ?answer (ask-question "Indicare in che modo si intende disporre le piastrelle. (diagonale, normale): " diagonale normale))
-;	(assert (disposizione (value ?answer))))
-;
-;(defrule ask-pav-presente
-;	(declare (salience ?*low-priority*))
-;	(not (pavimento_presente (value ?)))
-;	=>
-;	(bind ?answer (yes-or-no-p "E' già presente un pavimento?"))
-;	(assert (pavimento_presente (value ?answer))))
-;
-;(defrule ask-decorazioni
-;	(declare (salience ?*low-priority*))
-;	(not (decorazioni (value ?)))
-;	=>
-;	(bind ?answer (yes-or-no-p "Il pavimento prevede greche o decorazioni?"))
-;	(assert (decorazioni (value ?answer))))
-;	
-;	
-;	asd
+(defrule domanda_tipo_stanza
+	(declare (salience ?*low_priority*))
+	(not (tipo_stanza))
+	(interno TRUE)
+	=>
+	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno, cucina, altro):" bagno cucina altro))
+	(assert (tipo_stanza ?risposta)))
+
+(defrule domanda_formato_piastrella
+	(declare (salience ?*low_priority*))
+	(not (formato_piastrella ?))
+	=>
+	(bind ?risposta (ask_question "Qual è il formato della piastrella? (quadrata, rettangolare):" quadrata rettangolare))
+	(assert (formato_piastrella ?risposta)))
+
+(defrule domanda_disposizione_piastrella_quadrata
+	(declare (salience ?*low_priority*))
+	(formato_piastrella quadrata)
+	(not (disposizione ?))
+	=>
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta, sfalsata, diagonale):" dritta sfalsata diagonale))
+	(assert (disposizione ?risposta)))
+
+(defrule domanda_disposizione_piastrella_rettangolare
+	(declare (salience ?*low_priority*))
+	(formato_piastrella rettangolare)
+	(not (disposizione ?))
+	=>
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta, sfalsata, spina_di_pesce_dritta, spina_di_pesce_obliqua):" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
+	(assert (disposizione ?risposta)))
+
+(defrule domanda_dimensioni_stanza
+	(declare (salience ?*low_priority*))
+	(not (dimensioni-stanza ?))
+	=>
+	(bind ?risposta (ask_number "Inserire la dimensione dell'area da pavimentare in metri quadri:"))
+	(assert (dimensione_area ?risposta)))
+
+(defrule domanda_presenza_pavimento
+	(declare (salience ?*low_priority*))
+	(not (presenza_pavimento ?))
+	=>
+	(bind ?risposta (yes_or_no_p "E' già presente un pavimento?"))
+	(assert (presenza_pavimento ?risposta)))
+
+;decidere se inserire, a causa delle disposizioni oblique che fanno cambiare come si deve porre la decorazione all'inizio!!
+(defrule domanda_decorazioni
+	(declare (salience ?*low_priority*))
+	(not (decorazioni ?))
+	=>
+	(bind ?risposta (yes_or_no_p "Ci sono decorazioni nel pavimento da posare?"))
+	(assert (decorazioni ?risposta)))
+
+(defrule domanda_distanziatori
+	(declare (salience ?*low_priority*))
+	(not (dim_distanziatori ?))
+	=>
+	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?"))
+	(assert (dim_distanziatori ?risposta)))
+
 
 
 
