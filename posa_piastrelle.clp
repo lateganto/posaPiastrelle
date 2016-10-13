@@ -16,22 +16,6 @@
 
 ;--------------FUNCTIONS------------
 
-;; Routines for question-driven interaction
-;; Modified from Riley's& Giarratano's
-;(deffunction ask_question (?question $?allowed_values)
-;  (printout t ?question " ")
-;  (bind ?answer (read))
-;  (if (lexemep ?answer) ;; TRUE is ?answer is a STRING or SYMBOL
-;      then (bind ?answer (lowcase ?answer)))
-;
-;  (while (not (member ?answer ?allowed_values)) do
-;	    (printout t ?question " ")
-;	    (bind ?answer (read))
-;	    (if (lexemep ?answer) 
-;		      then (bind ?answer (lowcase ?answer))))
-;     ?answer)
-
-
 (deffunction ask_question (?question $?allowed_values)
   (printout t ?question " ")
   (bind ?answer (read))
@@ -49,8 +33,6 @@
 		      then (bind ?answer (lowcase ?answer))))
      ?answer)
 
-
-
 (deffunction yes_or_no_p (?question)
   (bind ?question (sym-cat ?question " (si/s/no/n): "))
      (bind ?response (ask_question ?question si no s n))
@@ -61,6 +43,10 @@
 (deffunction ask_number (?question)
   (printout t ?question " ")
   (bind ?answer (read))
+  (if (eq (lowcase ?answer) help)
+  	then (if (eq (length$ ?*help*) 0)
+  		then (printout t "No help found!" crlf)
+  		else (printout t ?*help* crlf)))
   (while (not (numberp ?answer)) do  ;check if answer is a NUMBER
 	    (printout t ?question " ")
 	    (bind ?answer (read)))
@@ -250,7 +236,7 @@
 	(not (tipo_stanza))
 	(interno TRUE)
 	=>
-	(bind ?*help* "Questo perchè bla bla bla")
+	(bind ?*help* "A seconda del tipo di stanza potrebbe essere richiesto di effettuare solo la posa del pavimento oppure anche il rivestimento.")
 	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno, cucina, altro):" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
@@ -258,7 +244,7 @@
 	(declare (salience ?*low_priority*))
 	(not (formato_piastrella ?))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "In base al formato della piastrella alcuni tipi di posa non sono realizzabili.")
 	(bind ?risposta (ask_question "Qual è il formato della piastrella? (quadrata, rettangolare):" quadrata rettangolare))
 	(assert (formato_piastrella ?risposta)))
 
@@ -267,7 +253,7 @@
 	(formato_piastrella quadrata)
 	(not (disposizione ?))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "") ;TODO far vedere immagini
 	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta, sfalsata, diagonale):" dritta sfalsata diagonale))
 	(assert (disposizione ?risposta)))
 
@@ -276,9 +262,11 @@
 	(formato_piastrella rettangolare)
 	(not (disposizione ?))
 	=>
+	(bind ?*help* "") ;TODO far vedere immagini
 	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta, sfalsata, spina_di_pesce_dritta, spina_di_pesce_obliqua):" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
 	(assert (disposizione ?risposta)))
 
+;DUBBIO
 (defrule domanda_dimensioni_stanza
 	(declare (salience ?*low_priority*))
 	(not (dimensioni-stanza ?))
@@ -291,7 +279,7 @@
 	(declare (salience ?*low_priority*))
 	(not (presenza_pavimento ?))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Si può decidere di posare anche su un pavimento già esistente.")
 	(bind ?risposta (yes_or_no_p "E' già presente un pavimento?"))
 	(assert (presenza_pavimento ?risposta)))
 
@@ -300,7 +288,7 @@
 	(declare (salience ?*low_priority*))
 	(not (decorazioni ?))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "In caso di decorazioni bisognerà partire proprio dalla loro posa e poi continuare con il resto del pavimento")
 	(bind ?risposta (yes_or_no_p "Ci sono decorazioni nel pavimento da posare?"))
 	(assert (decorazioni ?risposta)))
 
@@ -308,7 +296,7 @@
 	(declare (salience ?*low_priority*))
 	(not (dim_distanziatori ?))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica a croce che si usano per tenere sempre la stessa distanza tra due piastrelle.")
 	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?"))
 	(assert (dim_distanziatori ?risposta)))
 
