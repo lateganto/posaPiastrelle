@@ -15,42 +15,47 @@
 	(slot numero))
 
 ;--------------FUNCTIONS------------
-
 (deffunction ask_question (?question $?allowed_values)
-  (printout t ?question " ")
-  (bind ?answer (read))
-  (if (eq (lowcase ?answer) help)
-  	then (if (eq (length$ ?*help*) 0)
-  		then (printout t "No help found!" crlf)
-  		else (printout t ?*help* crlf)))
-  (if (lexemep ?answer) ;; TRUE is ?answer is a STRING or SYMBOL
-      then (bind ?answer (lowcase ?answer)))
+	(insert$ ?allowed_values 1 help h)
+	(printout t ?question "/help/h): ")
+	(bind ?answer (read))
 
-  (while (not (member ?answer ?allowed_values)) do
-	    (printout t ?question " ")
+	(if (lexemep ?answer)
+		then (bind ?answer (lowcase ?answer)))
+
+	(while (not (member ?answer ?allowed_values)) do
+		(if (or (eq ?answer help) (eq ?answer h))
+	  			then (if (eq (length$ ?*help*) 0)
+		  				then (printout t "No help found!" crlf)
+		  				else (printout t ?*help* crlf)))
+		(printout t ?question "/help/h): ")
 	    (bind ?answer (read))
 	    (if (lexemep ?answer) 
-		      then (bind ?answer (lowcase ?answer))))
-     ?answer)
+			then (bind ?answer (lowcase ?answer))))
+	 ?answer)
 
 (deffunction yes_or_no_p (?question)
-  (bind ?question (sym-cat ?question " (si/s/no/n): "))
+  (bind ?question (sym-cat ?question " (si/s/no/n"))
      (bind ?response (ask_question ?question si no s n))
      (if (or (eq ?response si) (eq ?response s))
          then TRUE 
          else FALSE))
 
 (deffunction ask_number (?question)
-  (printout t ?question " ")
-  (bind ?answer (read))
-  (if (eq (lowcase ?answer) help)
-  	then (if (eq (length$ ?*help*) 0)
-  		then (printout t "No help found!" crlf)
-  		else (printout t ?*help* crlf)))
-  (while (not (numberp ?answer)) do  ;check if answer is a NUMBER
-	    (printout t ?question " ")
+	(printout t ?question " (help/h): ")
+	(bind ?answer (read))
+
+	(if (lexemep ?answer)
+		then (bind ?answer (lowcase ?answer)))
+
+	(while (not (numberp ?answer)) do  ;check if answer is a NUMBER
+		(if (or (eq ?answer help) (eq ?answer h))
+	  			then (if (eq (length$ ?*help*) 0)
+		  				then (printout t "No help found!" crlf)
+		  				else (printout t ?*help* crlf)))
+		(printout t ?question " (help/h): ")
 	    (bind ?answer (read)))
-     ?answer)
+	 ?answer)
 
 (deffunction domanda_random ()
 	(bind ?n (random 1 8))
@@ -237,7 +242,7 @@
 	(interno TRUE)
 	=>
 	(bind ?*help* "A seconda del tipo di stanza potrebbe essere richiesto di effettuare solo la posa del pavimento oppure anche il rivestimento.")
-	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno, cucina, altro):" bagno cucina altro))
+	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno/cucina/altro" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
 (defrule domanda_formato_piastrella
@@ -245,7 +250,7 @@
 	(not (formato_piastrella ?))
 	=>
 	(bind ?*help* "In base al formato della piastrella alcuni tipi di posa non sono realizzabili.")
-	(bind ?risposta (ask_question "Qual è il formato della piastrella? (quadrata, rettangolare):" quadrata rettangolare))
+	(bind ?risposta (ask_question "Qual è il formato della piastrella? (quadrata/rettangolare" quadrata rettangolare))
 	(assert (formato_piastrella ?risposta)))
 
 (defrule domanda_disposizione_piastrella_quadrata
@@ -254,7 +259,7 @@
 	(not (disposizione ?))
 	=>
 	(bind ?*help* "") ;TODO far vedere immagini
-	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta, sfalsata, diagonale):" dritta sfalsata diagonale))
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta/sfalsata/diagonale" dritta sfalsata diagonale))
 	(assert (disposizione ?risposta)))
 
 (defrule domanda_disposizione_piastrella_rettangolare
@@ -263,7 +268,7 @@
 	(not (disposizione ?))
 	=>
 	(bind ?*help* "") ;TODO far vedere immagini
-	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta, sfalsata, spina_di_pesce_dritta, spina_di_pesce_obliqua):" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta/sfalsata/spina_di_pesce_dritta/spina_di_pesce_obliqua" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
 	(assert (disposizione ?risposta)))
 
 ;DUBBIO
@@ -272,7 +277,7 @@
 	(not (dimensioni-stanza ?))
 	=>
 	(bind ?*help* "")
-	(bind ?risposta (ask_number "Inserire la dimensione dell'area da pavimentare in metri quadri:"))
+	(bind ?risposta (ask_number "Inserire la dimensione dell'area da pavimentare in metri quadri"))
 	(assert (dimensione_area ?risposta)))
 
 (defrule domanda_presenza_pavimento
