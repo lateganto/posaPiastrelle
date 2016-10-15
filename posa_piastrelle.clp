@@ -241,7 +241,7 @@
 	(not (tipo_stanza))
 	(interno TRUE)
 	=>
-	(bind ?*help* "A seconda del tipo di stanza potrebbe essere richiesto di effettuare solo la posa del pavimento oppure anche il rivestimento.")
+	(bind ?*help* "A seconda del tipo di stanza potrebbe essere richiesto di effettuare un lavoro diverso.")
 	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno/cucina/altro" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
@@ -301,11 +301,26 @@
 	(declare (salience ?*low_priority*))
 	(not (dim_distanziatori ?))
 	=>
-	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica a croce che si usano per tenere sempre la stessa distanza tra due piastrelle.")
+	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica con forma a T o a croce che si pongono tra due piastrelle in modo da mantenere sempre la stessa.")
 	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?"))
 	(assert (dim_distanziatori ?risposta)))
 
-;------------------------------------
+(defrule domanda_rivestimento_pavimento
+	(declare (salience ?*low_priority*))
+	(or (tipo_stanza cucina)
+		(tipo_stanza bagno))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (ask_question "Cosa devi realizzare? (rivestimento/pavimento/entrambi" rivestimento pavimento entrambi))
+	(if (or (eq ?risposta rivestimento) (eq ?risposta entrambi)) then (assert (rivestimento TRUE)) else (assert (rivestimento FALSE))))
+
+(defrule tipo_pavimento_altro
+	(declare (salience ?*low_priority*))
+	(tipo_stanza altro)
+	=>
+	(assert (rivestimento FALSE)))
+
+;-----------------INIZIO-------------------
 
 
 
