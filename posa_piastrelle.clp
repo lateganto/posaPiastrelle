@@ -320,14 +320,13 @@
 (defrule attrezzi_necessari_rivestimento
 	(declare (salience ?*high_priority*))
 	(rivestimento TRUE)
+	(interno ?valore)
 	=>
 	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
 					"	* tagliapiastrelle (manuale o elettrica)" crlf
 					"	* smerigliatrie angolare (grande e piccola)" crlf
 					"	* tenaglia per piastrelle" crlf
 					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
-					"	* colla" crlf
-					"	* fugante" crlf
 					"	* spatola liscia" crlf
 					"	* frattazzo dentellato" crlf
 					"	* 2-3 secchi da muratore" crlf
@@ -340,19 +339,25 @@
 					"	* livella" crlf
 					"	* matite in legno da muratori" crlf
 					"	* profili angolari (in numero pari agli angoli presenti nella stanza)" crlf
-					"	* filo a piombo" crlf crlf))
+					"	* filo a piombo" crlf )
+	(if (not ?valore) then (printout t 
+					"	* colla da esterno" crlf
+					"	* fugante da esterno (stucco per fughe)" crlf)
+			  else (printout t 
+					"	* colla" crlf
+					"	* fugante (stucco per fughe)" crlf))
+	printout t crlf)
 
 (defrule attrezzi_necessari
 	(declare (salience ?*high_priority*))
 	(rivestimento FALSE)
+	(interno ?valore)
 	=>
 	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
 					"	* tagliapiastrelle (manuale o elettrica)" crlf
 					"	* smerigliatrie angolare (grande e piccola)" crlf
 					"	* tenaglia per piastrelle" crlf
 					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
-					"	* colla" crlf
-					"	* fugante" crlf
 					"	* spatola liscia" crlf
 					"	* frattazzo dentellato" crlf
 					"	* 2-3 secchi da muratore" crlf
@@ -363,7 +368,14 @@
 					"	* distanziatori" crlf
 					"	* squadra in acciaio per carpentieri" crlf
 					"	* livella" crlf
-					"	* matite in legno da muratori" crlf crlf))
+					"	* matite in legno da muratori" crlf)
+	(if (not ?valore) then (printout t 
+					"	* colla da esterno" crlf
+					"	* fugante da esterno (stucco per fughe)" crlf)
+			  else (printout t 
+					"	* colla" crlf
+					"	* fugante (stucco per fughe)" crlf))
+	printout t crlf)
 
 (defrule domanda_formato_piastrella_rivestimento
 	(not (formato_piastrella_rivestimento ?))
