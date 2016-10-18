@@ -62,14 +62,14 @@
 ;        (step2)
 ;        )
 (deffacts fatti_iniziali
-        (utente_esperto TRUE)
+      (utente_esperto TRUE)
         (decorazioni FALSE)
         (formato_piastrella quadrata)
         (disposizione dritta)
         (dim_distanziatori 3)
 
-        (presenza_pavimento TRUE)
-        (interno TRUE)
+s        (presenza_pavimento TRUE)
+s        (interno TRUE)
         (tipo_stanza bagno)
         (presenza_rivestimento TRUE)
         

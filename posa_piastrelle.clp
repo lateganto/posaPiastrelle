@@ -265,27 +265,15 @@
 	(assert (presenza_pavimento ?risposta)))
 
 (defrule domanda_presenza_rivestimento
-	(declare (salience ?*low_priority*))
+	(declare (salience ?*lowest_priority*))
 	(not (presenza_rivestimento ?))
 	(or (tipo_stanza bagno)
 		(tipo_stanza cucina))
 	=>
 	(bind ?*help* "Il rivestimento andrà rimosso per far spazio a quello nuovo")
 	(bind ?risposta (yes_or_no_p "E' già presente un rivestimento?"))
-	(assert (presenza_rivestimento ?risposta)))
-
-(defrule domanda_distanziatori_pavimento
-	(declare (salience ?*lowest_priority*))
-	(not (dim_distanziatori ?))
-	=>
-	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica con forma a T o a croce che si pongono tra due piastrelle in modo da mantenere sempre la stessa distanza.")
-	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?"))
-	(while (or (< ?risposta 1) (> ?risposta 10)) do 
-		(printout t crlf "La dimensione deve essere compresa tra 1 e 10" crlf)
-		(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?")))
-	(assert (dim_distanziatori ?risposta))
-	(assert (step2)))  ;prosegui alla successiva fase
-
+	(assert (presenza_rivestimento ?risposta))
+	(assert (step2))) ;prosegui alla successiva fase 
 
 ;----------------2° step-------------
 (defrule esterno_no_rivestimento ;se esterno allora nessun rivestimento
@@ -316,6 +304,66 @@
 		(case rivestimento then (assert (rivestimento TRUE) (pavimento FALSE)))
 		(case pavimento then (assert (pavimento TRUE) (rivestimento FALSE)))
 		(case entrambi then (assert (pavimento TRUE) (rivestimento TRUE)))))
+
+(defrule calcolo_metri_quadri_pavimento
+	(pavimento TRUE)
+	=>
+	(printout t crlf "Adesso si può procedere al calcolo della dimensione dell'area da pavimentare." crlf)
+	(printout t "La misura dell'area da pavimentare non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un pavimento si effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella dell'area da pavimentare, ma deve essere maggiore. Procedere individuando la forma di tale superficie, se questa può essere ricondotta ad una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, allora, per ottenere l'area, bisogna ricordare che:" crlf
+		"	* se la superficie ha la forma di un quadrato, allora si calcola la lunghezza di un muro (che rappresenta il lato) e la si moltiplica per se stesso" crlf
+		"	* se la superficie ha la forma di un rettangolo, allora si moltiplica la lunghezza dei due muri (che rappresentano i lati) di dimensione diversa" crlf
+		"	* se la superficie ha la forma di un triangolo, allora si trova la lunghezza del muro che rappresenta la base e quella del muro che rappresenta l'altezza  del triangolo, si moltiplicando tra di loro le due misure e si divide per due il risultato" crlf
+		"	* se la superficie ha la forma di un cerchio, allora si deve trovare la misura del raggio e si usa la formula 2πr, dove π = 3.14 e r = al raggio trovato" crlf
+		"	* se la superficie ha la forma di una semicirconferenza, allora si procede come nel caso precedente (cerchio) a trovare la misura del raggio della circonferenza e si usa la formula 2πr (dove π = 3.14 e r = al raggio trovato) e si divide il risultato per due." crlf
+		"Nel caso in cui la forma della superficie da pavimentare non fosse simile ad una delle precedenti, allora si suddivide l'area in parti più piccole dalla forma riconducibile ad una di quelle precedenti, si calcola l'area di ogni parte e si sommano i vari risultati ottenuti" crlf
+		"Le misure vanno espresse in metri al quadrato" crlf crlf)
+	(bind ?*help* "")
+	(bind ?risposta (ask_number "Qual è quindi la dimensione in metri quadri dell'area da pavimentare?"))
+	(assert (dimensioni_pavimento ?risposta)))
+
+(defrule calcolo_metri_quadri_rivestimento
+	(rivestimento TRUE)
+	=>
+	(printout t crlf "Adesso si può procedere al calcolo della dimensione dell'area da rivestire." crlf)
+	(printout t "La misura dell'area da rivestire non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un rivestimento si effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella dell'area da rivestire, ma deve essere maggiore. Bisogna calcolare la dimensione dell'area delle pareti che andranno rivestite. Generalmente la forma della parete sarà rettangolare o al massimo quadrata. Bisogna comunque eliminare dal calcolo dell'area eventuali elementi che non saranno interessati dalla posa del rivestimento, come le finestre.
+		Procedere individuando la forma di tale superficie, se questa può essere ricondotta ad una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, allora, per ottenere l'area, bisogna ricordare che:" crlf
+		"	* se la superficie ha la forma di un quadrato, allora si calcola la lunghezza di un muro (che rappresenta il lato) e la si moltiplica per se stesso" crlf
+		"	* se la superficie ha la forma di un rettangolo, allora si moltiplica la lunghezza dei due muri (che rappresentano i lati) di dimensione diversa" crlf
+		"	* se la superficie ha la forma di un triangolo, allora si trova la lunghezza del muro che rappresenta la base e quella del muro che rappresenta l'altezza  del triangolo, si moltiplicando tra di loro le due misure e si divide per due il risultato" crlf
+		"	* se la superficie ha la forma di un cerchio, allora si deve trovare la misura del raggio e si usa la formula 2πr, dove π = 3.14 e r = al raggio trovato" crlf
+		"	* se la superficie ha la forma di una semicirconferenza, allora si procede come nel caso precedente (cerchio) a trovare la misura del raggio della circonferenza e si usa la formula 2πr (dove π = 3.14 e r = al raggio trovato) e si divide il risultato per due." crlf
+		"Nel caso in cui la forma della superficie non fosse simile ad una delle precedenti, allora si suddivide l'area in parti più piccole dalla forma riconducibile ad una di quelle precedenti, si calcola l'area di ogni parte e si sommano i vari risultati ottenuti" crlf
+		"Lo stesso procedimento si ripete per ogni parete e si sommano i risultati ottenuti." crlf
+		"Le misure vanno espresse in metri al quadrato" crlf crlf)
+	(bind ?*help* "")
+	(bind ?risposta (ask_number "Qual è quindi la dimensione in metri quadri dell'area da rivestire?"))
+	(assert (dimensioni_rivestimento ?risposta)))
+
+(defrule quantità_piastrelle_pavimento
+	(declare (salience ?*high_priority*))
+	(disposizione_pavimento ?disp)
+	(dimensioni_pavimento ?dim)
+	=>
+	(printout t crlf "Per il pavimento ")
+	(switch ?disp
+		(case diagonale then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.15)))
+		(case sfalsata then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.10)))
+		(case spina_di_pesce_dritta then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.10)))
+		(case spina_di_pesce_obliqua then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.10)))
+		(case dritta then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.10)))))
+
+(defrule quantità_piastrelle_rivestimento
+	(declare (salience ?*high_priority*))
+	(disposizione_rivestimento ?disp)
+	(dimensioni_rivestimento ?dim)
+	=>
+	(printout t crlf "Per il rivestimento ")
+	(switch ?disp
+		(case diagonale then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.15)))
+		(case sfalsata then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.10)))
+		(case spina_di_pesce_dritta then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.10)))
+		(case spina_di_pesce_obliqua then (format t "devi prendere %d metri quadri di piastrelle di piastrelle!%n" (* ?dim 1.10)))
+		(case dritta then (format t "devi prendere %d metri quadri di piastrelle!%n" (* ?dim 1.10)))))
 
 (defrule attrezzi_necessari_rivestimento
 	(declare (salience ?*high_priority*))
@@ -378,6 +426,7 @@
 	printout t crlf)
 
 (defrule domanda_formato_piastrella_rivestimento
+	(declare (salience ?*high_priority*))
 	(not (formato_piastrella_rivestimento ?))
 	(rivestimento TRUE)
 	=>
@@ -386,12 +435,35 @@
 	(assert (formato_piastrella_rivestimento ?risposta)))
 
 (defrule domanda_formato_piastrella_pavimento
+	(declare (salience ?*high_priority*))
 	(not (formato_piastrella_pavimento ?))
 	(pavimento TRUE)
 	=>
 	(bind ?*help* "In base al formato della piastrella alcuni tipi di posa non sono realizzabili.")
 	(bind ?risposta (ask_question "Qual è il formato della piastrella per il pavimento? (quadrata/rettangolare" quadrata rettangolare))
 	(assert (formato_piastrella_pavimento ?risposta)))
+
+(defrule domanda_distanziatori_pavimento
+	(not (dim_distanziatori_pavimento ?))
+	(pavimento TRUE)
+	=>
+	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica con forma a T o a croce che si pongono tra due piastrelle in modo da mantenere sempre la stessa distanza.")
+	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il pavimento in millimetri?"))
+	(while (or (< ?risposta 1) (> ?risposta 10)) do 
+		(printout t crlf "La dimensione deve essere compresa tra 1 e 10" crlf)
+		(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il pavimento in millimetri?")))
+	(assert (dim_distanziatori_pavimento ?risposta)))  ;prosegui alla successiva fase
+
+(defrule domanda_distanziatori_rivestimento
+	(not (dim_distanziatori_rivestimento ?))
+	(rivestimento TRUE)
+	=>
+	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica con forma a T o a croce che si pongono tra due piastrelle in modo da mantenere sempre la stessa distanza.")
+	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il rivestimento in millimetri?"))
+	(while (or (< ?risposta 1) (> ?risposta 10)) do 
+		(printout t crlf "La dimensione deve essere compresa tra 1 e 10" crlf)
+		(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il rivestimento in millimetri?")))
+	(assert (dim_distanziatori_rivestimento ?risposta)))
 
 (defrule domanda_disposizione_piastrella_quadrata_pavimento
 	(formato_piastrella_pavimento quadrata)
@@ -583,116 +655,15 @@
         (assert (ok_inizio_rivestimento)))
 
 
+;-----------------INIZIO-------------------
+
+
 ;(defrule pavimento_e_rivestimento  ;chiedere all'utente cosa fare prima, nel caso in cui ci sia da fare sia pavimento che rivestimento
 ;	(rivestimento TRUE)
 ;	(pavimento TRUE)
 ;	(pavimento)
 ;	) 
-;-----------------INIZIO-------------------
-;(defrule attrezzi_necessari
-;	?i <- (inizio_posa)
-;	?r <- (rivestimento ?v)
-;	=>
-;	(retract ?i)
-;	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
-;					"	* tagliapiastrelle (manuale o elettrica)" crlf
-;					"	* smerigliatrie angolare (grande e piccola)" crlf
-;					"	* tenaglia per piastrelle" crlf
-;					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
-;					"	* colla" crlf
-;					"	* fugante" crlf
-;					"	* spatola liscia" crlf
-;					"	* frattazzo dentellato" crlf
-;					"	* 2-3 secchi da muratore" crlf
-;					"	* stadie di alluminio (varie dimensioni da 1 fino a 3 metri)" crlf
-;					"	* mazza in gomma" crlf
-;					"	* frattazzo in pugna" crlf
-;					"	* secchio lavaggio per piastrellisti" crlf
-;					"	* distanziatori" crlf
-;					"	* squadra in acciaio per carpentieri" crlf
-;					"	* livella" crlf
-;					"	* matite legno da muratori" crlf)
-;	(if ?v then (printout t 
-;					"	* profili angolari (in numero pari agli angoli presenti nella stanza)" crlf
-;					"	* piombo" crlf))
-;	(printout t crlf)
-;	(assert (calcolo_metri_quadri)))
-					
 
-;(defrule calcolo_metri_quadri_solo_pavimento
-;	(declare (salience ?*low_priority*))
-;	?f <- (calcolo_metri_quadri)
-;	=>
-;	(retract ?f)
-;	(printout t crlf "Adesso si può procedere al calcolo della dimensione dell'area da pavimentare." crlf)
-;	(printout t	"A tale proposito, bisogna analizzare l'area. Le misure non devono essere precise, " crlf
-;		"ad esempio non si considerano eventuali elementi, in corrispondenza dei quali non " crlf
-;		"si poserà il pavimento (come pilastri, caminetti o altro);" crlf
-;		"mentre invece si considerano eventuali rientranze da pavimentare (come ripostigli e disimpegni)." crlf crlf
-;		"Dopo aver individuato lo spazio da pavimentare, analizziamone la forma." crlf 
-;		"Se questa si può ricondurre a una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, " crlf
-;		"allora è semplice calcolarla, ricordando che: " crlf
-;		"	* l'area di un quadrato si calcola elevando al quadrato il lato" crlf
-;		"	* l'area di un rettangolo si calcola moltiplicando la larghezza per la lunghezza" crlf
-;		"	* l'area di un triangolo si calcola moltiplicando la base per l'altezza e dividendo tutto per due" crlf
-;		"	* l'area di una cerchio si calcola con la formula 2πr, dove π = 3.14 e r = al raggio della circonferenza" crlf
-;		"	* l'area di una semicirconferenza si calcola con la formula (2πr)/2." crlf
-;		"Altrimenti si suddivide l'area in parti più piccole dalla forma riconducibile ad una di quelle precedenti 
-;		e si sommano i vari valori ottentuti." crlf 
-;		"Le misure ottenute sono espresse in metri quadri." crlf crlf)
-;
-;	(bind ?*help* "")
-;	(bind ?risposta (ask_number "Qual è quindi la dimensione in metri quadri dell'area da pavimentare?"))
-;	(assert (dimensioni_pavimento ?risposta))
-;	(assert (controllo_superficie)))
-;
-;(defrule calcolo_metri_quadri_rivestimento
-;	(declare (salience ?*low_priority*))
-;	?f <- (calcolo_metri_quadri)
-;	(rivestimento TRUE)
-;	=>
-;	(retract ?f)
-;	(printout t crlf "Adesso si può procedere al calcolo della dimensione dell'area da pavimentare per sapere quante 
-;		piastrelle prendere." crlf)
-;	(printout t	"A tale proposito, bisogna analizzare l'area. Le misure non devono essere precise, " crlf
-;		"ad esempio non si considerano eventuali elementi, in corrispondenza dei quali non " crlf
-;		"si poserà il pavimento (come pilastri, caminetti o altro);" crlf
-;		"mentre invece si considerano eventuali rientranze da pavimentare (come ripostigli e disimpegni)." crlf crlf
-;		"Dopo aver individuato lo spazio da pavimentare, analizziamone la forma." crlf 
-;		"Se questa si può ricondurre a una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, " crlf
-;		"allora è semplice calcolarla, ricordando che: " crlf
-;		"	* l'area di un quadrato si calcola elevando al quadrato il lato" crlf
-;		"	* l'area di un rettangolo si calcola moltiplicando la larghezza per la lunghezza" crlf
-;		"	* l'area di un triangolo si calcola moltiplicando la base per l'altezza e dividendo tutto per due" crlf
-;		"	* l'area di una cerchio si calcola con la formula 2πr, dove π = 3.14 e r = al raggio della circonferenza" crlf
-;		"	* l'area di una semicirconferenza si calcola con la formula (2πr)/2." crlf
-;		"Altrimenti si suddivide l'area in parti più piccole dalla forma riconducibile ad una di quelle precedenti 
-;		e si sommano i vari valori ottentuti." crlf 
-;		"Le misure ottenute sono espresse in metri quadri." crlf crlf)
-;
-;	(bind ?*help* "")
-;	(bind ?risposta (ask_number "Qual è quindi la dimensione in metri quadri dell'area da pavimentare?"))
-;	(assert (dimensioni_pavimento ?risposta))
-;
-;	(printout t crlf "In modo analogo si deve calcolare anche l'area complessiva del rivestimento." crlf)
-;	(bind ?risposta (ask_number "Qual è quindi la dimensione in metri quadri dell'area da rivestire?"))
-;	(assert (dimensioni_rivestimento ?risposta))
-;	(assert (controllo_superficie)))
-;
-;
-;;REGOLA QUANTITA' PIASTRELLE DA PRENDERE
-;(defrule quantità_piastrelle_pavimento
-;	(declare (salience ?*low_priority*))
-;	(disposizione ?disp)
-;	(dimensioni_pavimento ?dim)
-;	=>
-;	(switch ?disp
-;		(case diagonale then (format t "Devi prendere %d metri quadri%n!" (* ?dim 1.15)))
-;		(case sfalsata then (format t "Devi prendere %d metri quadri%n!" (* ?dim 1.10)))
-;		(case spina_di_pesce_dritta then (format t "Devi prendere %d metri quadri%n!" (* ?dim 1.10)))
-;		(case spina_di_pesce_obliqua then (format t "Devi prendere %d metri quadri%n!" (* ?dim 1.10)))
-;		(case dritta then (format t "Devi prendere %d metri quadri%n!" (* ?dim 1.10)))))
-;
 ;;(defrule stanza_piccola
 ;;	(declare (salience ?*low_priority*))
 ;;	(dimensioni_pavimento ?dim)
@@ -705,123 +676,3 @@
 ;;	(dimensioni_pavimento ?dim)
 ;;	=>
 ;;	(if (> ?dim 100) then (printout t crlf "Non conviene usare una piastrella troppo piccola poichè farebbe sembrare la stanza troppo grande" crlf)))
-;
-;(defrule rivestimento_da_togliere
-;	(declare (salience ?*lowest_priority*))
-;	(presenza_rivestimento TRUE)
-;	(rivestimento TRUE)
-;	=>
-;	(printout t crlf "Procedere alla rimozione del rivestimento." crlf ))
-;
-;(defrule domanda_posa_sopra_pavimento
-;	(declare (salience ?*low_priority*))
-;	(presenza_pavimento TRUE)
-;	(controllo_superficie)
-;	=>
-;	(printout t crlf "E' stato rilevato che un altro pavimento è presente." crlf)
-;	(bind ?*help* "La posa sopra il pavimento si realizza posando il nuovo pavimento sopra quello già esistente. 
-;		Bisognerà valutare bene questa scelta poichè bisognerà fare alcune modifiche come un accorciamento delle 
-;		porte, inoltre bisogna controllare che non vi siano piastrelle rialzate e che il pavimento sia a livello")
-;	(bind ?risposta (yes_or_no_p "Si vuole procedere alla posa sopra il pavimento esistente?")) 
-;	(assert (posa_sopra_pavimento ?risposta)))
-;
-;(defrule controllo_condizioni_pavimento
-;	(declare (salience ?*low_priority*))
-;	(posa_sopra_pavimento TRUE)
-;	=>
-;	(bind ?*help* "")
-;	(printout t crlf "Guarda con attenzione in ogni punto il pavimento già presente..." crlf)
-;	(bind ?risposta (yes_or_no_p "Ci sono piastrelle rialzate o non perfettamente aderenti?"))
-;	(assert (piastrelle_sollevate ?risposta))
-;
-;	(bind ?*help* "")
-;	(printout t crlf "Posa una stadia da un angolo all'opposto e poni su di essa un livello. Ripeti l'operazione in 
-;		diversi punti della stanza..." crlf)
-;	(bind ?risposta1 (yes_or_no_p "La stadia poggia perfettamente sul pavimento in tutte le misurazioni?"))
-;	(printout t crlf "Controlla la bolla d'aria presente sulla livella..." crlf)
-;	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. 
-;		Non interessa il verso.")
-;	(bind ?risposta2 (yes_or_no_p "La bolla d'aria sulla livella è in posizione centrale?"))
-;	(if (and ?risposta1 ?risposta2) then (assert (pavimento_non_livello FALSE)) else (assert (pavimento_non_livello TRUE))))
-;
-;(defrule pavimento_da_togliere_piastrelle_sollevate
-;	(declare (salience ?*low_priority*))
-;	?f <- (piastrelle_sollevate TRUE)
-;	(pavimento_non_livello FALSE)
-;	=>
-;	(retract ?f)
-;	(printout t crlf "Il pavimento versa in condizioni non idonee per effettuarci una posa sopra. Prima di procedere 
-;		nella posa " crlf 
-;				"occorre togliere le piastrelle non perfettamente aderenti e procedere ad un riempimento 
-;				con malta cementizia dei buchi creati." crlf)
-;	(assert (pavimento_rattoppo)))
-;
-;(defrule domanda_pavimento_riparato
-;	?f1 <- (pavimento_rattoppo)
-;	?f2 <- (controllo_superficie)
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta (yes_or_no_p "Hai provveduto a rattoppare il pavimento?"))
-;	(while (neq ?risposta TRUE) do
-;		(printout t "Togli le piastrelle non aderenti o sollevate e procedi al riempimento con malta cementizia 
-;			dei buchi" crlf)
-;		(bind ?risposta (yes_or_no_p "Hai finito con i rattoppi?")))
-;	(retract ?f1 ?f2)
-;	(assert (partenza)))
-;
-;;inserire retract se non vuole più porre sopra il pavimento vecchio
-;
-;(defrule pavimento_da_togliere_non_livello
-;	(declare (salience ?*low_priority*))
-;	?f1 <- (posa_sopra_pavimento TRUE)
-;	;?f2 <- (presenza_pavimento TRUE)
-; 	?f3 <- (pavimento_non_livello TRUE)
-;	=>
-;	(retract ?f1 ?f3)
-;	(printout t crlf "Il pavimento versa in condizioni non idonee per effettuarci una posa sopra. Procedere nella " crlf
-;					"rimozione e proseguire al controllo del massetto sottostante" crlf))
-;
-;(defrule pavimento_buone_condizioni
-;	?f1 <- (piastrelle_sollevate FALSE)
-;	?f2 <- (pavimento_non_livello FALSE)
-;	=>
-;	(retract ?f1 ?f2)
-;	(assert (partenza)))
-;
-;(defrule domanda_condizioni_massetto
-;	(declare (salience ?*lowest_priority*))
-;	?f <- (controllo_superficie)
-;	=>
-;	(retract ?f)
-;
-;	(bind ?*help* "")
-;	(printout t crlf "Posa una stadia da un angolo all'opposto e poni su di essa un livello. Ripeti l'operazione in 
-;		diversi punti della stanza..." crlf)
-;	(bind ?risposta1 (yes_or_no_p "La stadia poggia perfettamente sul pavimento in tutte le misurazioni?"))
-;	(printout t "Controlla la bolla d'aria presente sulla livella..." crlf)
-;	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non 
-;		interessa il verso.")
-;	(bind ?risposta2 (yes_or_no_p "La bolla d'aria sulla livella è in posizione centrale?"))
-;	(if (and ?risposta1 ?risposta2) then (assert (rifare_massetto FALSE)) else (assert (rifare_massetto TRUE))))
-;
-;(defrule rifare_massetto
-;	(declare (salience ?*low_priority*))
-;	?f <- (rifare_massetto TRUE)
-;	=>
-;	(retract ?f)
-;	(printout t crlf "Il massetto non è in condizione di potervi effettuare la posa di un pavimento sopra! Procedi 
-;		prima a rifare il massetto e poi riprendi.")
-;	(assert (partenza)))
-;
-;(defrule massetto_buone_condizioni
-;	(declare (salience ?*low_priority*))
-;	?f <- (rifare_massetto FALSE)
-;	=>
-;	(retract ?f)
-;	(assert (partenza)))
-;
-;(defrule partenza
-;	(declare (salience ?*low_priority*))
-;	(partenza)
-;	=>
-;	(printout t "partenzaaaaaa"))
