@@ -256,41 +256,6 @@
 	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno/cucina/altro" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
-(defrule domanda_formato_piastrella
-	(declare (salience ?*low_priority*))
-	(not (formato_piastrella ?))
-	=>
-	(bind ?*help* "In base al formato della piastrella alcuni tipi di posa non sono realizzabili.")
-	(bind ?risposta (ask_question "Qual è il formato della piastrella? (quadrata/rettangolare" quadrata rettangolare))
-	(assert (formato_piastrella ?risposta)))
-
-(defrule domanda_disposizione_piastrella_quadrata
-	(declare (salience ?*low_priority*))
-	(formato_piastrella quadrata)
-	(not (disposizione ?))
-	=>
-	(bind ?*help* "") ;TODO far vedere immagini
-	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta/sfalsata/diagonale" dritta sfalsata diagonale))
-	(assert (disposizione ?risposta)))
-
-(defrule domanda_disposizione_piastrella_rettangolare
-	(declare (salience ?*low_priority*))
-	(formato_piastrella rettangolare)
-	(not (disposizione ?))
-	=>
-	(bind ?*help* "") ;TODO far vedere immagini
-	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta/sfalsata/spina_di_pesce_dritta/spina_di_pesce_obliqua" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
-	(assert (disposizione ?risposta)))
-
-;TODO decidere se inserire, a causa delle disposizioni oblique che fanno cambiare come si deve porre la decorazione all'inizio!!
-(defrule domanda_decorazioni
-	(declare (salience ?*low_priority*))
-	(not (decorazioni ?))
-	=>
-	(bind ?*help* "In caso di presenza di realizzazione di un disegno con le piastrelle bisognerà partire proprio dalla loro posa e poi continuare con il resto del pavimento, che verrà raccordato ad esso.")
-	(bind ?risposta (yes_or_no_p "C'è da porre un rosone o un disegno in particolare?"))
-	(assert (decorazioni ?risposta)))
-
 (defrule domanda_presenza_pavimento
 	(declare (salience ?*low_priority*))
 	(not (presenza_pavimento ?))
@@ -309,7 +274,7 @@
 	(bind ?risposta (yes_or_no_p "E' già presente un rivestimento?"))
 	(assert (presenza_rivestimento ?risposta)))
 
-(defrule domanda_distanziatori
+(defrule domanda_distanziatori_pavimento
 	(declare (salience ?*lowest_priority*))
 	(not (dim_distanziatori ?))
 	=>
@@ -323,6 +288,35 @@
 
 
 ;----------------2° step-------------
+(defrule esterno_no_rivestimento ;se esterno allora nessun rivestimento
+	?f <- (step2)
+	(interno FALSE)
+	=>
+	(retract ?f)
+	(assert (pavimento TRUE))
+	(assert (rivestimento FALSE)))
+
+(defrule stanze_no_rivestimento ;se stanza diversa da cucina o bagno allora niente rivestimento
+	?f <- (step2)
+	(tipo_stanza altro)
+	=>
+	(retract ?f)
+	(assert (pavimento TRUE))
+	(assert (rivestimento FALSE)))
+
+(defrule domanda_rivestimento_pavimento ;domanda riguardo a cosa effettuare (pavimento, rivestimento o entrambi) nel caso di cucina o bagno
+	?f <- (step2)
+	(or (tipo_stanza bagno)
+		(tipo_stanza cucina))
+	=>
+	(retract ?f)
+	(bind ?*help* "Scegliere 'rivestimento' se il pavimento è in buono stato e non si desidera modificarlo, scegliere 'pavimento', se si vuole realizzare solo il pavimento, scegliere 'entrambi', se si vuole realizzare sia il pavimento che il rivestimento.")
+	(bind ?risposta (ask_question "Cosa devi realizzare? (rivestimento/pavimento/entrambi" rivestimento pavimento entrambi))
+	(switch ?risposta
+		(case rivestimento then (assert (rivestimento TRUE) (pavimento FALSE)))
+		(case pavimento then (assert (pavimento TRUE) (rivestimento FALSE)))
+		(case entrambi then (assert (pavimento TRUE) (rivestimento TRUE)))))
+
 (defrule attrezzi_necessari_rivestimento
 	(declare (salience ?*high_priority*))
 	(rivestimento TRUE)
@@ -371,36 +365,74 @@
 					"	* livella" crlf
 					"	* matite in legno da muratori" crlf crlf))
 
-(defrule esterno_no_rivestimento ;se esterno allora nessun rivestimento
-	?f <- (step2)
-	(interno FALSE)
+(defrule domanda_formato_piastrella_rivestimento
+	(not (formato_piastrella_rivestimento ?))
+	(rivestimento TRUE)
 	=>
-	(retract ?f)
-	(assert (pavimento TRUE))
-	(assert (rivestimento FALSE)))
+	(bind ?*help* "In base al formato della piastrella alcuni tipi di posa non sono realizzabili.")
+	(bind ?risposta (ask_question "Qual è il formato della piastrella per il rivestimento? (quadrata/rettangolare" quadrata rettangolare))
+	(assert (formato_piastrella_rivestimento ?risposta)))
 
-(defrule stanze_no_rivestimento ;se stanza diversa da cucina o bagno allora niente rivestimento
-	?f <- (step2)
-	(tipo_stanza altro)
+(defrule domanda_formato_piastrella_pavimento
+	(not (formato_piastrella_pavimento ?))
+	(pavimento TRUE)
 	=>
-	(retract ?f)
-	(assert (pavimento TRUE))
-	(assert (rivestimento FALSE)))
+	(bind ?*help* "In base al formato della piastrella alcuni tipi di posa non sono realizzabili.")
+	(bind ?risposta (ask_question "Qual è il formato della piastrella per il pavimento? (quadrata/rettangolare" quadrata rettangolare))
+	(assert (formato_piastrella_pavimento ?risposta)))
 
-(defrule domanda_rivestimento_pavimento ;domanda riguardo a cosa effettuare (pavimento, rivestimento o entrambi) nel caso di cucina o bagno
-	?f <- (step2)
-	(or (tipo_stanza bagno)
-		(tipo_stanza cucina))
+(defrule domanda_disposizione_piastrella_quadrata_pavimento
+	(formato_piastrella_pavimento quadrata)
+	(not (disposizione_pavimento ?))
 	=>
-	(retract ?f)
-	(bind ?*help* "Scegliere 'rivestimento' se il pavimento è in buono stato e non si desidera modificarlo, scegliere 'pavimento', se si vuole realizzare solo il pavimento, scegliere 'entrambi', se si vuole realizzare sia il pavimento che il rivestimento.")
-	(bind ?risposta (ask_question "Cosa devi realizzare? (rivestimento/pavimento/entrambi" rivestimento pavimento entrambi))
-	(switch ?risposta
-		(case rivestimento then (assert (rivestimento TRUE) (pavimento FALSE)))
-		(case pavimento then (assert (pavimento TRUE) (rivestimento FALSE)))
-		(case entrambi then (assert (pavimento TRUE) (rivestimento TRUE)))))
+	(bind ?*help* "") ;TODO far vedere immagini
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle scelta per il pavimento? (dritta/sfalsata/diagonale" dritta sfalsata diagonale))
+	(assert (disposizione_pavimento ?risposta)))
 
+(defrule domanda_disposizione_piastrella_rettangolare_pavimento
+	(formato_piastrella_pavimento rettangolare)
+	(not (disposizione_pavimento ?))
+	=>
+	(bind ?*help* "") ;TODO far vedere immagini
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle scelta per il pavimento? (dritta/sfalsata/spina_di_pesce_dritta/spina_di_pesce_obliqua" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
+	(assert (disposizione_pavimento ?risposta)))
+
+(defrule domanda_disposizione_piastrella_quadrata_rivestimento
+	(formato_piastrella_rivestimento quadrata)
+	(not (disposizione_rivestimento ?))
+	=>
+	(bind ?*help* "") ;TODO far vedere immagini
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle scelta per il rivestimento? (dritta/sfalsata/diagonale" dritta sfalsata diagonale))
+	(assert (disposizione_rivestimento ?risposta)))
+
+(defrule domanda_disposizione_piastrella_rettangolare_rivestimento
+	(formato_piastrella_rivestimento rettangolare)
+	(not (disposizione_rivestimento ?))
+	=>
+	(bind ?*help* "") ;TODO far vedere immagini
+	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle scelta per il rivestimento? (dritta/sfalsata/spina_di_pesce_dritta/spina_di_pesce_obliqua" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
+	(assert (disposizione_rivestimento ?risposta)))
+
+;TODO decidere se inserire, a causa delle disposizioni oblique che fanno cambiare come si deve porre la decorazione all'inizio!!
+(defrule domanda_decorazioni_pavimento
+	(not (decorazioni_pavimento ?))
+	(pavimento TRUE)
+	=>
+	(bind ?*help* "In caso di presenza di un disegno o di un rosone da realizzare con le piastrelle, bisognerà partire proprio dalla posa di tali piastrelle e poi continuare con il resto del pavimento, che verrà raccordato alle piastrelle appena poste.")
+	(bind ?risposta (yes_or_no_p "C'è da porre un rosone o un disegno in particolare nel pavimento?"))
+	(assert (decorazioni_pavimento ?risposta)))
+
+(defrule domanda_decorazioni_rivestimento
+	(not (decorazioni_rivestimento ?))
+	(rivestimento TRUE)
+	=>
+	(bind ?*help* "In caso di presenza di un disegno o di un rosone da realizzare con le piastrelle, bisognerà partire proprio dalla posa di tali piastrelle e poi continuare con il resto del pavimento, che verrà raccordato alle piastrelle appena poste.")
+	(bind ?risposta (yes_or_no_p "C'è da porre un rosone o un disegno in particolare nel rivestimento?"))
+	(assert (decorazioni_rivestimento ?risposta)))
+
+;------------3 step--------------
 (defrule rimozione_rivestimento  ;se è presente un rivestimento e quello che voglio fare è il rivestimento, allora bisogna toglierlo
+	(declare (salience ?*low_priority*))
 	?f <- (presenza_rivestimento TRUE)
 	(rivestimento TRUE)
 	=>
@@ -412,6 +444,7 @@
 	(assert (presenza_rivestimento FALSE)))        ;è stato tolto
 
 (defrule domanda_rivestimento_cucina  ;chiedere se fare il rivestimento di tutta la stanza o solo la parete dove sta la cucina o solo la fascia di parete visibile dietro la cucina
+	(declare (salience ?*low_priority*))
 	(tipo_stanza cucina)
 	(rivestimento TRUE)
 	=>
@@ -421,6 +454,7 @@
 	(assert (rivestimento_cucina ?risposta)))
 
 (defrule domanda_posa_sopra_pavimento  ;se il pavimento è presente e si è scelto di porre un nuovo pavimento, chiedere se fare la posa sopra il pavimento esistente
+	(declare (salience ?*low_priority*))
 	(pavimento TRUE)
 	(presenza_pavimento TRUE)
 	=>
@@ -490,6 +524,7 @@
 	(assert (presenza_pavimento FALSE)))
 
 (defrule domanda_controllo_massetto ;se il pavimento non c'è e si è scelti di effettuare la posa del pavimento, allora controllare il massetto
+	(declare (salience ?*low_priority*))
 	(presenza_pavimento FALSE)
 	(pavimento TRUE)
 	=>
@@ -521,13 +556,14 @@
 
 ;TODO ampliamento: aggiungere come si aggiusta un muro?
 (defrule domanda_controllo_muri_rivestimento  ;il rivestimento non c'è e si è deciso di farlo, allora si controllano se i muri sono a piombo
+	(declare (salience ?*low_priority*))
 	(presenza_rivestimento FALSE)
 	(rivestimento TRUE)
 	=>
 	(printout t crlf "Controllo se i muri sono a piombo..." crlf
 			"Prendi il filo a piombo. Prendi la rocchetta di cui è dotato e poggiala sulla parete da misurare..." crlf
 			"Vedi se il piombo (il peso) alla fine del filo è lontano dal muro, troppo vicino oppure si muove liberamente..." crlf
-			"Ripeti la procedura per ogni parete della stanza su cui stai lavorando...")
+			"Ripeti la procedura per ogni parete della stanza su cui stai lavorando..." crlf)
         (bind ?risposta (yes_or_no_p "Tutti i muri sono a piombo?"))
         (while (not ?risposta) do 
                 (printout t crlf "Non puoi proseguire nella posa del rivestimento. Devi prima riparare i muri!" crlf)
