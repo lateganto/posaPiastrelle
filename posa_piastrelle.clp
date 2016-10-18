@@ -86,6 +86,7 @@
 
 (defrule chiedi_esperto
 	=>
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Hai mai realizzato prima d'ora la posa di un pavimento?"))
 	(assert (utente_esperto ?risposta)))
 
@@ -115,6 +116,7 @@
 	(retract ?d)
 	(assert (domanda (numero 1)))
 	(assert (inizia_domande))   ;;;controllare se corretto!!
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Sai cos'è un frattazzo dentellato?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -129,6 +131,7 @@
 	(retract ?d)
 	(assert (domanda (numero 2)))
 	(assert (inizia_domande))
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Hai mai usato la livella?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -143,6 +146,7 @@
 	(retract ?d)
 	(assert (domanda (numero 3)))
 	(assert (inizia_domande))
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Sai calcolare se un muro è a squadro?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -157,6 +161,7 @@
 	(retract ?d)
 	(assert (domanda (numero 4)))
 	(assert (inizia_domande))
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Sai cos'è la mazza in gomma?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -171,6 +176,7 @@
 	(retract ?d)
 	(assert (domanda (numero 5)))
 	(assert (inizia_domande))
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Sai cosa è un distanziatore e a che serve?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -185,6 +191,7 @@
 	(retract ?d)
 	(assert (domanda (numero 6)))
 	(assert (inizia_domande))
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Sai a cosa serve la tenaglia da piastrellista?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -199,6 +206,7 @@
 	(retract ?d)
 	(assert (domanda (numero 7)))
 	(assert (inizia_domande))
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Sai usare una tagliapiastrelle?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -213,6 +221,7 @@
 	(retract ?d)
 	(assert (domanda (numero 8)))
 	(assert (inizia_domande))
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Hai mai usato una smerigliatrice angolare?"))
 	(modify ?f2 (numero (+ ?x2 1)))
 	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
@@ -273,7 +282,7 @@
 	(bind ?risposta (ask_question "Qual è la disposizione delle piastrelle? (dritta/sfalsata/spina_di_pesce_dritta/spina_di_pesce_obliqua" dritta sfalsata spina_di_pesce_dritta spina_di_pesce_obliqua))
 	(assert (disposizione ?risposta)))
 
-;decidere se inserire, a causa delle disposizioni oblique che fanno cambiare come si deve porre la decorazione all'inizio!!
+;TODO decidere se inserire, a causa delle disposizioni oblique che fanno cambiare come si deve porre la decorazione all'inizio!!
 (defrule domanda_decorazioni
 	(declare (salience ?*low_priority*))
 	(not (decorazioni ?))
@@ -306,11 +315,62 @@
 	=>
 	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica con forma a T o a croce che si pongono tra due piastrelle in modo da mantenere sempre la stessa distanza.")
 	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?"))
+	(while (or (< ?risposta 1) (> ?risposta 10)) do 
+		(printout t crlf "La dimensione deve essere compresa tra 1 e 10" crlf)
+		(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori in millimetri?")))
 	(assert (dim_distanziatori ?risposta))
 	(assert (step2)))  ;prosegui alla successiva fase
 
 
 ;----------------2° step-------------
+(defrule attrezzi_necessari_rivestimento
+	(declare (salience ?*high_priority*))
+	(rivestimento TRUE)
+	=>
+	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
+					"	* tagliapiastrelle (manuale o elettrica)" crlf
+					"	* smerigliatrie angolare (grande e piccola)" crlf
+					"	* tenaglia per piastrelle" crlf
+					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
+					"	* colla" crlf
+					"	* fugante" crlf
+					"	* spatola liscia" crlf
+					"	* frattazzo dentellato" crlf
+					"	* 2-3 secchi da muratore" crlf
+					"	* stadie di alluminio (varie dimensioni da 1 fino a 3 metri)" crlf
+					"	* mazza in gomma" crlf
+					"	* frattazzo in pugna" crlf
+					"	* secchio lavaggio per piastrellisti" crlf
+					"	* distanziatori" crlf
+					"	* squadra in acciaio per carpentieri" crlf
+					"	* livella" crlf
+					"	* matite in legno da muratori" crlf
+					"	* profili angolari (in numero pari agli angoli presenti nella stanza)" crlf
+					"	* filo a piombo" crlf crlf))
+
+(defrule attrezzi_necessari
+	(declare (salience ?*high_priority*))
+	(rivestimento FALSE)
+	=>
+	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
+					"	* tagliapiastrelle (manuale o elettrica)" crlf
+					"	* smerigliatrie angolare (grande e piccola)" crlf
+					"	* tenaglia per piastrelle" crlf
+					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
+					"	* colla" crlf
+					"	* fugante" crlf
+					"	* spatola liscia" crlf
+					"	* frattazzo dentellato" crlf
+					"	* 2-3 secchi da muratore" crlf
+					"	* stadie di alluminio (varie dimensioni da 1 fino a 3 metri)" crlf
+					"	* mazza in gomma" crlf
+					"	* frattazzo in pugna" crlf
+					"	* secchio lavaggio per piastrellisti" crlf
+					"	* distanziatori" crlf
+					"	* squadra in acciaio per carpentieri" crlf
+					"	* livella" crlf
+					"	* matite in legno da muratori" crlf crlf))
+
 (defrule esterno_no_rivestimento ;se esterno allora nessun rivestimento
 	?f <- (step2)
 	(interno FALSE)
@@ -340,34 +400,35 @@
 		(case pavimento then (assert (pavimento TRUE) (rivestimento FALSE)))
 		(case entrambi then (assert (pavimento TRUE) (rivestimento TRUE)))))
 
-(defrule rimozione_rivestimento  ;se è presente un rivestimento bisogna toglierlo
+(defrule rimozione_rivestimento  ;se è presente un rivestimento e quello che voglio fare è il rivestimento, allora bisogna toglierlo
 	?f <- (presenza_rivestimento TRUE)
 	(rivestimento TRUE)
 	=>
 	(printout t crlf "Procedi alla rimozione del rivestimento" crlf)
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Hai rimosso il rivestimento?"))
 	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai rimosso il rivestimento?")))
-	(retract ?f)
-	(assert (presenza_rivestimento FALSE)))
+	(retract ?f)                                   ;il rivestimento
+	(assert (presenza_rivestimento FALSE)))        ;è stato tolto
 
-(defrule domanda_rivestimento_cucina  ;chiedere se fare il rivestimento di tutta la stanza o solo la parete dove sta la cucina o solo la fascia di parete visibili dietro la cucina
+(defrule domanda_rivestimento_cucina  ;chiedere se fare il rivestimento di tutta la stanza o solo la parete dove sta la cucina o solo la fascia di parete visibile dietro la cucina
 	(tipo_stanza cucina)
 	(rivestimento TRUE)
 	=>
 	(printout t crlf "La stanza in cui fare il lavoro è una cucina ed è stato scelto di effettuare il rivestimento" crlf)
-	(bind ?*help* = "")
-	(bind ?risposta (ask_question "Vuoi rivestire tutta la cucina o solo la parte dove andrà posta la cucina? (tutta/solo_parete" tutta solo_parete))
+	(bind ?*help* = "Si può decidere di rivestire solo la parete (o le pareti) dove andrà posta la cucina in modo da poter pitturare come si vuole le pareti restanti, oppure si potrebbe decidere di rivestire le pareti in un altro modo.")
+	(bind ?risposta (ask_question "Vuoi rivestire tutta le pareti della cucina o solo la parete (o le pareti) dove andrà posta la cucina? (tutta/solo_parete" tutta solo_parete))
 	(assert (rivestimento_cucina ?risposta)))
 
-(defrule domanda_posa_sopra_pavimento
+(defrule domanda_posa_sopra_pavimento  ;se il pavimento è presente e si è scelto di porre un nuovo pavimento, chiedere se fare la posa sopra il pavimento esistente
 	(pavimento TRUE)
 	(presenza_pavimento TRUE)
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Effettuare la posa del nuovo pavimento sopra uno già esistente. Tuttavia occorre valutare bene la scelta poichè si dovrebbero fare alcune modifiche alle porte, in quanto il piano verrà rialzato. Inoltre ci potrebbe essere un dislivello nel caso in cui il pavimento da porre nella stanza è collegato con un altro.")
 	(bind ?risposta (yes_or_no_p "Vuoi effettuare la posa sopra il pavimento esistente?"))
 	(assert (posa_sopra_pavimento ?risposta)))
 
-(defrule domanda_condizioni_pavimento
+(defrule domanda_condizioni_pavimento  ;se si è scelti la posa sopra, verificare le condizioni del pavimento presente
 	(posa_sopra_pavimento TRUE)
 	=>
 	(bind ?*help* "")
@@ -375,99 +436,139 @@
 	(bind ?risposta (yes_or_no_p "Ci sono piastrelle rialzate o non perfettamente aderenti?"))
 	(assert (piastrelle_sollevate ?risposta))
 
-	(bind ?*help* "")
-	(printout t crlf "Posa una stadia da un angolo all'opposto e poni su di essa un livello. Ripeti l'operazione in diversi punti della stanza..." crlf)
-	(bind ?risposta1 (yes_or_no_p "Ci sono punti in cui la stadia è lontana dal pavimento più di 2 cm?"))
-	(printout t crlf "Controlla la bolla d'aria presente sulla livella..." crlf)
-	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
-	(bind ?risposta2 (yes_or_no_p "La bolla d'aria sulla livella è nella posizione centrale?"))
+        (bind ?*help* "")
+        (printout t crlf "Posa una stadia sul pavimento da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
+                "Controlla se ci sono punti in cui la stadia si allontana dal pavimento di diversi centimetri..." crlf
+                "Controlla se la bolla d'aria sul livello si trova nella posizione centrale..." crlf
+                "Ripeti l'operazione diverse volte in modo da coprire tutta l'area da pavimentare e poi rispondi alle seguenti domande..." crlf)
+        (bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal pavimento di diversi centimetri?"))
+        (bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
+        (bind ?risposta2 (yes_or_no_p "Nelle varie misurazioni fatte la bolla d'aria sulla livella era sempre nella posizione centrale?"))
 	(if (and (not ?risposta1) ?risposta2) then (assert (pavimento_livello TRUE)) else (assert (pavimento_livello FALSE))))
 
+;TODO ampliamento: come si fa la malta cementizia e come riempire i buchi
 (defrule piastrelle_sollevate ;se ci sono piastrelle sollevate falle aggiustare e poi inizia la posa
-	(piastrelle_sollevate TRUE)
-	(pavimento_livello TRUE)  ;il pavimento deve essere a livello
+	?f <- (piastrelle_sollevate TRUE)
+	?f1 <- (pavimento_livello TRUE)  ;il pavimento deve essere a livello
 	=>
 	(printout t crlf "Procedere alla rimozione di tali piastrelle rialzate o non aderenti e riempire i buchi creati con malta cementizia." crlf)
-	(assert (inizio_posa)))
+	(bind ?*help* = "")
+	(bind ?risposta (yes_or_no_p "Hai rattoppato il vuoto creato dalle piastrelle eliminate?"))
+	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai rattoppato il vuoto creato dalle piastrelle eliminate?")))
+	(retract ?f ?f1) ;piastrelle non più sollevate
+	(assert (ok_inizio_pavimento)))
 
-(defrule piastrelle_non_sollevate
-	(piastrelle_sollevate FALSE)
-	(pavimento_livello TRUE)
+(defrule piastrelle_non_sollevate ;se le piastrelle non sono sollevate e il pavimento è a livello procedi con la posa del pavimento
+	?f <- (piastrelle_sollevate FALSE)
+	?f1 <- (pavimento_livello TRUE)
 	=>
-	(assert (inizio_posa)))
+	(retract ?f ?f1)
+	(assert (ok_inizio_pavimento)))
 
+;TODO spiegazione: spiegare come rimuovere pavimento 
 (defrule pavimento_non_livello ;non si può fare la posa sopra il pavimento perchè non a livello
-	(pavimento_livello FALSE)
+	?f1 <- (pavimento_livello FALSE)
 	?f <- (presenza_pavimento TRUE)
 	=>
 	(printout t crlf "Il pavimento non è in condizioni tali da potervi effettuare una posa sopra. Procedere alla rimozione e proseguire." crlf)
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Hai rimosso il pavimento?"))
 	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai rimosso il pavimento?")))
-	(retract ?f)
+	(retract ?f ?f1)  ;rimuovo il pavimento
 	(assert (presenza_pavimento FALSE)))
 
-(defrule posa_sopra_pavimento_false
-	(posa_sopra_pavimento FALSE)
+;TODO spiegazione: spiegare come rimuovere pavimento 
+(defrule posa_sopra_pavimento_false ;se non si opta per la posa sopra si elimina il pavimento
+	?f1 <- (posa_sopra_pavimento FALSE)
 	?f <- (presenza_pavimento TRUE)
 	=>
 	(printout t crlf "Occorre procedere alla rimozione del pavimento..." crlf)
+	(bind ?*help* = "")
 	(bind ?risposta (yes_or_no_p "Hai rimosso il pavimento?"))
 	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai rimosso il pavimento?")))
-	(retract ?f)
+	(retract ?f ?f1)  ;rimuovo il pavimento
 	(assert (presenza_pavimento FALSE)))
 
-(defrule domanda_controllo_massetto
+(defrule domanda_controllo_massetto ;se il pavimento non c'è e si è scelti di effettuare la posa del pavimento, allora controllare il massetto
 	(presenza_pavimento FALSE)
+	(pavimento TRUE)
 	=>
 	(bind ?*help* "")
-	(printout t crlf "Posa una stadia da un angolo all'opposto e poni su di essa un livello. Ripeti l'operazione in diversi punti della stanza..." crlf)
-	(bind ?risposta1 (yes_or_no_p "Ci sono punti in cui la stadia è lontana dal pavimento più di 2 cm?"))
-	(printout t crlf "Controlla la bolla d'aria presente sulla livella..." crlf)
+	(printout t crlf "Posa una stadia sul pavimento da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
+                "Controlla se ci sono punti in cui la stadia si allontana dal pavimento di diversi centimetri..." crlf
+                "Controlla se la bolla d'aria sul livello si trova nella posizione centrale..." crlf
+                "Ripeti l'operazione diverse volte in modo da coprire tutta l'area da pavimentare e poi rispondi alle seguenti domande..." crlf)
+	(bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal pavimento di diversi centimetri?"))
 	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
-	(bind ?risposta2 (yes_or_no_p "La bolla d'aria sulla livella è nella posizione centrale?"))
+	(bind ?risposta2 (yes_or_no_p "Nelle varie misurazioni fatte la bolla d'aria sulla livella era sempre nella posizione centrale?"))
 	(if (and (not ?risposta1) ?risposta2) then (assert (massetto_livello TRUE)) else (assert (massetto_livello FALSE))))
 
-(defrule massetto_a_livello
-	(massetto_livello TRUE)
+(defrule massetto_a_livello  ;il massetto è a livello, quindi inizio
+	?f <- (massetto_livello TRUE)
 	=>
-	(assert (inizio_posa)))
+        (retract ?f)
+	(assert (ok_inizio_pavimento)))
 
-(defrule massetto_non_livello
-	(massetto_livello FALSE)
+;TODO ampliamento: aggiungere come si aggiusta il massetto?
+(defrule massetto_non_livello  ;il massetto non è a livello, aggiustarlo prima
+        (massetto_livello FALSE)
 	=>
-	(printout t crlf "Il massetto non è a livello, quindi occorre prima aggiustarlo e poi proseguire.")
-	(assert (inizio_posa)))
+	(printout t crlf "Il massetto non è a livello, quindi occorre prima aggiustarlo e poi proseguire." crlf)
+	(bind ?*help* = "")
+	(bind ?risposta (yes_or_no_p "Hai aggiustato il massetto?"))
+	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai aggiustato il massetto?")))
+	(assert (ok_inizio_pavimento)))
 
+;TODO ampliamento: aggiungere come si aggiusta un muro?
+(defrule domanda_controllo_muri_rivestimento  ;il rivestimento non c'è e si è deciso di farlo, allora si controllano se i muri sono a piombo
+	(presenza_rivestimento FALSE)
+	(rivestimento TRUE)
+	=>
+	(printout t crlf "Controllo se i muri sono a piombo..." crlf
+			"Prendi il filo a piombo. Prendi la rocchetta di cui è dotato e poggiala sulla parete da misurare..." crlf
+			"Vedi se il piombo (il peso) alla fine del filo è lontano dal muro, troppo vicino oppure si muove liberamente..." crlf
+			"Ripeti la procedura per ogni parete della stanza su cui stai lavorando...")
+        (bind ?risposta (yes_or_no_p "Tutti i muri sono a piombo?"))
+        (while (not ?risposta) do 
+                (printout t crlf "Non puoi proseguire nella posa del rivestimento. Devi prima riparare i muri!" crlf)
+                (bind ?risposta (yes_or_no_p "Tutti i muri sono a piombo?")))
+        (assert (ok_inizio_rivestimento)))
+
+
+;(defrule pavimento_e_rivestimento  ;chiedere all'utente cosa fare prima, nel caso in cui ci sia da fare sia pavimento che rivestimento
+;	(rivestimento TRUE)
+;	(pavimento TRUE)
+;	(pavimento)
+;	) 
 ;-----------------INIZIO-------------------
-(defrule attrezzi_necessari
-	?i <- (inizio_posa)
-	?r <- (rivestimento ?v)
-	=>
-	(retract ?i)
-	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
-					"	* tagliapiastrelle (manuale o elettrica)" crlf
-					"	* smerigliatrie angolare (grande e piccola)" crlf
-					"	* tenaglia per piastrelle" crlf
-					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
-					"	* colla" crlf
-					"	* fugante" crlf
-					"	* spatola liscia" crlf
-					"	* frattazzo dentellato" crlf
-					"	* 2-3 secchi da muratore" crlf
-					"	* stadie di alluminio (varie dimensioni da 1 fino a 3 metri)" crlf
-					"	* mazza in gomma" crlf
-					"	* frattazzo in pugna" crlf
-					"	* secchio lavaggio per piastrellisti" crlf
-					"	* distanziatori" crlf
-					"	* squadra in acciaio per carpentieri" crlf
-					"	* livella" crlf
-					"	* matite legno da muratori" crlf)
-	(if ?v then (printout t 
-					"	* profili angolari (in numero pari agli angoli presenti nella stanza)" crlf
-					"	* piombo" crlf))
-	(printout t crlf)
-	(assert (calcolo_metri_quadri)))
+;(defrule attrezzi_necessari
+;	?i <- (inizio_posa)
+;	?r <- (rivestimento ?v)
+;	=>
+;	(retract ?i)
+;	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
+;					"	* tagliapiastrelle (manuale o elettrica)" crlf
+;					"	* smerigliatrie angolare (grande e piccola)" crlf
+;					"	* tenaglia per piastrelle" crlf
+;					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
+;					"	* colla" crlf
+;					"	* fugante" crlf
+;					"	* spatola liscia" crlf
+;					"	* frattazzo dentellato" crlf
+;					"	* 2-3 secchi da muratore" crlf
+;					"	* stadie di alluminio (varie dimensioni da 1 fino a 3 metri)" crlf
+;					"	* mazza in gomma" crlf
+;					"	* frattazzo in pugna" crlf
+;					"	* secchio lavaggio per piastrellisti" crlf
+;					"	* distanziatori" crlf
+;					"	* squadra in acciaio per carpentieri" crlf
+;					"	* livella" crlf
+;					"	* matite legno da muratori" crlf)
+;	(if ?v then (printout t 
+;					"	* profili angolari (in numero pari agli angoli presenti nella stanza)" crlf
+;					"	* piombo" crlf))
+;	(printout t crlf)
+;	(assert (calcolo_metri_quadri)))
 					
 
 ;(defrule calcolo_metri_quadri_solo_pavimento
