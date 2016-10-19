@@ -26,7 +26,7 @@
 	(while (not (member ?answer ?allowed_values)) do
 		(if (or (eq ?answer help) (eq ?answer h))
 	  			then (if (eq (length$ ?*help*) 0)
-		  				then (printout t "No help found!" crlf)
+		  				then (printout t "Non è presente alcun help!" crlf)
 		  				else (printout t ?*help* crlf)))
 		(printout t ?question "/help/h): ")
 	    (bind ?answer (read))
@@ -51,7 +51,7 @@
 	(while (not (numberp ?answer)) do  ;check if answer is a NUMBER
 		(if (or (eq ?answer help) (eq ?answer h))
 	  			then (if (eq (length$ ?*help*) 0)
-		  				then (printout t "No help found!" crlf)
+		  				then (printout t "Non è presente alcun help!" crlf)
 		  				else (printout t ?*help* crlf)))
 		(printout t ?question " (help/h): ")
 	    (bind ?answer (read)))
@@ -292,6 +292,21 @@
 	(assert (pavimento TRUE))
 	(assert (rivestimento FALSE)))
 
+(defrule pavimento_non_presente  ;regola relativa a quando il pavimento non è presente, quindi bisognerebbe farlo mentre l'utente ha deciso di non farlo.
+	?f <- (pavimento FALSE)
+	(presenza_pavimento FALSE)
+	=>
+	(printout t crlf "Il pavimento non è presente però hai scelto di non realizzarlo, forse dovresti fare anche il pavimento!" crlf)
+	(bind ?risposta (yes_or_no_p "Vuoi quindi realizzare anche il pavimento?"))
+	(if ?risposta then (retract ?f) (assert (pavimento TRUE))))
+
+(defrule condizioni_muri  ;regola per chiedere le condizioni dei muri quando il rivestimento è stato tolto o non è presente e non si intende farlo
+	(presenza_rivestimento FALSE)
+	(rivestimento FALSE)
+	=>
+	(bind ?risposta (yes_or_no_p "I muri necessitano di lavori per essere rimessi a nuovo?"))
+	(assert (rifare_muri ?risposta)))
+
 (defrule domanda_rivestimento_pavimento ;domanda riguardo a cosa effettuare (pavimento, rivestimento o entrambi) nel caso di cucina o bagno
 	?f <- (step2)
 	(or (tipo_stanza bagno)
@@ -372,7 +387,7 @@
 	=>
 	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
 					"	* tagliapiastrelle (manuale o elettrica)" crlf
-					"	* smerigliatrie angolare (grande e piccola)" crlf
+					"	* smerigliatrice angolare (grande e piccola)" crlf
 					"	* tenaglia per piastrelle" crlf
 					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
 					"	* spatola liscia" crlf
@@ -403,7 +418,7 @@
 	=>
 	(printout t crlf crlf "Assicurati di procurarti tutti questi attrezzi: " crlf
 					"	* tagliapiastrelle (manuale o elettrica)" crlf
-					"	* smerigliatrie angolare (grande e piccola)" crlf
+					"	* smerigliatrice angolare (grande e piccola)" crlf
 					"	* tenaglia per piastrelle" crlf
 					"	* 2-3 cazzuole (almeno una piccola a punta)" crlf
 					"	* spatola liscia" crlf
@@ -542,7 +557,7 @@
 	(pavimento TRUE)
 	(presenza_pavimento TRUE)
 	=>
-	(bind ?*help* "Effettuare la posa del nuovo pavimento sopra uno già esistente. Tuttavia occorre valutare bene la scelta poichè si dovrebbero fare alcune modifiche alle porte, in quanto il piano verrà rialzato. Inoltre ci potrebbe essere un dislivello nel caso in cui il pavimento da porre nella stanza è collegato con un altro.")
+	(bind ?*help* "Effettuare la posa del nuovo pavimento sopra uno già esistente. Tuttavia occorre valutare bene la scelta poiché si dovrebbero fare alcune modifiche alle porte, in quanto il piano verrà rialzato. Inoltre ci potrebbe essere un dislivello nel caso in cui il pavimento da porre nella stanza è collegato con un altro.")
 	(bind ?risposta (yes_or_no_p "Vuoi effettuare la posa sopra il pavimento esistente?"))
 	(assert (posa_sopra_pavimento ?risposta)))
 
