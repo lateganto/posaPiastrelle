@@ -17,7 +17,7 @@
 ;--------------FUNCTIONS------------
 (deffunction ask_question (?question $?allowed_values)
 	(insert$ ?allowed_values 1 help h)
-	(printout t ?question "/help/h): ")
+	(printout t crlf ?question "/help/h): ")
 	(bind ?answer (read))
 
 	(if (lexemep ?answer)
@@ -28,7 +28,7 @@
 	  			then (if (eq (length$ ?*help*) 0)
 		  				then (printout t "Non è presente alcun help!" crlf)
 		  				else (printout t ?*help* crlf)))
-		(printout t ?question "/help/h): ")
+		(printout t crlf ?question "/help/h): ")
 	    (bind ?answer (read))
 	    (if (lexemep ?answer) 
 			then (bind ?answer (lowcase ?answer))))
@@ -42,7 +42,7 @@
          else FALSE))
 
 (deffunction ask_number (?question)
-	(printout t ?question " (help/h): ")
+	(printout t crlf ?question " (help/h): ")
 	(bind ?answer (read))
 
 	(if (lexemep ?answer)
@@ -53,7 +53,7 @@
 	  			then (if (eq (length$ ?*help*) 0)
 		  				then (printout t "Non è presente alcun help!" crlf)
 		  				else (printout t ?*help* crlf)))
-		(printout t ?question " (help/h): ")
+		(printout crlf t ?question " (help/h): ")
 	    (bind ?answer (read)))
 	 ?answer)
 
@@ -264,6 +264,7 @@
 	(bind ?risposta (yes_or_no_p "E' già presente un pavimento?"))
 	(assert (presenza_pavimento ?risposta)))
 
+;TODO remember: la domanda se un rivestimento è presente viene fatta solo se il tipo di stanza è un bagno o una cucina
 (defrule domanda_presenza_rivestimento
 	(declare (salience ?*lowest_priority*))
 	(not (presenza_rivestimento ?))
@@ -458,6 +459,18 @@
 	(bind ?risposta (ask_question "Qual è il formato della piastrella per il pavimento? (quadrata/rettangolare" quadrata rettangolare))
 	(assert (formato_piastrella_pavimento ?risposta)))
 
+(defrule domanda_spessore_piastrella_pavimento
+	(pavimento TRUE)
+	(not (spessore_piastrella_pavimento ?))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (ask_number "Qual'è la dimensione in millimetri dello spessore della piastrella scelta per il pavimento?"))
+	(while (or (< ?risposta 1) (> ?risposta 10)) do 
+		(if (< ?risposta 1) then (printout t crlf "La dimensione è troppo piccola!" crlf))
+		(if (> ?risposta 10) then (printout t crlf "La dimensione è troppo grande!" crlf))
+		(bind ?risposta (ask_number "Qual'è la dimensione in millimetri dello spessore della piastrella scelta per il pavimento?")))
+	(assert (spessore_piastrella_pavimento ?risposta)))
+
 (defrule domanda_distanziatori_pavimento
 	(not (dim_distanziatori_pavimento ?))
 	(pavimento TRUE)
@@ -465,7 +478,7 @@
 	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica con forma a T o a croce che si pongono tra due piastrelle in modo da mantenere sempre la stessa distanza.")
 	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il pavimento in millimetri?"))
 	(while (or (< ?risposta 1) (> ?risposta 10)) do 
-		(printout t crlf "La dimensione deve essere compresa tra 1 e 10" crlf)
+		(printout t crlf "La dimensione deve essere compresa tra 1 e 10!" crlf)
 		(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il pavimento in millimetri?")))
 	(assert (dim_distanziatori_pavimento ?risposta)))  ;prosegui alla successiva fase
 
@@ -476,7 +489,7 @@
 	(bind ?*help* "I distanziatori sono quei piccoli pezzi di plastica con forma a T o a croce che si pongono tra due piastrelle in modo da mantenere sempre la stessa distanza.")
 	(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il rivestimento in millimetri?"))
 	(while (or (< ?risposta 1) (> ?risposta 10)) do 
-		(printout t crlf "La dimensione deve essere compresa tra 1 e 10" crlf)
+		(printout t crlf "La dimensione deve essere compresa tra 1 e 10!" crlf)
 		(bind ?risposta (ask_number "Qual è la dimensione dei distanziatori per il rivestimento in millimetri?")))
 	(assert (dim_distanziatori_rivestimento ?risposta)))
 
@@ -542,6 +555,7 @@
 	(retract ?f)                                   ;il rivestimento
 	(assert (presenza_rivestimento FALSE)))        ;è stato tolto
 
+;TODO ampliamento: indicare anche la possibilità di rivestire solo la fascia di muro non coperta dalla cucina
 (defrule domanda_rivestimento_cucina  ;chiedere se fare il rivestimento di tutta la stanza o solo la parete dove sta la cucina o solo la fascia di parete visibile dietro la cucina
 	(declare (salience ?*low_priority*))
 	(tipo_stanza cucina)
@@ -556,10 +570,23 @@
 	(declare (salience ?*low_priority*))
 	(pavimento TRUE)
 	(presenza_pavimento TRUE)
+	(presenza_rivestimento TRUE) 	;non chiedere la posa sopra se è presente un rivestimento
+	(rivestimento FALSE)			;ed è stato stabilito di fare solo il pavimento
 	=>
 	(bind ?*help* "Effettuare la posa del nuovo pavimento sopra uno già esistente. Tuttavia occorre valutare bene la scelta poiché si dovrebbero fare alcune modifiche alle porte, in quanto il piano verrà rialzato. Inoltre ci potrebbe essere un dislivello nel caso in cui il pavimento da porre nella stanza è collegato con un altro.")
 	(bind ?risposta (yes_or_no_p "Vuoi effettuare la posa sopra il pavimento esistente?"))
 	(assert (posa_sopra_pavimento ?risposta)))
+
+;In una cucina (a meno che non ci sia il rivestimento solo di una piccola fascia) o in un bagno, se si decide di fare solo il pavimento e un rivestimento è già presente, allora bisogna fare in modo che il pavimento vada a combaciare precisamente con il rivestimento presente.
+(defrule stanza_rivestita_da_fare_solo_pavimento
+	(pavimento TRUE)
+	(presenza_rivestimento TRUE)
+	(rivestimento FALSE)
+	;(not (rivestimento solo_fascia))  ;per il caso della cucina
+	=>
+	(printout t crlf "E' presente un rivestimento ma si è deciso di fare solo il pavimento" crlf
+					"Bisogna procedere alla rimozione del pavimento e al controllo del massetto" crlf)
+	(assert (posa_sopra_pavimento FALSE)))  ;non è possibile quindi fare la posa sopra il pavimento
 
 (defrule domanda_condizioni_pavimento  ;se si è scelti la posa sopra, verificare le condizioni del pavimento presente
 	(posa_sopra_pavimento TRUE)
@@ -622,20 +649,71 @@
 	(retract ?f ?f1)  ;rimuovo il pavimento
 	(assert (presenza_pavimento FALSE)))
 
-(defrule domanda_controllo_massetto ;se il pavimento non c'è e si è scelti di effettuare la posa del pavimento, allora controllare il massetto
-	(declare (salience ?*low_priority*))
+(defrule domanda_controllo_massetto_pavimento_rivestimento_presente
+	(declare (salience ?*high_priority*))
 	(presenza_pavimento FALSE)
 	(pavimento TRUE)
+	(rivestimento FALSE)			;il rivestimento è presente 
+	(presenza_rivestimento TRUE)	;ma non lo si deve fare
+	(spessore_piastrella_pavimento ?spessore)
 	=>
-	(bind ?*help* "")
+	(printout t crlf "Bisogna controllare il massetto che deve essere a livello e fatto in modo tale che con la posa del pavimento esso sia a livello con il pavimento che si dovrà realizzare o che è già presente in un'altra stanza..." crlf)
+	(format t "%nLo spessore della piastrella è di %dmm%n" ?spessore)
+	(printout t "Lo spessore della colla sarà di 3mm" crlf)
+	(bind ?dim_pavimento (+ spessore 3))
+	(format t "Il pavimento avrà uno spessore totale di %d mm%n" ?dim_pavimento)
+
 	(printout t crlf "Posa una stadia sul pavimento da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
                 "Controlla se ci sono punti in cui la stadia si allontana dal pavimento di diversi centimetri..." crlf
                 "Controlla se la bolla d'aria sul livello si trova nella posizione centrale..." crlf
                 "Ripeti l'operazione diverse volte in modo da coprire tutta l'area da pavimentare e poi rispondi alle seguenti domande..." crlf)
+	(bind ?*help* "")
+	(bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal pavimento di diversi centimetri?"))
+	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
+	(bind ?risposta2 (yes_or_no_p "Nelle varie misurazioni fatte la bolla d'aria sulla livella era sempre nella posizione centrale?"))
+
+	(bind ?massettolivello (and (not ?risposta1) ?risposta2))
+	(if ?massettolivello then (assert (massetto_livello TRUE)) else (assert (massetto_livello FALSE)))
+
+	(bind ?risposta (yes_or_no_p "La stanza è collegata ad un'altra con pavimento già presente oppure nello stesso piano ci sono pavimenti già posati con cui ci si deve raccordare? (Cioè il pavimento da realizzare sarà collegato anche se non direttamente a quello di un'altra stanza)"))
+	(if (and ?risposta ?massettolivello)
+		then 	(format t "%nIl massetto è a livello ma bisogna controllare che sia %dmm sotto la superficie del pavimento collegato%n" ?dim_pavimento)
+			(format t "Inoltre, se il massetto è preciso, bisogna controllare che lo spessore del pavimento che si deve posare (che si ottiene aggiungendo %dmm dal massetto) vada a coprire senza lasciare spazi in basso il rivestimento già presente!")
+
+			(assert (massetto_rivestimento_livello (yes_or_no_p "Il massetto è della dimensione giusta sotto il pavimento e considerando la posa del pavimento sopra va a coprire il rivestimento già presente?")))
+		else 	(if (massettolivello)
+				then (format t "%nIl massetto è a livello ma bisogna controllare che sia %dmm sotto la superficie del pavimento collegato%n" ?dim_pavimento)))
+
+
+	)
+
+(defrule domanda_controllo_livello_massetto ;se il pavimento non c'è, il rivestimento non si deve fare e si è scelti di effettuare la posa del pavimento, allora controllare il massetto
+	(declare (salience ?*low_priority*))
+	(presenza_pavimento FALSE)
+	(pavimento TRUE)
+	(rivestimento FALSE)
+	=>
+	(printout t crlf "Posa una stadia sul pavimento da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
+                "Controlla se ci sono punti in cui la stadia si allontana dal pavimento di diversi centimetri..." crlf
+                "Controlla se la bolla d'aria sul livello si trova nella posizione centrale..." crlf
+                "Ripeti l'operazione diverse volte in modo da coprire tutta l'area da pavimentare e poi rispondi alle seguenti domande..." crlf)
+	(bind ?*help* "")
 	(bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal pavimento di diversi centimetri?"))
 	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
 	(bind ?risposta2 (yes_or_no_p "Nelle varie misurazioni fatte la bolla d'aria sulla livella era sempre nella posizione centrale?"))
 	(if (and (not ?risposta1) ?risposta2) then (assert (massetto_livello TRUE)) else (assert (massetto_livello FALSE))))
+
+(defrule massetto_a_livello_pavimento_rivestimento_presente  ;massetto a livello per il pavimento da mettere con rivestimento presente ma da non fare
+	(massetto_rivestimento_livello TRUE)
+	=>
+	(assert (ok_inizio_pavimento))) ;inizia il pavimento
+
+(defrule massetto_non_a_livello_pavimento_rivestimento_presente ;massetto non a livello per il pavimento da mettere con rivestimento presente ma da non fare
+	?f <- (massetto_rivestimento_livello FALSE)
+	=>
+	()
+	(whi)
+	)
 
 (defrule massetto_a_livello  ;il massetto è a livello, quindi inizio
 	?f <- (massetto_livello TRUE)
@@ -671,13 +749,26 @@
 
 
 ;-----------------INIZIO-------------------
+(defrule inizio_rivestimento_e_pavimento ;se c'è da fare pavimento e rivestimento spiega perchè prima inizio rivestimento
+	(ok_inizio_rivestimento)
+	(ok_inizio_pavimento)
+	=>
+	(printout t crlf "Si devono realizzare sia il pavimento che il rivestimento. Conviene partire sempre dal rivestimento in quanto ci sono diversi vantaggi dati dal fatto che non bisogna aspettare che il pavimento asciughi prima di poter lavorare al rivestimento e si evita di creare qualche danno in quanto lavorando al rivestimento sopra il pavimento appena realizzato potrebbe accadere di scheggiarlo." crlf)
+	(assert (inizio_rivestimento))) ;inizia rivestimento
+
+(defrule inizio_rivestimento ;c'è da fare solo rivestimento
+	(ok_inizio_rivestimento)
+	=>
+	(assert (inizio_rivestimento)))
+
+(defrule inizio_pavimento ;c'è da fare solo pavimento
+	(ok_inizio_pavimento)
+	=>
+	(assert (inizio_pavimento)))
+
+(defrule domanda_spessore_)
 
 
-;(defrule pavimento_e_rivestimento  ;chiedere all'utente cosa fare prima, nel caso in cui ci sia da fare sia pavimento che rivestimento
-;	(rivestimento TRUE)
-;	(pavimento TRUE)
-;	(pavimento)
-;	) 
 
 ;;(defrule stanza_piccola
 ;;	(declare (salience ?*low_priority*))
@@ -691,3 +782,16 @@
 ;;	(dimensioni_pavimento ?dim)
 ;;	=>
 ;;	(if (> ?dim 100) then (printout t crlf "Non conviene usare una piastrella troppo piccola poichè farebbe sembrare la stanza troppo grande" crlf)))
+
+
+
+
+
+
+
+
+
+
+
+
+
