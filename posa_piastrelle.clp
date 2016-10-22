@@ -661,16 +661,16 @@
 	(printout t crlf "Bisogna controllare il massetto che deve essere a livello e fatto in modo tale che con la posa del pavimento esso sia a livello con il pavimento in un'altra stanza che si dovrà realizzare o che è già presente..." crlf)
 	(format t "%nLo spessore della piastrella è di %d mm%n" ?spessore)
 	(printout t "Lo spessore della colla sarà di 3mm" crlf)
-	(bind ?spessore_pavimento (+ spessore 3))
+	(bind ?spessore_pavimento (+ ?spessore 3))
 	(format t "Il pavimento avrà uno spessore totale di %d mm%n" ?spessore_pavimento)
 
-	(printout t crlf "Controlliamo il livello del pavimento..." crlf
-		"Posa una stadia sul pavimento da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
-                "Controlla se ci sono punti in cui la stadia si allontana dal pavimento di diversi centimetri..." crlf
+	(printout t crlf "Controlliamo il livello del massetto..." crlf
+		"Posa una stadia sul massetto da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
+                "Controlla se ci sono punti in cui la stadia si allontana dal massetto di diversi centimetri..." crlf
                 "Controlla se la bolla d'aria sul livello si trova nella posizione centrale..." crlf
                 "Ripeti l'operazione diverse volte in modo da coprire da un alto all'altro tutta l'area da pavimentare e poi rispondi alle seguenti domande..." crlf)
 	(bind ?*help* "")
-	(bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal pavimento di diversi centimetri?"))
+	(bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal massetto di diversi centimetri?"))
 	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
 	(bind ?risposta2 (yes_or_no_p "Nelle varie misurazioni fatte la bolla d'aria sulla livella era sempre nella posizione centrale?"))
 
@@ -686,7 +686,7 @@
 
 			(bind ?*help* "")
 			(assert (massetto_rivestimento_livello (yes_or_no_p "Il massetto è della dimensione giusta sotto il pavimento (cioè spessore della piastrella più spessore colla) e considerando la posa del pavimento sopra di esso, il pavimento va a coprire il rivestimento già presente senza lasciare spazi vuoti?")))
-		else 	(if (massettoalivello) ;controlla solo che il pavimento copra il rivestimento
+		else 	(if ?massettoalivello ;controlla solo che il pavimento copra il rivestimento
 				then 	(printout t crlf "La stanza da pavimentare dovrebbe essere la prima sulla quale si pone il pavimento sul piano" crlf)
 					(format t "Bisogna controllare che lo spessore del pavimento che si deve posare (che si ottiene aggiungendo %d mm dal massetto) vada a coprire senza lasciare spazi in basso il rivestimento già presente!%n" ?spessore_pavimento)
 
@@ -703,16 +703,16 @@
 	(printout t crlf "Bisogna controllare il massetto che deve essere a livello e fatto in modo tale che con la posa del pavimento esso sia a livello con il pavimento in un'altra stanza che si dovrà realizzare o che è già presente..." crlf)
 	(format t "%nLo spessore della piastrella è di %d mm%n" ?spessore)
 	(printout t "Lo spessore della colla sarà di 3mm" crlf)
-	(bind ?spessore_pavimento (+ spessore 3))
+	(bind ?spessore_pavimento (+ ?spessore 3))
 	(format t "Il pavimento avrà uno spessore totale di %d mm%n" ?spessore_pavimento)
 
-	(printout t crlf "Controlliamo il livello del pavimento..." crlf
-		"Posa una stadia sul pavimento da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
-                "Controlla se ci sono punti in cui la stadia si allontana dal pavimento di diversi centimetri..." crlf
+	(printout t crlf "Controlliamo il livello del massetto..." crlf
+		"Posa una stadia sul massetto da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
+                "Controlla se ci sono punti in cui la stadia si allontana dal massetto di diversi centimetri..." crlf
                 "Controlla se la bolla d'aria sul livello si trova nella posizione centrale..." crlf
                 "Ripeti l'operazione diverse volte in modo da coprire da un alto all'altro tutta l'area da pavimentare e poi rispondi alle seguenti domande..." crlf)
 	(bind ?*help* "")
-	(bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal pavimento di diversi centimetri?"))
+	(bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal massetto di diversi centimetri?"))
 	(bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
 	(bind ?risposta2 (yes_or_no_p "Nelle varie misurazioni fatte la bolla d'aria sulla livella era sempre nella posizione centrale?"))
 
@@ -725,7 +725,7 @@
 
 			(bind ?*help* "")
 			(assert (massetto_rivestimento_livello (yes_or_no_p "Il massetto è della dimensione giusta (cioè spessore della piastrella più spessore colla) sotto il pavimento già presente?")))
-		else 	(if (massettoalivello)
+		else 	(if ?massettoalivello
 				then 	(printout t "La stanza da pavimentare dovrebbe essere la prima sulla quale si pone il pavimento sul piano" crlf)
 					(format t "Bisogna controllare che lo spessore del pavimento che si deve posare (che si ottiene aggiungendo %d mm dal massetto) vada a coprire senza lasciare spazi in basso il rivestimento già presente!%n" ?spessore_pavimento)
 
@@ -743,9 +743,9 @@
 	(bind ?*help* "Considerare lo spessore della piastrella più quello della colla")
 	(bind ?risposta (ask_question "Il massetto in questione troppo alto o troppo basso?" alto basso))
 	(assert (massetto_raccordo_pavimento ?risposta))
-	(retract (?f)))
+	(retract ?f))
 
-TODO chiedere se più alto o basso massetto e spiegare che occorre rifarlo
+;TODO chiedere se più alto o basso massetto e spiegare che occorre rifarlo
 
 ;(defrule massetto_a_livello  ;il massetto è a livello, quindi inizio
 ;	?f <- (massetto_livello TRUE)
@@ -798,7 +798,7 @@ TODO chiedere se più alto o basso massetto e spiegare che occorre rifarlo
 	=>
 	(assert (inizio_pavimento)))
 
-(defrule domanda_spessore_)
+;(defrule domanda_spessore_)
 
 
 
