@@ -85,6 +85,7 @@
 	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
 
 (defrule domanda_esperto
+	(not (utente_esperto ?))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Hai mai realizzato prima d'ora la posa di un pavimento?"))
@@ -315,17 +316,6 @@
 	(bind ?*help* "Scegliere si nel caso in cui si intende effettuare anche il pavimento, no altrimenti")
 	(bind ?risposta (yes_or_no_p "Vuoi quindi realizzare anche il pavimento?"))
 	(if ?risposta then (retract ?f) (assert (pavimento TRUE))))
-
-;TODO ampliamento: spiegare come aggiustare muri
-;(defrule domanda_condizioni_muri  ;regola per chiedere le condizioni dei muri quando il rivestimento è stato tolto o non è presente e non si intende farlo
-;	(presenza_rivestimento FALSE)
-;	(rivestimento FALSE)
-;	=>		
-;	(bind ?*help* "I muri potrebbero presentare delle escoriazioni oppure presenza di colla, specialmente nel caso in cui è stato eliminato il rivestimento.")
-;	(bind ?risposta (yes_or_no_p "I muri necessitano di lavori per essere rimessi a nuovo?"))
-;	(while ?risposta do
-;		(printout t crlf "Aggiustare i muri prima di continuare!")
-;		(bind ?risposta (yes_or_no_p "I muri necessitano di lavori per essere rimessi a nuovo?"))))
 
 (defrule domanda_rivestimento_pavimento ;domanda riguardo a cosa effettuare (pavimento, rivestimento o entrambi) nel caso di cucina o bagno
 	?f <- (step2)
@@ -580,6 +570,54 @@
 	(assert (pavimento_da_raccordare ?risposta)))
 
 ;------------3 step--------------
+(defrule domanda_presenza_massetto_solo_rivestimento
+	(rivestimento TRUE)
+	(pavimento FALSE)
+	(presenza_pavimento FALSE)
+	(not (presenza_massetto ?))
+	(muri_a_piombo)
+	=>
+	(printout t crlf "Il pavimento non è presente e non si intende farlo, tuttavia occorre che sia presente un massetto che sia a livello." crlf)
+	(bind ?*help* "Il massetto è uno strato di cemento la cui presenza è essenziale perché sopra esso verranno posate le piastrelle.")
+	(bind ?risposta (yes_or_no_p "E' presente un massetto?"))
+	(assert (presenza_massetto ?risposta)))
+
+(defrule controllo_pavimento_livello_solo_rivestimento
+	(rivestimento TRUE)
+	(pavimento FALSE)
+	(presenza_pavimento TRUE)
+	(muri_a_piombo)
+	=>
+	(printout t crlf "Il pavimento è presente, ma per realizzare il rivestimento occorre controllare che sia a livello poiché vi si poggerà sopra il rivestimento." crlf)
+	(bind ?*help* "")
+    (printout t crlf "Posa una stadia sul pavimento da un angolo all'opposto facendo in modo che poggi bene. Poni su di essa un livello..." crlf
+            "Controlla se ci sono punti in cui la stadia si allontana dal pavimento di diversi centimetri..." crlf
+            "Controlla se la bolla d'aria sul livello si trova nella posizione centrale..." crlf
+            "Ripeti l'operazione diverse volte in modo da coprire tutta l'area da pavimentare e poi rispondi alle seguenti domande..." crlf)
+    (bind ?risposta1 (yes_or_no_p "Nelle varie misurazioni fatte ci sono stati casi in cui la stadia era lontana dal pavimento di diversi centimetri?"))
+    (bind ?*help* "Il livello deve essere posto precisamente sopra la stadia, nello stesso senso della stadia. Non interessa il verso.")
+    (bind ?risposta2 (yes_or_no_p "Nelle varie misurazioni fatte la bolla d'aria sulla livella era sempre nella posizione centrale?"))
+	(if (and (not ?risposta1) ?risposta2) 
+		then 	;(assert (pavimento_livello TRUE))  
+				(assert (ok_inizio_rivestimento)) ;comincia il rivestimento
+		else 	(assert (pavimento_livello FALSE))))  ;il pavimento non è a livello, toglilo e fai) ;si collega con le regole per il pavimento non a livello
+
+;TODO spiegazione: spiegare come rimuovere pavimento 
+(defrule pavimento_non_livello_solo_rivestimento ;non si può fare la posa sopra il pavimento perché non a livello
+	?f1 <- (pavimento_livello FALSE)
+	(presenza_pavimento TRUE)
+	=>
+	(printout t crlf "Il pavimento non è a livello. Procedere alla rimozione e proseguire." crlf)
+	(assert (rimozione_pavimento))
+	(retract ?f1))
+
+(defrule comincia_rivestimento
+	(rivestimento TRUE)
+	(pavimento FALSE)
+	(massetto_livello TRUE)
+	=>
+	(assert (ok_inizio_rivestimento)))
+
 (defrule rimozione_rivestimento  ;se è presente un rivestimento e quello che voglio fare è il rivestimento, allora bisogna toglierlo
 	(declare (salience ?*low_priority*))
 	?f <- (presenza_rivestimento TRUE)
@@ -594,9 +632,10 @@
 
 ;TODO ampliamento: aggiungere come si aggiusta un muro?
 (defrule domanda_controllo_muri_rivestimento  ;il rivestimento non c'è e si è deciso di farlo, allora si controllano se i muri sono a piombo
-	(declare (salience ?*low_priority*))
+	;(declare (salience ?*low_priority*))
 	(presenza_rivestimento FALSE)
 	(rivestimento TRUE)
+	(not (muri_a_piombo))
 	=>
 	(printout t crlf "Controllo se i muri sono a piombo..." crlf
 			"Prendi il filo a piombo. Prendi la rocchetta di cui è dotato e poggiala sulla parete da misurare..." crlf
@@ -606,7 +645,7 @@
         (while (not ?risposta) do 
                 (printout t crlf "Non puoi proseguire nella posa del rivestimento. Devi prima riparare i muri!" crlf)
                 (bind ?risposta (yes_or_no_p "Tutti i muri sono a piombo?")))
-        (assert (ok_inizio_rivestimento)))
+        (assert (muri_a_piombo)))
 
 ;TODO ampliamento: indicare anche la possibilità di rivestire solo la fascia di muro non coperta dalla cucina
 (defrule domanda_rivestimento_cucina  ;chiedere se fare il rivestimento di tutta la stanza o solo la parete dove sta la cucina o solo la fascia di parete visibile dietro la cucina
@@ -616,7 +655,7 @@
 	(rivestimento TRUE)
 	=>
 	(printout t crlf "La stanza in cui fare il lavoro è una cucina ed è stato scelto di effettuare il rivestimento" crlf)
-	(bind ?*help* "Si può decidere di rivestire solo la fascia di muro che è possibile vedere una volta posta la cucina (viene scelto nel caso in %ncui non si vuole rivestire l'intera stanza) oppure realizzare il rivestimento di tutta la stanza (consigliato poiché la cucina è %nsempre un ambiente umido che potrebbe portare alla usura delle pareti).")
+	(bind ?*help* "Si può decidere di rivestire solo la fascia di muro che è possibile vedere una volta posta la cucina (viene scelto nel caso in %ncui non si vuole rivestire l'intera stanza) oppure realizzare il rivestimento di tutta la stanza (consigliato poiché la cucina è %nsempre un ambiente umido che potrebbe portare facilmente alla usura delle pareti).")
 	(bind ?risposta (ask_question "Vuoi rivestire tutta le pareti della cucina o solo la fascia di muro che si può vedere una volta posta %nla cucina? (tutta/solo_fascia" tutta solo_fascia))
 	(assert (rivestimento_cucina ?risposta)))
 
@@ -626,7 +665,7 @@
 	(rivestimento FALSE)
 	(pavimento TRUE)
 	(presenza_pavimento TRUE)
-	(not posa_sopra_pavimento ?)
+	(not (posa_sopra_pavimento ?))
 	=>
 	(assert (posa_sopra_pavimento FALSE)))
 
@@ -636,8 +675,7 @@
 	(presenza_pavimento TRUE)
 	(dimensioni_pavimento ?dim)
 	=>
-	(if (> ?dim 50) 
-		then 	
+	(if (> ?dim 50) then 	
 			(printout t crlf "La dimensione del pavimento è troppo grande per poter controllare bene il suo stato (piastrelle sollevate o non aderenti)," crlf
 							"conviene quindi procedere alla rimozione e al rifacimento del massetto!" crlf)
 			(assert (posa_sopra_pavimento FALSE))))
@@ -697,15 +735,14 @@
 ;TODO ampliamento: come si fa la malta cementizia e come riempire i buchi
 (defrule piastrelle_sollevate ;se ci sono piastrelle sollevate falle aggiustare e poi inizia la posa
 	?f <- (piastrelle_sollevate TRUE)
-	?f1 <- (pavimento_livello TRUE)  ;il pavimento deve essere a livello
+	(pavimento_livello TRUE)  ;il pavimento deve essere a livello
 	=>
 	(printout t crlf "Procedere alla rimozione di tali piastrelle rialzate o non aderenti e riempire i buchi creati con malta cementizia." crlf)
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Hai rattoppato il vuoto creato dalle piastrelle eliminate?"))
 	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai rattoppato il vuoto creato dalle piastrelle eliminate?")))
-	(retract ?f ?f1) ;piastrelle non più sollevate
-	(assert (piastrelle_sollevate FALSE))
-	(assert (ok_inizio_pavimento)))
+	(retract ?f) ;piastrelle non più sollevate
+	(assert (piastrelle_sollevate FALSE)))
 
 (defrule piastrelle_non_sollevate ;se le piastrelle non sono sollevate e il pavimento è a livello procedi con la posa del pavimento
 	?f <- (piastrelle_sollevate FALSE)
@@ -751,6 +788,7 @@
 (defrule domanda_presenza_massetto  ;regola per verificare la presenza del massetto
 	(declare (salience ?*lowest_priority*))
 	(presenza_pavimento FALSE)
+	(pavimento TRUE)
 	(not (presenza_massetto ?))
 	=>
 	(bind ?*help* "Il massetto è uno strato di cemento la cui presenza è essenziale perché sopra esso verranno posate le piastrelle.")
@@ -773,19 +811,37 @@
 
 ;TODO ampliamento: spiegare come si fa il massetto
 ;TODO remember: qui si collegano anche i rami riguardanti il massetto troppo alto o troppo basso nel caso di raccordo con pavimenti presenti e rivestimenti presenti
-(defrule fai_massetto
+(defrule fai_massetto_pavimento
 	;(declare (salience ?*low_priority*))
+	(interno ?val)
 	?f <- (presenza_massetto FALSE)
 	=>
 	(bind ?*help* "")
 	(printout t crlf "Devi fare il massetto tenendo conto anche di eventuali raccordi con pavimenti o rivestimenti già presenti!" crlf)
+	(if (not ?val) then (printout t "Devi tenere anche conto della pendenza!" crlf))
+	(bind ?risposta (yes_or_no_p "Hai fatto il massetto?"))
+	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai fatto il massetto?")))
+	(retract ?f)
+	(assert (presenza_massetto TRUE))
+	(assert (massetto_livello TRUE))) ;quando si fa il massetto nuovo questo è sicuramente a livello
+
+;TODO ampliamento: spiegare come si fa il massetto
+;TODO remember: considera anche il raccordo del pavimento con un altro pavimento
+(defrule fai_massetto_pavimento_raccordo
+	;(declare (salience ?*low_priority*))
+	(interno ?val)
+	?f <- (presenza_massetto FALSE)
+	(pavimento_da_raccordare TRUE)
+	=>
+	(bind ?*help* "")
+	(printout t crlf "Devi fare il massetto tenendo conto anche di eventuali raccordi con pavimenti o rivestimenti già presenti!" crlf)
+	(if (not ?val) then (printout t "Devi tenere anche conto della pendenza!" crlf))
 	(bind ?risposta (yes_or_no_p "Hai fatto il massetto?"))
 	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai fatto il massetto?")))
 	(retract ?f)
 	(assert (presenza_massetto TRUE))
 	(assert (massetto_livello TRUE))
-	(assert (massetto_raccordo_livello TRUE))
-	(assert (ok_inizio_pavimento))) ;quando si fa il massetto nuovo questo è sicuramente a livello
+	(assert (massetto_raccordo_livello TRUE))) ;quando si fa il massetto nuovo questo è sicuramente a livello
 
 (defrule domanda_controllo_massetto_a_livello ;controllo se il massetto presente è a livello nel caso di pavimento da non raccordare
 	(presenza_massetto TRUE)
@@ -838,6 +894,7 @@
 
 (defrule massetto_raccordo_livello_giusto
 	(massetto_raccordo_livello TRUE)
+	(pavimento_da_raccordare TRUE)
 	=>
 	(assert (ok_inizio_pavimento)))
 
@@ -897,16 +954,18 @@
 	=>
 	(printout t crlf "Si devono realizzare sia il pavimento che il rivestimento. Conviene partire sempre dal rivestimento in quanto ci sono diversi" crlf
 					"vantaggi dati dal fatto che non bisogna aspettare che il pavimento asciughi prima di poter lavorare al rivestimento e si evita di" crlf 
-					"creare qualche danno in quanto lavorando al rivestimento sopra il pavimento appena realizzato potrebbe accadere di scheggiarlo." crlf)
+					"creare danni al pavimento nuovo poiché lavorando al rivestimento potrebbe accadere di scheggiarlo." crlf)
 	(assert (inizio_rivestimento))) ;inizia rivestimento
 
 (defrule inizio_rivestimento ;c'è da fare solo rivestimento
 	(ok_inizio_rivestimento)
+	(not (ok_inizio_pavimento))
 	=>
 	(assert (inizio_rivestimento)))
 
 (defrule inizio_pavimento ;c'è da fare solo pavimento
 	(ok_inizio_pavimento)
+	(not (ok_inizio_rivestimento))
 	=>
 	(assert (inizio_pavimento)))
 
