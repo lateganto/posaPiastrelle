@@ -564,7 +564,7 @@
 	(pavimento TRUE)
 	=>
 	(bind ?*help* "Se in una stanza adiacente a quella in cui si intende lavorare è presente un pavimento già posato che non si intende eliminare e%n con cui ci si deve raccordare (cioè il pavimento che si sta realizzando non dovrà essere né più alto e né più basso), allora tale pavimento deve essere%n realizzato in modo che, una volta completato, sia all'altezza giusta.")
-	(bind ?risposta (yes_or_no_p "È presente in una stanza adiacente a quella in cui si sta lavorando un pavimento con cui ci si dovrà raccordare? %n(cioè, dopo aver posato il pavimento, esso dovrà essere alla stessa altezza del pavimento già presente)"))
+	(bind ?risposta (yes_or_no_p "È presente in una stanza adiacente a quella in cui si sta lavorando un pavimento con cui ci si dovrà raccordare %n(cioè, dopo aver posato il pavimento, esso dovrà essere alla stessa altezza del pavimento già presente)?"))
 	(assert (pavimento_da_raccordare ?risposta)))
 
 ;------------3 STEP (Domande specifiche in base al tipo di lavoro scelto)----------------
@@ -611,15 +611,15 @@
 	(assert (rimozione_pavimento))
 	(retract ?f1))
 
+;REGOLE GENERALI RIVESTIMENTO
 (defrule comincia_rivestimento
 	(rivestimento TRUE)
-	(pavimento FALSE)
+	;(pavimento FALSE)
 	(massetto_livello TRUE)
 	(presenza_massetto TRUE)
 	=>
 	(assert (ok_inizio_rivestimento)))
-
-;REGOLE GENERALI RIVESTIMENTO
+	
 (defrule rimozione_rivestimento  ;se è presente un rivestimento e quello che voglio fare è il rivestimento, allora bisogna toglierlo
 	;(declare (salience ?*low_priority*))
 	?f <- (presenza_rivestimento TRUE)
@@ -663,6 +663,7 @@
 
 ;DOMANDE POSA SOPRA (PAVIMENTO PRESENTE)
 (defrule no_posa_sopra ;non è applicabile la posa sopra se è presente un rivestimento ed è stato stabilito di fare solo il pavimento
+	(declare (salience ?*high_priority*))
 	(presenza_rivestimento TRUE)
 	(rivestimento FALSE)
 	(pavimento TRUE)
@@ -674,6 +675,7 @@
 	(assert (posa_sopra_pavimento FALSE)))
 
 (defrule posa_sopra_pavimento_grandi_aree ;per aree da pavimentare molto grandi non è auspicabile fare la posa sopra
+	(declare (salience ?*high_priority*))
 	(not (posa_sopra_pavimento ?))
 	(pavimento TRUE)
 	(presenza_pavimento TRUE)
