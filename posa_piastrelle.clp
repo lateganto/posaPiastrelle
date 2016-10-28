@@ -619,7 +619,7 @@
 	(presenza_massetto TRUE)
 	=>
 	(assert (ok_inizio_rivestimento)))
-	
+
 (defrule rimozione_rivestimento  ;se è presente un rivestimento e quello che voglio fare è il rivestimento, allora bisogna toglierlo
 	;(declare (salience ?*low_priority*))
 	?f <- (presenza_rivestimento TRUE)
@@ -802,9 +802,25 @@
 	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
 	(assert (presenza_massetto ?risposta)))
 
+(defrule rimozione_massetto_non_a_livello
+	?f1 <- (massetto_livello FALSE)
+	?f2 <- (rimozione_massetto)
+	?f3 <- (presenza_massetto TRUE)
+	=>
+	(printout t crlf "Occorre procedere alla rimozione del massetto nell'area in cui si intende lavorare..." crlf
+		"Procurati un martello pneumatico e comincia ad eliminare piccoli porzioni del massetto esistente." crlf
+		"Spostati in avanti e, di tanto in tanto, raccogli i pezzi del massetto vecchio che sono usciti e buttali." crlf
+		"Dopo aver finito tutto si procederà al rifacimento del nuovo massetto." crlf)
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Hai rimosso il massetto?"))
+	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai rimosso il massetto?")))
+	(retract ?f1 ?f2 ?f3)
+	(assert (presenza_massetto FALSE)))
+
 (defrule rimozione_massetto ;rimozione del massetto
 	?f1 <- (rimozione_massetto)
 	?f2 <- (presenza_massetto TRUE)
+	(not (massetto_livello FALSE))
 	=>
 	(printout t crlf "Occorre procedere alla rimozione del massetto nell'area in cui si intende lavorare..." crlf
 		"Procurati un martello pneumatico e comincia ad eliminare piccoli porzioni del massetto esistente." crlf
@@ -822,6 +838,7 @@
 	;(declare (salience ?*low_priority*))
 	(interno ?val)
 	?f <- (presenza_massetto FALSE)
+	(pavimento_da_raccordare FALSE)
 	=>
 	(bind ?*help* "")
 	(printout t crlf "Devi fare il massetto tenendo conto anche di eventuali raccordi con pavimenti o rivestimenti già presenti!" crlf)
@@ -830,7 +847,8 @@
 	(while (not ?risposta) do (bind ?risposta (yes_or_no_p "Hai fatto il massetto?")))
 	(retract ?f)
 	(assert (presenza_massetto TRUE))
-	(assert (massetto_livello TRUE))) ;quando si fa il massetto nuovo questo è sicuramente a livello
+	(assert (massetto_livello TRUE))
+	(assert (massetto_raccordo_rivestimento_livello TRUE))) ;quando si fa il massetto nuovo questo è sicuramente a livello
 
 ;TODO ampliamento: spiegare come si fa il massetto
 ;TODO remember: considera anche il raccordo del pavimento con un altro pavimento
@@ -848,7 +866,8 @@
 	(retract ?f)
 	(assert (presenza_massetto TRUE))
 	(assert (massetto_livello TRUE))
-	(assert (massetto_raccordo_livello TRUE))) ;quando si fa il massetto nuovo questo è sicuramente a livello
+	(assert (massetto_raccordo_livello TRUE))
+	(assert (massetto_raccordo_rivestimento_livello TRUE))) ;quando si fa il massetto nuovo questo è sicuramente a livello
 
 (defrule domanda_controllo_massetto_a_livello ;controllo se il massetto presente è a livello nel caso di pavimento da non raccordare
 	(presenza_massetto TRUE)
@@ -933,6 +952,7 @@
 
 (defrule domanda_controllo_massetto_rivestimento_presente ;controllo massetto in modo tale che sia raccordato al rivestimento presente (cioè vada a combaciare con il rivestimento senza lasciare intravedere spazi bianchi)
 	(massetto_livello TRUE)
+	(not (massetto_raccordo_rivestimento_livello ?))
 	(pavimento TRUE)
 	(rivestimento FALSE)			;il rivestimento è presente
 	(presenza_rivestimento TRUE)	;ma non è da fare, cioè rimane il rivestimento vecchio e il pavimento deve essere raccordato
