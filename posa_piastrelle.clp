@@ -4,17 +4,22 @@
 (defglobal ?*lowest_priority* = -1000)
 (defglobal ?*help* = "")
 
-;-----------TEMPLATE----------
+;/-------------------------------/
+;/-----------TEMPLATES-----------/
+;/-------------------------------/
 (deftemplate esperienza
-	(slot valore))
+	(slot esperto)
+	(slot principiante))
 
 (deftemplate domande_poste
 	(slot numero))
 
 (deftemplate domanda
-	(slot numero))
+	(slot valore))
 
-;--------------FUNCTIONS------------
+;/-------------------------------/
+;/-----------FUNCTIONS-----------/
+;/-------------------------------/
 (deffunction ask_question (?question $?allowed_values)
 	(insert$ ?allowed_values 1 help h)
 	(format t (str-cat "%n" ?question "/help/h): "))
@@ -57,201 +62,130 @@
 	    (bind ?answer (read)))
 	 ?answer)
 
-(deffunction domanda_random ()  ;controlla anche che non ci siano domande già poste
-	(bind ?n (random 1 8))
-	(while (any-factp ((?domanda domanda)) (= ?domanda:numero ?n)) do
-		(bind ?n (random 1 8)))
-	(return ?n))
 
-(deffunction esperienza_binario
-	(?risposta)
-	(if ?risposta
-		then (return 1)
-		else (return 0)))
-
-(deffunction calcola_utente_esperto
-	(?num)
-	(if (> ?num 4)
-		then (return TRUE)
-		else (return FALSE)))
-
-
-;--------------START---------------
-
-;--------------Domande per capire il tipo di utente-------------
+;/-------------------------------/
+;/------PROFILAZIONE UTENTE------/
+;/-------------------------------/
 (defrule inizio
 	(declare (salience ?*highest_priority*))
 	=>
+	(set-strategy random)
+	(assert (esperienza (esperto 0) (principiante 0)))
+	(assert (domande_poste (numero 0)))
 	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
 
-(defrule domanda_esperto
-	(not (utente_esperto ?))
+(defrule domanda_anni
+	(not (domanda (valore one)))
+	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
+	?f2 <- (domande_poste (numero ?x))
 	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Hai mai realizzato prima d'ora la posa di un pavimento?"))
-	(assert (posa_gia_fatta ?risposta)))
+	(bind ?*help* "Indicare la propria età.")
+	(bind ?risposta (ask_number "Quanti anni hai?"))
+	(assert (domanda (valore one)))
+	(modify ?f2 (numero (+ ?x 1)))
+	(if (< ?risposta 16) 
+		then (printout t crlf "Forse non hai l'età per lavorare!" crlf) 
+	 		(assert (fine)))
+	(if (and (>= ?risposta 16) (<= ?risposta 20)) 
+		then (modify ?f1 (principiante (+ ?val_princ 3))))
+	(if (and (>= ?risposta 21) (<= ?risposta 30)) 
+		then (modify ?f1 (principiante (+ ?val_princ 2))))
+	(if (and (>= ?risposta 31) (<= ?risposta 50)) 
+		then (modify ?f1 (esperto (+ ?val_esp 1)))
+			(modify ?f1 (principiante (+ ?val_princ 1))))
+	(if (and (>= ?risposta 51) (<= ?risposta 60)) 
+		then (modify ?f1 (esperto (+ ?val_esp 2))))
+	(if (and (>= ?risposta 61) (<= ?risposta 70)) 
+		then (modify ?f1 (esperto (+ ?val_esp 3))))
+	(if (> ?risposta 70)
+		then (printout t "Forse non hai più l'età per fare certi lavori!" crlf)
+			(assert (fine))))
 
-(defrule inizio_domande_tipo_utente
-	(posa_gia_fatta ?)
-	(not (inizia_domande))
+(defrule domanda_fai_da_te
+	(not (domanda (valore two)))
+	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
+	?f2 <- (domande_poste (numero ?x))
 	=>
-	(assert (inizia_domande))
-	(assert (esperienza (valore 0)))
-	(assert (domande_poste (numero 0))))
+	(bind ?*help* "Rispondere affermativamente se si è realizzato qualche volta un piccolo lavoro in casa o qualche tipo riparazione.")
+	(bind ?risposta (yes_or_no_p "Hai mai fatto qualche lavoretto di bricolage o fai da te?"))
+	(assert (domanda (valore two)))
+	(modify ?f2 (numero (+ ?x 1)))
+	(if ?risposta 
+		then (modify ?f1 (esperto (+ ?val_esp 3)))
+		else (modify ?f1 (principiante (+ ?val_princ 3)))))
 
-(defrule chiedi_domanda_princ_esperto
-	(inizia_domande)
-	(not (domande_poste (numero 5)))
+(defrule domanda_piastrellista
+	(not (domanda (valore three)))
+	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
+	?f2 <- (domande_poste (numero ?x))
 	=>
-	(bind ?n (domanda_random))
-	(assert (question ?n)))
+	(bind ?*help* "Rispondere affermativamente se nella propria vita si è mai lavorato come piastrellista professionalmente.")
+	(bind ?risposta (yes_or_no_p "Sei un piastrellista o hai mai lavorato come piastrellista?"))
+	(assert (domanda (valore three)))
+	(modify ?f2 (numero (+ ?x 1)))
+	(if ?risposta 
+		then (modify ?f1 (esperto (+ ?val_esp 10)))
+		else (modify ?f1 (principiante (+ ?val_princ 3)))))
 
-(defrule domanda_random1
-	?d <- (question 1)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
+(defrule domanda_utilità_sistema
+	(not (domanda (valore four)))
+	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
+	?f2 <- (domande_poste (numero ?x))	
 	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 1)))
-	(assert (inizia_domande))   ;TODO verifica: controllare se corretto!!
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Sai cos'è un frattazzo dentellato?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
+	(bind ?*help* "Rispondere affermativamente nel caso in cui si voglia usare il sistema per rinnovare il pavimento della propria casa.")
+	(bind ?risposta (yes_or_no_p "Devi rinnovare il pavimento di casa?"))
+	(assert (domanda (valore four)))
+	(modify ?f2 (numero (+ ?x 1)))
+	(if ?risposta
+		then (modify ?f1 (principiante (+ ?val_princ 3)))
+		else (modify ?f1 (esperto (+ ?val_esp 3)))))
 
-(defrule domanda_random2
-	?d <- (question 2)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
+(defrule domanda_lavoro
+	(not (domanda (valore five)))
+	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
+	?f2 <- (domande_poste (numero ?x))
 	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 2)))
-	(assert (inizia_domande))
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Hai mai usato una livella?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
+	(bind ?*help* "Rispondere affermativamente nel caso in cui si abbia mai svolto nella propria vita un lavoro di tipo manuale (l'operaio ad esempio).")
+	(bind ?risposta (yes_or_no_p "Hai mai svolto un lavoro di tipo manuale nella tua vita?"))
+	(assert (domanda (valore five)))
+	(modify ?f2 (numero (+ ?x 1)))
+	(if ?risposta
+		then (modify ?f1 (esperto (+ ?val_esp 3)))
+		else (modify ?f1 (principiante (+ ?val_princ 3)))))
 
-(defrule domanda_random3
-	?d <- (question 3)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
+(defrule esperto
+	(declare (salience ?*high_priority*))
+	(esperienza (esperto ?val_esp&:(>= ?val_esp 10)))
 	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 3)))
-	(assert (inizia_domande))
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Sai cosa sono le fughe?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
+	(assert (preparazione_utente alta)))
 
-(defrule domanda_random4
-	?d <- (question 4)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
+(defrule principiante
+	(declare (salience ?*high_priority*))
+	(esperienza (principiante ?val_princ&: (> ?val_princ 10)))
 	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 4)))
-	(assert (inizia_domande))
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Sai cos'è la mazza in gomma?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
+	(assert (preparazione_utente bassa)))
 
-(defrule domanda_random5
-	?d <- (question 5)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
+(defrule determina_esperienza
+	(declare (salience ?*high_priority*))
+	(domande_poste (numero 5))
+	(esperienza (esperto ?val_esp) (principiante ?val_princ))
 	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 5)))
-	(assert (inizia_domande))
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Sai cosa è un distanziatore e a cosa serve?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
+	(if (> ?val_esp ?val_princ)
+		then (assert (preparazione_utente alta))
+		else (assert (preparazione_utente bassa))))
 
-(defrule domanda_random6
-	?d <- (question 6)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
-	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 6)))
-	(assert (inizia_domande))
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Sai a cosa serve la tenaglia da piastrellista?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
-
-(defrule domanda_random7
-	?d <- (question 7)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
-	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 7)))
-	(assert (inizia_domande))
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Sai usare una tagliapiastrelle?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
-
-(defrule domanda_random8
-	?d <- (question 8)
-	?i <- (inizia_domande)
-	?f1 <- (esperienza (valore ?x1))
-	?f2 <- (domande_poste (numero ?x2))
-	=>
-	(retract ?i ?d)
-	(assert (domanda (numero 8)))
-	(assert (inizia_domande))
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Hai mai usato una smerigliatrice angolare?"))
-	(modify ?f2 (numero (+ ?x2 1)))
-	(modify ?f1 (valore (+ ?x1 (esperienza_binario ?risposta)))))
-
-(defrule definisci_utente 
-	?a <- (domande_poste (numero 5))
-	?b <- (esperienza (valore ?x))
-	?c <- (inizia_domande)
-	?d <- (posa_gia_fatta ?val)
+(defrule pulizia
+	(declare (salience ?*high_priority*))
+	(preparazione_utente ?)
+	?f1 <- (domande_poste (numero ?))
+	?f2 <- (esperienza (esperto ?) (principiante ?))
 	=>
 	(do-for-all-facts ((?domanda domanda)) TRUE (retract ?domanda))  ;elimina tutti i fatti di tipo "domanda"
-	(retract ?a ?b ?c ?d)
+	(retract ?f1 ?f2))
 
-
-	(if (and (calcola_utente_esperto ?x) ?val)  ;l'utente ha fatto già una posa ed è esperto
-		then 
-			(printout t crlf "Sembra che tu abbia esperienza nella posa dei pavimenti! Il tuo profilo sarà quello di un utente esperto!" crlf)
-			(retract ?d)
-			(assert (utente_esperto TRUE)))
-	(if (and (calcola_utente_esperto ?x) (not ?val)) ;l'utente non ha mai fatto una posa ma sembra esperto
-		then 
-			(printout t crlf "Sembra che tu non abbia mai realizzato la posa di un pavimento ma abbia comunque una buona manualità e conoscenza degli attrezzi!" crlf)
-			(retract ?d)
-			(assert (utente_esperto TRUE)))
-	(if (and (not (calcola_utente_esperto ?x)) ?val) ;utente non esperto che però dice di aver fatto già una posa di pavimenti
-		then 
-			(bind ?risposta (yes_or_no_p "Sembra che tu non abbia molta esperienza, sei sicuro di aver mai realizzato un pavimento prima d'ora?"))
-			(if ?risposta
-				then (retract ?d) (assert (utente_esperto TRUE)) (printout t crlf "Il tuo profilo è quello di un utente esperto!" crlf)
-				else (retract ?d) (assert (utente_esperto FALSE)) (printout t crlf "Il tuo profilo è quello di un utente non esperto!" crlf)))
-	(if (and (not (calcola_utente_esperto ?x)) (not ?val))
-		then
-			(printout t crlf "Sembra che tu non abbia molta esperienza! Il tuo profilo sarà quello di un utente non esperto" crlf)
-			(retract ?d)
-			(assert (utente_esperto FALSE))))
-
-
-;-------------1° STEP (Domande iniziali)---------------
+;/-------------------------------/
+;/------------STEP 1-------------/
+;/-------------------------------/
 (defrule domanda_interno_esterno
 	(declare (salience ?*low_priority*))
 	(not (interno ?))
