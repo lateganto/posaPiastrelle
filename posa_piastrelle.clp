@@ -106,8 +106,8 @@
 	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
 	?f2 <- (domande_poste (numero ?x))
 	=>
-	(bind ?*help* "Rispondere affermativamente se si è realizzato qualche volta un piccolo lavoro in casa o qualche tipo riparazione.")
-	(bind ?risposta (yes_or_no_p "Hai mai fatto qualche lavoretto di bricolage o fai da te?"))
+	(bind ?*help* "Rispondere affermativamente se si è realizzato qualche volta un piccolo lavoro in casa o qualche tipo riparazione, %nnegativamente in caso contrario.")
+	(bind ?risposta (yes_or_no_p "Se si rompe qualcosa in casa, cerchi di aggiustarla da te?"))
 	(assert (domanda (valore two)))
 	(modify ?f2 (numero (+ ?x 1)))
 	(if ?risposta 
@@ -189,57 +189,77 @@
 (defrule domanda_interno_esterno
 	(declare (salience ?*low_priority*))
 	(not (interno ?))
+	(preparazione_utente ?)
 	=>
-	(bind ?*help* "Dipende dal fatto che il pavimento potrebbe essere esposto agli agenti atmosferici oppure no e quindi richiede alcune accortezze, come l'uso %ndi piastrelle apposite e colle antigelive.")
-	(bind ?risposta (yes_or_no_p "Il lavoro è per interno?"))
-	(assert (interno ?risposta)))
+	(bind ?*help* "Rispondere 'interno' se il lavoro deve essere effettuato in una stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da %nletto, etc), 'esterno' in caso contrario (balcone, terrazzo).")
+	(bind ?risposta (ask_question "Il lavoro riguarda l'interno o l'esterno? (esterno/interno"))
+	(if (eq ?risposta interno)
+		then (assert (interno))
+		else (assert (esterno))))
 
 (defrule domanda_tipo_stanza
-	(declare (salience ?*low_priority*))
 	(not (tipo_stanza ?))
-	(interno TRUE)
+	(interno)
+	(preparazione_utente ?)
 	=>
-	(bind ?*help* "A seconda del tipo di stanza potrebbe essere richiesto di effettuare un lavoro diverso.")
+	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro. Nel caso in cui ci sia più di una %nrisposta, allora effettuare la scelta di una stanza e continuare, poi riavviare il sistema e procedere con la successiva scelta.")
 	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno/cucina/altro" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
-(defrule domanda_presenza_pavimento
-	(declare (salience ?*lowest_priority*))
-	(not (presenza_pavimento ?))
+(defrule esterno_no_rivestimento ;se esterno allora nessun rivestimento
+	(interno)
+	(or (not (rivestimento ?))
+		(not (pavimento ?)))
 	=>
-	(bind ?*help* "Si può decidere di posare anche su un pavimento già esistente.")
+	(assert (pavimento TRUE))
+	(assert (rivestimento FALSE)))
+
+(defrule stanze_no_rivestimento ;se stanza diversa da cucina o bagno allora niente rivestimento
+	(tipo_stanza altro)
+	(or (not (pavimento ?))
+		(not (rivestimento ?)))
+	=>
+	(assert (pavimento TRUE))
+	(assert (rivestimento FALSE)))
+
+(defrule domanda_rivestimento_pavimento ;domanda riguardo a cosa effettuare (pavimento, rivestimento o entrambi) nel caso di cucina o bagno
+	(or (tipo_stanza bagno) 
+		(tipo_stanza cucina))
+	(or (not (pavimento ?))
+		(not (rivestimento ?)))
+	(preparazione_utente ?)
+	=>
+	(bind ?*help* "Scegliere 'rivestimento' se il pavimento è in buono stato e non si desidera modificarlo, scegliere 'pavimento', se si vuole realizzare %nsolo il pavimento, scegliere 'entrambi', se si vuole realizzare sia il pavimento che il rivestimento.")
+	(bind ?risposta (ask_question "Cosa devi realizzare? (rivestimento/pavimento/entrambi" rivestimento pavimento entrambi))
+	(switch ?risposta
+		(case rivestimento then (assert (pavimento FALSE) (rivestimento TRUE)))
+		(case pavimento then (assert (pavimento TRUE) (rivestimento FALSE)))
+		(case entrambi then (assert (pavimento TRUE) (rivestimento TRUE)))))
+
+(defrule domanda_presenza_pavimento
+	(not (presenza_pavimento ?))
+	(preparazione_utente ?)
+	=>
+	(bind ?*help* "Rispondere si se è già presente un pavimento nella stanza in cui si intende lavorare.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
 	(assert (presenza_pavimento ?risposta))
 	(assert (step2)))
 
 ;TODO remember: la domanda se un rivestimento è presente viene fatta solo se il tipo di stanza è un bagno o una cucina
 (defrule domanda_presenza_rivestimento
-	(declare (salience ?*low_priority*))
+	(preparazione_utente ?)
 	(not (presenza_rivestimento ?))
-	(or (tipo_stanza bagno)
-		(tipo_stanza cucina))
 	=>
-	(bind ?*help* "Il rivestimento andrà rimosso per far spazio a quello nuovo")
+	(bind ?*help* "Rispondere si se è già presente un rivestimento, cioè le pareti della stanza sono ricoperte con piastrelle.")
 	(bind ?risposta (yes_or_no_p "È già presente un rivestimento?"))
-	(assert (presenza_rivestimento ?risposta))) ;prosegui alla successiva fase 
+	(assert (presenza_rivestimento ?risposta)))
+
+(defrule rimozione_rivestimento 
+	(not (or (tipo_stanza bagno))))
+
+
 
 ;----------------2° STEP (Altre domande per capire il tipo di lavoro da fare)----------------
-(defrule esterno_no_rivestimento ;se esterno allora nessun rivestimento
-	?f <- (step2)
-	(interno FALSE)
-	=>
-	(retract ?f)
-	(assert (pavimento TRUE))
-	(assert (rivestimento FALSE)))
-
-(defrule stanze_no_rivestimento ;se stanza diversa da cucina o bagno allora niente rivestimento
-	?f <- (step2)
-	(tipo_stanza altro)
-	=>
-	(retract ?f)
-	(assert (pavimento TRUE))
-	(assert (rivestimento FALSE)))
-
 (defrule pavimento_non_presente  ;regola relativa a quando il pavimento non è presente, quindi bisognerebbe farlo mentre l'utente ha deciso di non farlo.
 	?f <- (pavimento FALSE)
 	(presenza_pavimento FALSE)
@@ -249,20 +269,7 @@
 	(bind ?risposta (yes_or_no_p "Vuoi quindi realizzare anche il pavimento?"))
 	(if ?risposta then (retract ?f) (assert (pavimento TRUE))))
 
-(defrule domanda_rivestimento_pavimento ;domanda riguardo a cosa effettuare (pavimento, rivestimento o entrambi) nel caso di cucina o bagno
-	?f <- (step2)
-	(or (tipo_stanza bagno) 
-		(tipo_stanza cucina))
-	(or (not (pavimento ?))
-		(not (rivestimento ?)))
-	=>
-	(retract ?f)
-	(bind ?*help* "Scegliere 'rivestimento' se il pavimento è in buono stato e non si desidera modificarlo, scegliere 'pavimento', se si vuole realizzare %nsolo il pavimento, scegliere 'entrambi', se si vuole realizzare sia il pavimento che il rivestimento.")
-	(bind ?risposta (ask_question "Cosa devi realizzare? (rivestimento/pavimento/entrambi" rivestimento pavimento entrambi))
-	(switch ?risposta
-		(case rivestimento then (assert (rivestimento TRUE) (pavimento FALSE)))
-		(case pavimento then (assert (pavimento TRUE) (rivestimento FALSE)))
-		(case entrambi then (assert (pavimento TRUE) (rivestimento TRUE)))))
+
 
 (defrule domanda_metri_quadri_pavimento
 	(pavimento TRUE)
