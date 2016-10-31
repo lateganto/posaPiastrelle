@@ -310,8 +310,10 @@
 
 (defrule massetto
 	(declare (salience ?*high_priority*))
+	(not (continua))
 	(not (no_lavoro (nome massetto)))
 	(not (massetto))
+
 	(or (interno)
 		(esterno))
 	(presenza_massetto FALSE)
@@ -325,8 +327,10 @@
 
 (defrule fughe
 	(declare (salience ?*high_priority*))
+	(not (continua))
 	(not (no_lavoro (nome fughe)))
 	(not (fughe))
+
 	(or (interno)
 		(esterno))
 	(presenza_pavimento TRUE)
@@ -342,8 +346,10 @@
 
 (defrule battiscopa 
 	(declare (salience ?*high_priority*))
+	(not (continua))
 	(not (no_lavoro (nome battiscopa)))
 	(not (battiscopa))
+
 	(or (interno)
 		(esterno))
 	(not (or (tipo_stanza bagno)
@@ -361,8 +367,10 @@
 
 (defrule rattoppo
 	(declare (salience ?*high_priority*))
+	(not (continua))
 	(not (no_lavoro (nome rattoppo)))
 	(not (rattoppo))
+
 	(or (interno)
 		(esterno))
 	(presenza_pavimento TRUE)
@@ -379,9 +387,11 @@
 
 (defrule pavimento
 	(declare (salience ?*high_priority*))
+	(not (continua))
 	(not (no_lavoro (nome pavimento)))
 	(not (pavimento))
 	(not (pavimento_rivestimento))
+
 	(or (interno)
 		(esterno))
 	(or (condizioni_pavimento cattive)
@@ -390,7 +400,7 @@
 		(presenza_massetto TRUE))
 	=>
 	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il pavimento? (ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il pavimento!) "))
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il pavimento? %n(ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il pavimento!) "))
 	(if ?risposta
 		then (assert (continua))
 			 (assert (pavimento))
@@ -398,25 +408,25 @@
 
 (defrule rivestimento
 	(declare (salience ?*high_priority*))
+	(not (continua))
 	(not (no_lavoro (nome rivestimento)))
 	(not (rivestimento))
-	(not (pavimento_rivestimento))
 
 	(or (condizioni_rivestimento cattive)
 		(ristrutturazione_rivestimento TRUE)
 		(presenza_rivestimento FALSE))
 	=>
 	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il rivestimento? (ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il rivestimento!) "))
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il rivestimento? %n(ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il rivestimento!) "))
 	(if ?risposta
 		then (assert (continua))
 			 (assert (rivestimento))
 		else (assert (no_lavoro (nome rivestimento)))))
 
-(defrule pavimento_rivestimento1
+(defrule pavimento_rivestimento
 	(declare (salience ?*high_priority*))
+	(not (continua))
 	(not (no_lavoro (nome pavimento_rivestimento)))
-	(not (pavimento_rivestimento))
 
 	(or (condizioni_pavimento cattive)
 		(ristrutturazione_pavimento TRUE)
@@ -505,10 +515,13 @@
 	(test (> ?dim 50))
 	=>
 	(printout t crlf "L'area in cui si deve fare il massetto è troppo ampia! Consulta un muratore!" crlf)
+	(printout t crlf "Premi 'c' per chiudere il programma: ")
+	(while (neq (read) c)
+		(printout t crlf "Premi 'c' per chiudere il programma: "))
 	(halt))
 
-(defrule procedimento
-	)
+
+
 
 
 
