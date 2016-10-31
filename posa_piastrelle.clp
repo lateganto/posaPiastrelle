@@ -17,6 +17,10 @@
 (deftemplate domanda
 	(slot valore))
 
+(deftemplate caratteristica
+	(slot nome)
+	(slot valore))
+
 ;  /-------------------------------/
 ; /-----------FUNCTIONS-----------/
 ;/-------------------------------/
@@ -75,7 +79,6 @@
 	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
 
 ;Domanda 6: Ti serve un consiglio specifico?
-;
 
 (defrule domanda_anni
 	(not (domanda (valore one)))
@@ -140,8 +143,8 @@
 	(assert (domanda (valore four)))
 	(modify ?f2 (numero (+ ?x 1)))
 	(if ?risposta
-		then (modify ?f1 (esperto (+ ?val_princ 3)))
-		else (modify ?f1 (principiante (+ ?val_esp 3)))))
+		then (modify ?f1 (esperto (+ ?val_esp 3)))
+		else (modify ?f1 (principiante (+ ?val_princ 3)))))
 
 (defrule domanda_lavoro
 	(not (domanda (valore five)))
@@ -193,6 +196,7 @@
 (defrule domanda_interno_esterno
 	(preparazione_utente ?)
 	(not (interno ?))
+	(not (continua))
 	=>
 	(bind ?*help* "Rispondere 'interno' se il lavoro deve essere effettuato in una stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da %nletto, etc), 'esterno' in caso contrario (balcone, terrazzo).")
 	(bind ?risposta (ask_question "Il lavoro riguarda l'interno o l'esterno? (esterno/interno" interno esterno))
@@ -204,6 +208,7 @@
 	(preparazione_utente ?)
 	(not (tipo_stanza ?))
 	(interno)
+	(not (continua))
 	=>
 	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro. Nel caso in cui ci sia più di una %nrisposta, allora effettuare la scelta di una stanza e continuare, poi riavviare il sistema e procedere con la successiva scelta.")
 	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno/cucina/altro" bagno cucina altro))
@@ -212,6 +217,7 @@
 (defrule domanda_presenza_pavimento
 	(preparazione_utente ?)
 	(not (presenza_pavimento ?))
+	(not (continua))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un pavimento nella stanza in cui si intende lavorare, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
@@ -222,6 +228,7 @@
 	(not (presenza_rivestimento ?))
 	(or (tipo_stanza bagno)
 		(tipo_stanza cucina))
+	(not (continua))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un rivestimento, cioè le pareti della stanza sono ricoperte con piastrelle, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un rivestimento?"))
@@ -231,6 +238,7 @@
 	(preparazione_utente ?)
 	(not (presenza_massetto ?))
 	(presenza_pavimento FALSE)
+	(not (continua))
 	=>
 	(bind ?*help* "Il massetto è quello strato di cemento la cui presenza è fondamentale perché sopra di esso verranno poste le piastrelle.")
 	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
@@ -241,6 +249,7 @@
 	(presenza_pavimento TRUE)
 	(not (condizioni_pavimento ?))
 	(not (ristrutturazione_pavimento TRUE))
+	(not (continua))
 	=>
 	(bind ?*help* "Rispondere 'si' se il pavimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
 	(bind ?risposta (yes_or_no_p "Il pavimento esistente presenta molte piastrelle consumate o non perfettamente aderenti?"))
@@ -252,6 +261,7 @@
 	(preparazione_utente ?)
 	(presenza_pavimento TRUE)
 	(not (ristrutturazione_pavimento ?))
+	(not (continua))
 	=>
 	(bind ?*help* "Rispondere decidendo se si vuole sostituire il pavimento presente con uno nuovo oppure no.")
 	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il pavimento esistente?"))
@@ -264,6 +274,7 @@
 	(presenza_rivestimento TRUE)
 	(not (condizioni_rivestimento ?))
 	(not (ristrutturazione_rivestimento TRUE))
+	(not (continua))
 	=>
 	(bind ?*help* "Rispondere 'si' se il rivestimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
 	(bind ?risposta (yes_or_no_p "Il rivestimento presenta molte piastrelle non aderenti, mancanti, scheggiate o consumate?"))
@@ -275,6 +286,7 @@
 	(preparazione_utente ?)
 	(presenza_rivestimento TRUE)
 	(not (ristrutturazione_rivestimento ?))
+	(not (continua))
 	=>
 	(bind ?*help* "Rispondere decidendo se si vuole sostituire il rivestimento presente con uno nuovo oppure no.")
 	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il rivestimento presente?"))
@@ -282,13 +294,25 @@
 		then (assert (ristrutturazione_rivestimento TRUE)) 
 		else (assert (ristrutturazione_rivestimento FALSE))))
 
+(defrule domanda_anni_presenza_pavimento
+	(preparazione_utente ?)
+	(presenza_pavimento TRUE)
+	(not (anni_pavimento ?))
+	(not (continua))
+	=>
+	(bind ?*help* "Rispondere indicando (se si conosce) gli anni che ha il pavimento presente.")
+	(bind ?risposta (ask_number "Quanti anni ha il pavimento presente?"))
+	(while (and (< ?risposta 1) (> ?risposta 50))
+		(printout t crlf "La risposta è sbagliata!")
+		(bind ?risposta (ask_number "Quanti anni ha il pavimento presente?")))
+	(assert (anni_pavimento ?risposta)))
+
 
 ;---------------------------------------------------
 (defrule massetto
 	(not (no_massetto))
 	(or (interno)
 		(esterno))
-	(presenza_pavimento FALSE)
 	(presenza_massetto FALSE)
 	=>
 	(bind ?*help* "")
@@ -304,7 +328,7 @@
 		(esterno))
 	(presenza_pavimento TRUE)
 	(condizioni_pavimento buone)
-	;no ristrutturarlo
+	(ristrutturazione_pavimento FALSE)
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare le fughe?"))
@@ -321,7 +345,7 @@
 			 (tipo_stanza cucina)))
 	(presenza_pavimento TRUE)
 	(condizioni_pavimento buone)
-	;no ristrutturare
+	(ristrutturazione_pavimento FALSE)
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare i battiscopa?"))
@@ -336,8 +360,8 @@
 		(esterno))
 	(presenza_pavimento TRUE)
 	(condizioni_pavimento buone)
-	;no ristruttura
-	;no pavimento_anni > 10
+	(anni_pavimento ?x)
+	(test (<= ?x 6))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare un rattoppo?"))
@@ -401,7 +425,7 @@
 	(declare (salience ?*high_priority*))
 	(continua)
 	=>
-	(printout t crlf "sdfasfas")
+	(printout t crlf "sdfasfas" crlf)
 	(halt))
 
 (defrule no_soluzione
