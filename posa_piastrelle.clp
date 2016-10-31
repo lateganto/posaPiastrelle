@@ -17,7 +17,7 @@
 (deftemplate domanda
 	(slot valore))
 
-(deftemplate caratteristica
+(deftemplate proprieta
 	(slot nome)
 	(slot valore))
 
@@ -201,8 +201,8 @@
 	(bind ?*help* "Rispondere 'interno' se il lavoro deve essere effettuato in una stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da %nletto, etc), 'esterno' in caso contrario (balcone, terrazzo).")
 	(bind ?risposta (ask_question "Il lavoro riguarda l'interno o l'esterno? (esterno/interno" interno esterno))
 	(if (eq ?risposta interno)
-		then (assert (interno))
-		else (assert (esterno))))
+		then (assert (proprieta (nome interno) (valore TRUE)))
+		else (assert (proprieta (nome esterno) (valore TRUE)))))
 
 (defrule domanda_tipo_stanza
 	(preparazione_utente ?)
@@ -212,7 +212,7 @@
 	=>
 	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro. Nel caso in cui ci sia più di una %nrisposta, allora effettuare la scelta di una stanza e continuare, poi riavviare il sistema e procedere con la successiva scelta.")
 	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno/cucina/altro" bagno cucina altro))
-	(assert (tipo_stanza ?risposta)))
+	(assert (proprieta (nome tipo_stanza) (valore ?risposta))))
 
 (defrule domanda_presenza_pavimento
 	(preparazione_utente ?)
@@ -221,7 +221,7 @@
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un pavimento nella stanza in cui si intende lavorare, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
-	(assert (presenza_pavimento ?risposta)))
+	(assert (proprieta (nome presenza_pavimento) (valore ?risposta))))
 
 (defrule domanda_presenza_rivestimento
 	(preparazione_utente ?)
@@ -232,7 +232,7 @@
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un rivestimento, cioè le pareti della stanza sono ricoperte con piastrelle, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un rivestimento?"))
-	(assert (presenza_rivestimento ?risposta)))
+	(assert (proprieta (nome presenza_rivestimento) (valore ?risposta))))
 
 (defrule domanda_presenza_massetto
 	(preparazione_utente ?)
@@ -242,7 +242,7 @@
 	=>
 	(bind ?*help* "Il massetto è quello strato di cemento la cui presenza è fondamentale perché sopra di esso verranno poste le piastrelle.")
 	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
-	(assert (presenza_massetto ?risposta)))
+	(assert (proprieta (nome presenza_massetto) (valore ?risposta))))
 
 (defrule domanda_condizioni_pavimento_presente
 	(preparazione_utente ?)
@@ -254,8 +254,8 @@
 	(bind ?*help* "Rispondere 'si' se il pavimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
 	(bind ?risposta (yes_or_no_p "Il pavimento esistente presenta molte piastrelle consumate o non perfettamente aderenti?"))
 	(if ?risposta
-		then (assert (condizioni_pavimento cattive))
-		else (assert (condizioni_pavimento buone))))
+		then (assert (proprieta (nome condizioni_pavimento) (valore cattive)))
+		else (assert (proprieta (nome condizioni_pavimento) (valore buone)))))
 
 (defrule domanda_pavimento_presente_rinnovo
 	(preparazione_utente ?)
@@ -266,8 +266,8 @@
 	(bind ?*help* "Rispondere decidendo se si vuole sostituire il pavimento presente con uno nuovo oppure no.")
 	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il pavimento esistente?"))
 	(if ?risposta
-		then (assert (ristrutturazione_pavimento TRUE)) ;chiedi se deve fare fughe o battiscopa o solo aggiustare una piastrella scheggiata
-		else (assert (ristrutturazione_pavimento FALSE)))) ;deve rimuovere il pavimento
+		then (assert (proprieta (nome ristrutturazione_pavimento) (valore TRUE))) ;chiedi se deve fare fughe o battiscopa o solo aggiustare una piastrella scheggiata
+		else (assert (proprieta (nome ristrutturazione_pavimento) (valore FALSE)))) ;deve rimuovere il pavimento
 
 (defrule domanda_condizioni_rivestimento_presente
 	(preparazione_utente ?)
@@ -279,8 +279,8 @@
 	(bind ?*help* "Rispondere 'si' se il rivestimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
 	(bind ?risposta (yes_or_no_p "Il rivestimento presenta molte piastrelle non aderenti, mancanti, scheggiate o consumate?"))
 	(if ?risposta 
-		then (assert (condizioni_rivestimento cattive))
-		else (assert (condizioni_rivestimento buone))))
+		then (assert (proprieta (nome condizioni_rivestimento) (valore cattive)))
+		else (assert (proprieta (nome condizioni_rivestimento) (valore buone)))))
 
 (defrule domanda_rivestimento_presente_rinnovo
 	(preparazione_utente ?)
@@ -291,8 +291,8 @@
 	(bind ?*help* "Rispondere decidendo se si vuole sostituire il rivestimento presente con uno nuovo oppure no.")
 	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il rivestimento presente?"))
 	(if ?risposta
-		then (assert (ristrutturazione_rivestimento TRUE)) 
-		else (assert (ristrutturazione_rivestimento FALSE))))
+		then (assert (proprieta (nome ristrutturazione_rivestimento) (valore TRUE))) 
+		else (assert (proprieta (nome ristrutturazione_rivestimento) (valore FALSE)))))
 
 (defrule domanda_anni_presenza_pavimento
 	(preparazione_utente ?)
@@ -305,15 +305,15 @@
 	(while (and (< ?risposta 1) (> ?risposta 50))
 		(printout t crlf "La risposta è sbagliata!")
 		(bind ?risposta (ask_number "Quanti anni ha il pavimento presente?")))
-	(assert (anni_pavimento ?risposta)))
+	(assert (proprieta (nome anni_pavimento) (valore ?risposta))))
 
 
 ;---------------------------------------------------
 (defrule massetto
 	(not (no_massetto))
-	(or (interno)
-		(esterno))
-	(presenza_massetto FALSE)
+	(or (proprieta (nome interno) (valore TRUE))
+		(proprieta (nome esterno) (valore TRUE)))
+	(proprieta (nome presenza_massetto) (valore FALSE))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare il massetto?"))
@@ -324,11 +324,11 @@
 
 (defrule fughe
 	(not (no_fughe))
-	(or (interno)
-		(esterno))
-	(presenza_pavimento TRUE)
-	(condizioni_pavimento buone)
-	(ristrutturazione_pavimento FALSE)
+	(or (proprieta (nome interno) (valore TRUE))
+		(proprieta (nome esterno) (valore TRUE)))
+	(proprieta (nome presenza_pavimento) (valore TRUE))
+	(proprieta (nome condizioni_pavimento) (valore buone))
+	(proprieta (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare le fughe?"))
@@ -339,13 +339,13 @@
 
 (defrule battiscopa 
 	(not (no_battiscopa))
-	(or (interno)
-		(esterno))
-	(not (or (tipo_stanza bagno)
-			 (tipo_stanza cucina)))
-	(presenza_pavimento TRUE)
-	(condizioni_pavimento buone)
-	(ristrutturazione_pavimento FALSE)
+	(or (proprieta (nome interno) (valore TRUE))
+		(proprieta (nome esterno) (valore TRUE)))
+	(not (or (proprieta (nome tipo_stanza) (valore bagno))
+			 (proprieta (nome tipo_stanza) (valore cucina))))
+	(proprieta (nome presenza_pavimento) (valore TRUE))
+	(proprieta (nome condizioni_pavimento) (valore buone))
+	(proprieta (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare i battiscopa?"))
@@ -356,11 +356,11 @@
 
 (defrule rattoppo
 	(not (no_rattoppo))
-	(or (interno)
-		(esterno))
-	(presenza_pavimento TRUE)
-	(condizioni_pavimento buone)
-	(anni_pavimento ?x)
+	(or (proprieta (nome interno) (valore TRUE))
+		(proprieta (nome esterno) (valore TRUE)))
+	(proprieta (nome presenza_pavimento) (valore TRUE))
+	(proprieta (nome condizioni_pavimento) (valore buone))
+	(proprieta (nome anni_pavimento) (valore ?x))
 	(test (<= ?x 6))
 	=>
 	(bind ?*help* "")
@@ -372,12 +372,12 @@
 
 (defrule pavimento
 	(not (no_solo_pavimento))
-	(or (interno)
-		(esterno))
-	(or (condizioni_pavimento cattive)
-		(ristrutturazione_pavimento TRUE)
-		(presenza_pavimento FALSE)
-		(presenza_massetto TRUE))
+	(or (proprieta (nome interno) (valore TRUE))
+		(proprieta (nome esterno) (valore TRUE)))
+	(or (proprieta (nome condizioni_pavimento) (valore cattive))
+		(proprieta (nome ristrutturazione_pavimento) (valore TRUE))
+		(proprieta (nome presenza_pavimento) (valore FALSE))
+		(proprieta (nome presenza_massetto) (valore TRUE)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare solo il pavimento?"))
@@ -388,11 +388,11 @@
 
 (defrule rivestimento
 	(not (no_solo_rivestimento))
-	(or (tipo_stanza bagno)
-		(tipo_stanza cucina))
-	(or (condizioni_rivestimento cattive)
-		(ristrutturazione_rivestimento TRUE)
-		(presenza_rivestimento FALSE))
+	(or (proprieta (nome tipo_stanza) (valore bagno))
+		(proprieta (nome tipo_stanza) (valore cucina)))
+	(or (proprieta (nome condizioni_rivestimento) (valore cattive))
+		(proprieta (nome ristrutturazione_rivestimento) (valore TRUE))
+		(proprieta (nome presenza_rivestimento) (valore FALSE)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare solo il rivestimento?"))
@@ -403,15 +403,15 @@
 
 (defrule pavimento_rivestimento
 	(not (no_rivestimento_pavimento))
-	(or (tipo_stanza bagno)
-		(tipo_stanza cucina))
-	(or (condizioni_pavimento cattive)
-		(ristrutturazione_pavimento TRUE)
-		(presenza_pavimento FALSE)
-		(presenza_massetto TRUE))
-	(or (condizioni_rivestimento cattive)
-		(ristrutturazione_rivestimento TRUE)
-		(presenza_rivestimento FALSE))
+	(or (proprieta (nome tipo_stanza) (valore bagno))
+		(proprieta (nome tipo_stanza) (valore cucina)))
+	(or (proprieta (nome condizioni_pavimento) (valore cattive))
+		(proprieta (nome ristrutturazione_pavimento) (valore TRUE))
+		(proprieta (nome presenza_pavimento) (valore FALSE))
+		(proprieta (nome presenza_massetto) (valore TRUE)))
+	(or (proprieta (nome condizioni_rivestimento) (valore cattive))
+		(proprieta (nome ristrutturazione_rivestimento) (valore TRUE))
+		(proprieta (nome presenza_rivestimento) (valore FALSE)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Devi fare sia il pavimento che il rivestimento?"))
@@ -425,7 +425,7 @@
 	(declare (salience ?*high_priority*))
 	(continua)
 	=>
-	(printout t crlf "sdfasfas" crlf)
+	(printout t crlf "Continua...." crlf)
 	(halt))
 
 (defrule no_soluzione
