@@ -78,6 +78,7 @@
 	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
 
 ;Domanda 6: Ti serve un consiglio specifico?
+;Domanda 7: sai usare un livello?
 
 (defrule domanda_anni
 	(not (domanda (valore one)))
@@ -529,6 +530,7 @@
 ;  /---------------------------------------------------------------------------/
 ; /----------------------------------MASSETTO---------------------------------/
 ;/---------------------------------------------------------------------------/
+
 (defrule domanda_pavimento_da_raccordare
 	(massetto)
 	(not (pavimento_da_raccordare ?))
@@ -668,16 +670,18 @@
 	(format t "%nIl massetto che si deve realizzare deve essere esattamente %d mm sotto il pavimento o le porte già presenti%n" (+ ?spessore_piastrella 3))
 	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
 	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre addossato al pavimento già presente (esattamente %d mm sotto)%n e fissalo con il cemento in modo che non faccia movimenti e sia ben saldo%n" (+ ?spessore_piastrella 3))
-	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
-					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
-					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
-					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
-					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 3 quintali di cemento per metro cubo di sabbia." crlf
-					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
-					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
-					"a riempire tutta la superficie." crlf
-					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
-					"Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
+	(printout t crlf "Bisogna individuare dove avverrà lo scolo dell'acqua; dopo averlo stabilito per creare la pendenza e permettere all'acqua di uscire" crlf
+					 "poni allo stesso modo un altro spessore che sarà più basso di 1-1,5 cm alla distanza di circa 2 metri da quello precedente e poni le" crlf 
+					 "estremità di una  stadia di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella e poni uno spessore" crlf
+					 "di 1-1,5 per controllare che sia all'altezza giusta." crlf
+					 "Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
+					 "Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
+					 "Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 3 quintali di cemento per metro cubo di sabbia." crlf
+					 "Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
+					 "Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
+					 "a riempire tutta la superficie." crlf
+					 "Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
+					 "Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
 
 (defrule guide_e_massetto_no_raccordo_interno
 	(preparazione_utente ?)
@@ -728,8 +732,10 @@
 					 " * livella" crlf crlf)
 	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
 	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre in un angolo e fissalo con il cemento in modo che non faccia %nmovimenti e sia ben saldo%n")
-	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
-					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
+	(printout t crlf "Bisogna individuare dove avverrà lo scolo dell'acqua; dopo averlo stabilito per creare la pendenza e permettere all'acqua di uscire" crlf
+					 "poni allo stesso modo un altro spessore che sarà più basso di 1-1,5 cm alla distanza di circa 2 metri da quello precedente e poni le" crlf 
+					 "estremità di una  stadia di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella e poni uno spessore" crlf
+					 "di 1-1,5 per controllare che sia all'altezza giusta." crlf
 					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
 					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
 					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 3 quintali di cemento per metro cubo di sabbia." crlf
@@ -799,14 +805,26 @@
 					 " * livella" crlf
 					 " * miscelatore elettrico (consigliato)" crlf
 					 " * distanziatori" crlf 
-					 " * secchio e cazzuola (piccola e grande)" crlf)
+					 " * secchio e cazzuola (piccola e grande)" crlf
+					 " * smerigliatrice" crlf
+					 " * matita da muratore" crlf crlf)
+
 	(printout t crlf "Versa la colla in polvere nel secchio, aggiungi acqua in modo che tutta la polvere lo assorba e gira a mano o con il miscelatore." crlf
 					 "L'impasto non deve essere molto liquido." crlf
 					 "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
 					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
 					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
 					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
+
+					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
+					 "e il muro. Ci possono essere due casi:" crlf
+					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
+					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
+					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
+					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
+					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
+					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
 
 (defrule battiscopa_interno_esperto
 	(preparazione_utente alta)
@@ -818,13 +836,23 @@
 					 " * acqua" crlf
 					 " * livella" crlf
 					 " * miscelatore elettrico (consigliato)" crlf
-					 " * distanziatori" crlf 
+					 " * distanziatori" crlf
+					 " * smerigliatrice" crlf 
 					 " * secchio e cazzuola (piccola e grande)" crlf)
 	(printout t crlf "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
 					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
 					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
 					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
+
+					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
+					 "e il muro. Ci possono essere due casi:" crlf
+					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
+					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
+					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
+					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
+					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
+					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
 
 (defrule battiscopa_esterno_principiante
 	(preparazione_utente bassa)
@@ -837,6 +865,7 @@
 					 " * livella" crlf
 					 " * miscelatore elettrico (consigliato)" crlf
 					 " * distanziatori" crlf 
+					 " * smerigliatrice" crlf 
 					 " * secchio e cazzuola (piccola e grande)" crlf)
 	(printout t crlf "Versa la colla in polvere nel secchio, aggiungi acqua in modo che tutta la polvere lo assorba e gira a mano o con il miscelatore." crlf
 					 "L'impasto non deve essere molto liquido." crlf
@@ -844,7 +873,16 @@
 					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
 					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
 					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
+
+					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
+					 "e il muro. Ci possono essere due casi:" crlf
+					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
+					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
+					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
+					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
+					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
+					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
 
 (defrule battiscopa_esterno_esperto
 	(preparazione_utente alta)
@@ -856,13 +894,23 @@
 					 " * acqua" crlf
 					 " * livella" crlf
 					 " * miscelatore elettrico (consigliato)" crlf
-					 " * distanziatori" crlf 
+					 " * distanziatori" crlf
+					 " * smerigliatrice" crlf 
 					 " * secchio e cazzuola (piccola e grande)" crlf)
 	(printout t crlf "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
 					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
 					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
 					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
+
+					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
+					 "e il muro. Ci possono essere due casi:" crlf
+					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
+					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
+					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
+					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
+					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
+					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
 
 
 ;  /---------------------------------------------------------------------------/
