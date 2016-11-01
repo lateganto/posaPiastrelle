@@ -832,7 +832,7 @@
 	(esterno)
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * colla per interni" crlf
+					 " * colla per esterni" crlf
 					 " * acqua" crlf
 					 " * livella" crlf
 					 " * miscelatore elettrico (consigliato)" crlf
@@ -847,12 +847,12 @@
 					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
 
 (defrule battiscopa_esterno_esperto
-	(preparazione_utente bassa)
+	(preparazione_utente alta)
 	(battiscopa)
 	(esterno)
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * colla per interni" crlf
+					 " * colla per esterni" crlf
 					 " * acqua" crlf
 					 " * livella" crlf
 					 " * miscelatore elettrico (consigliato)" crlf
@@ -865,6 +865,9 @@
 					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
 
 
+;  /---------------------------------------------------------------------------/
+; /--------------------------------PAVIMENTO----------------------------------/
+;/---------------------------------------------------------------------------/
 
 
 
@@ -877,4 +880,17 @@
 
 
 
+;  /---------------------------------------------------------------------------/
+; /------------------------------RIVESTIMENTO---------------------------------/
+;/---------------------------------------------------------------------------/
 
+
+
+
+
+
+
+
+;  /---------------------------------------------------------------------------/
+; /-------------------------PAVIMENTO RIVESTIMENTO-----------------------------/
+;/---------------------------------------------------------------------------/
