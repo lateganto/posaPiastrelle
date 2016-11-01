@@ -186,7 +186,8 @@
 	?f2 <- (esperienza (esperto ?) (principiante ?))
 	=>
 	(do-for-all-facts ((?domanda domanda)) TRUE (retract ?domanda))  ;elimina tutti i fatti di tipo "domanda"
-	(retract ?f1 ?f2))
+	(retract ?f1 ?f2)
+	(printout t crlf crlf))
 
 
 ;  /---------------------------------------------------------------------------/ 
@@ -194,7 +195,8 @@
 ;/---------------------------------------------------------------------------/
 (defrule domanda_interno_esterno
 	(preparazione_utente ?)
-	(not (interno ?))
+	(or (not (interno))
+		(not (esterno)))
 	(not (continua))
 	=>
 	(bind ?*help* "Rispondere 'interno' se il lavoro deve essere effettuato in una stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da %nletto, etc), 'esterno' in caso contrario (balcone, terrazzo).")
@@ -210,7 +212,7 @@
 	(not (continua))
 	=>
 	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro. Nel caso in cui ci sia più di una %nrisposta, allora effettuare la scelta di una stanza e continuare, poi riavviare il sistema e procedere con la successiva scelta.")
-	(bind ?risposta (ask_question "Indicare in quale stanza si deve effettuare la posa? (bagno/cucina/altro" bagno cucina altro))
+	(bind ?risposta (ask_question "Quale stanza riguarda il lavoro? (bagno/cucina/altro" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
 (defrule domanda_presenza_pavimento
@@ -300,10 +302,10 @@
 	(not (continua))
 	=>
 	(bind ?*help* "Rispondere indicando (se si conosce) gli anni che ha il pavimento presente.")
-	(bind ?risposta (ask_number "Quanti anni ha il pavimento presente (-1 nel caso non si sappia)?"))
-	(while (and (< ?risposta -1) (> ?risposta 50))
-		(printout t crlf "La risposta è sbagliata!")
-		(bind ?risposta (ask_number "Quanti anni è che il pavimento non viene sostituito (-1 nel caso non si sappia)?")))
+	(bind ?risposta (ask_number "Quanti anni sono che il pavimento non viene sostituito (-1 nel caso non si sappia)?"))
+	(while (< ?risposta -1)
+		(printout t crlf "Inserisci un numero da 0 in poi, o -1 nel caso tu non conosca gli anni.")
+		(bind ?risposta (ask_number "Quanti anni sono che il pavimento non viene sostituito (-1 nel caso non si sappia)?")))
 	(assert (anni_pavimento ?risposta)))
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -312,7 +314,6 @@
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome massetto)))
-	(not (massetto))
 
 	(or (interno)
 		(esterno))
@@ -325,11 +326,10 @@
 			 (assert (massetto))
 		else (assert (no_lavoro (nome massetto)))))
 
-(defrule fughe
+(defrule fughe1
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome fughe)))
-	(not (fughe))
 
 	(or (interno)
 		(esterno))
@@ -344,11 +344,28 @@
 			 (assert (fughe))
 		else (assert (no_lavoro (nome fughe)))))
 
+(defrule fughe2
+	(declare (salience ?*high_priority*))
+	(not (continua))
+	(not (no_lavoro (nome fughe)))
+
+	(or (interno)
+		(esterno))
+	(presenza_rivestimento TRUE)
+	(condizioni_rivestimento buone)
+	(ristrutturazione_rivestimento FALSE)
+	=>
+	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il riempimento delle fughe, negativamente in caso contrario.")
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare sono le fughe?"))
+	(if ?risposta
+		then (assert (continua))
+			 (assert (fughe))
+		else (assert (no_lavoro (nome fughe)))))
+
 (defrule battiscopa 
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome battiscopa)))
-	(not (battiscopa))
 
 	(or (interno)
 		(esterno))
@@ -369,16 +386,15 @@
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome rattoppo)))
-	(not (rattoppo))
 
 	(or (interno)
 		(esterno))
 	(presenza_pavimento TRUE)
 	(condizioni_pavimento buone)
 	(anni_pavimento ?x)
-	(test (<= ?x 6))  ;se il pavimento è troppo vecchio allora ci sarà una differenza di colore tra la piastrella nuova e quella vecchia
+	(test (<= ?x 6))  ;se il pavimento è troppo vecchio non si fa il rattoppo perché ci sarà una differenza di colore tra la piastrella nuova e quella vecchia
 	=>
-	(bind ?*help* "realizzare")
+	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è un rattoppo, come la sostituzione di una o più piastrelle scheggiate, %nalzate o usurate; rispondere negativamente in caso contrario")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è un rattoppo?"))
 	(if ?risposta
 		then (assert (continua))
@@ -389,8 +405,6 @@
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome pavimento)))
-	(not (pavimento))
-	(not (pavimento_rivestimento))
 
 	(or (interno)
 		(esterno))
@@ -410,7 +424,6 @@
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome rivestimento)))
-	(not (rivestimento))
 
 	(or (condizioni_rivestimento cattive)
 		(ristrutturazione_rivestimento TRUE)
@@ -442,12 +455,48 @@
 		then (assert (continua))
 			 (assert (pavimento_rivestimento))
 		else (assert (no_lavoro (nome pavimento_rivestimento)))))
+
+(defrule pavimento_rivestimento2  ;domanda nel caso in cui risponda no a pavimento, è molto probabile che voglia fare entrambi
+	(declare (salience ?*high_priority*))
+	(not (continua))
+	(not (no_lavoro (nome pavimento_rivestimento)))
+
+	(no_lavoro (nome pavimento))
+	(or (condizioni_rivestimento cattive)
+		(ristrutturazione_rivestimento TRUE)
+		(presenza_rivestimento FALSE))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
+	(if ?risposta
+		then (assert (continua))
+			 (assert (pavimento_rivestimento))
+		else (assert (no_lavoro (nome pavimento_rivestimento)))))
+
+(defrule pavimento_rivestimento3  ;domanda nel caso in cui risponda no a rivestimento è molto probabile che voglia fare entrambi
+	(declare (salience ?*high_priority*))
+	(not (continua))
+	(not (no_lavoro (nome pavimento_rivestimento)))
+
+	(no_lavoro (nome rivestimento))
+	(or (condizioni_pavimento cattive)
+		(ristrutturazione_pavimento TRUE)
+		(presenza_pavimento FALSE)
+		(presenza_massetto TRUE))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
+	(if ?risposta
+		then (assert (continua))
+			 (assert (pavimento_rivestimento))
+		else (assert (no_lavoro (nome pavimento_rivestimento)))))
 ;-----------------------------------------------------------------------------------------------------------------
 
 (defrule lavoro_trovato
 	(declare (salience ?*highest_priority*))
 	(continua)
 	=>
+	(printout t crlf crlf)
 	(do-for-all-facts ((?no_lavoro no_lavoro)) TRUE (retract ?no_lavoro)))
 
 (defrule lavoro_non_trovato
@@ -470,7 +519,7 @@
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Nello stesso piano ci sono altri pavimenti già posati?"))
-	(assert (pavimento_da_raccordare TRUE)))
+	(assert (pavimento_da_raccordare ?risposta)))
 
 (defrule domanda_dimensione_pavimento_esperto
 	(preparazione_utente alta)
@@ -507,10 +556,21 @@
 	(bind ?risposta (ask_number "Fornire quindi la dimensione in metri quadri dell'area in cui si deve lavorare?"))
 	(assert (dimensione_area ?risposta)))
 
+(defrule domanda_presenza_porte
+	(preparazione_utente ?)
+	(massetto)
+	(pavimento_da_raccordare FALSE)
+	(not porte_da_raccordare ?)
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Sono presenti porte o balconi già montati?"))
+	(assert (porte_da_raccordare TRUE)))
+
+;------------------------------------------------------------------------
 (defrule area_troppo_grande
 	(declare (salience ?*high_priority*))
+	(preparazione_utente ?)
 	(massetto)
-	(preparazione_utente bassa)
 	(dimensione_area ?dim)
 	(test (> ?dim 50))
 	=>
@@ -520,9 +580,154 @@
 		(printout t crlf "Premi 'c' per chiudere il programma: "))
 	(halt))
 
+(defrule domanda_spessore_piastrella
+	(preparazione_utente ?)
+	(massetto)
+	(or (pavimento_da_raccordare TRUE)
+		(porte_da_raccordare TRUE))
+	(not (spessore_piastrella_pavimento ?))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Hai già scelto la piastrella da usare?"))
+	(if ?risposta 
+		then (bind ?*help* "")
+			 (bind ?risposta (ask_number "Indica lo spessore della piastrella in millimetri"))
+			 (assert (spessore_piastrella_pavimento ?risposta))
+		else (printout t crlf "Senza lo spessore della piastrella non si può sapere quanto sarà alto il massetto!")
+			(printout t crlf "Premi 'c' per chiudere il programma: ")
+			(while (neq (read) c)
+				(printout t crlf "Premi 'c' per chiudere il programma: "))
+			(halt)))
+
+(defrule guide_e_massetto_raccordo_interno
+	(preparazione_utente ?)
+	(massetto)
+	(or (pavimento_da_raccordare TRUE)
+		(porte_da_raccordare TRUE))
+	(spessore_piastrella_pavimento ?spessore_piastrella)
+	(interno)
+	=> 
+	(printout t crlf "Hai bisogno di:" crlf
+					" * cazzuole (grande e piccola, a punta e piatte)" crlf
+					" * 2-3 secchi per il cemento" crlf
+					" * stadie di diverse lunghezze" crlf
+					" * frattazzo in plastica" crlf
+					" * sabbia"
+					" * cemento"
+					" * acqua"
+					" * betoniera"
+					" * livella" crlf crlf)
+	(format t "%nIl massetto che si deve realizzare deve essere esattamente %d mm sotto il pavimento o le porte già presenti%n" (+ ?spessore_piastrella 3))
+	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
+	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre addossato al pavimento già presente (esattamente %d mm sotto)%n e fissalo con il cemento in modo che non faccia movimenti e sia ben saldo%n" (+ ?spessore_piastrella 3))
+	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
+					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
+					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
+					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
+					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 2 quintali di cemento per metro cubo di sabbia." crlf
+					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
+					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
+					"a riempire tutta la superficie." crlf
+					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
+					"Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
+
+(defrule guide_e_massetto_raccordo_esterno
+	(preparazione_utente ?)
+	(massetto)
+	(or (pavimento_da_raccordare TRUE)
+		(porte_da_raccordare TRUE))
+	(spessore_piastrella_pavimento ?spessore_piastrella)
+	(esterno)
+	=>
+	(printout t crlf "Hai bisogno di:" crlf
+					" * cazzuole (grande e piccola, a punta e piatte)" crlf
+					" * 2-3 secchi per il cemento" crlf
+					" * stadie di diverse lunghezze" crlf
+					" * frattazzo in plastica" crlf
+					" * sabbia"
+					" * cemento"
+					" * acqua"
+					" * betoniera"
+					" * livella" crlf crlf)
+	(format t "%nIl massetto che si deve realizzare deve essere esattamente %d mm sotto il pavimento o le porte già presenti%n" (+ ?spessore_piastrella 3))
+	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
+	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre addossato al pavimento già presente (esattamente %d mm sotto)%n e fissalo con il cemento in modo che non faccia movimenti e sia ben saldo%n" (+ ?spessore_piastrella 3))
+	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
+					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
+					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
+					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
+					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 3 quintali di cemento per metro cubo di sabbia." crlf
+					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
+					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
+					"a riempire tutta la superficie." crlf
+					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
+					"Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
+
+(defrule guide_e_massetto_no_raccordo_interno
+	(preparazione_utente ?)
+	(massetto)
+	(interno)
+	(or (pavimento_da_raccordare FALSE)
+		(porte_da_raccordare FALSE))
+	=>
+	(printout t crlf "Hai bisogno di:" crlf
+					" * cazzuole (grande e piccola, a punta e piatte)" crlf
+					" * 2-3 secchi per il cemento" crlf
+					" * stadie di diverse lunghezze" crlf
+					" * frattazzo in plastica" crlf
+					" * sabbia"
+					" * cemento"
+					" * acqua"
+					" * betoniera"
+					" * livella" crlf crlf)
+	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
+	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre in un angolo e fissalo con il cemento in modo che non faccia %nmovimenti e sia ben saldo%n")
+	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
+					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
+					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
+					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
+					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 2 quintali di cemento per metro cubo di sabbia." crlf
+					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
+					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
+					"a riempire tutta la superficie." crlf
+					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
+					"Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
+
+(defrule guide_e_massetto_no_raccordo_esterno
+	(preparazione_utente ?)
+	(massetto)
+	(esterno)
+	(or (pavimento_da_raccordare FALSE)
+		(porte_da_raccordare FALSE))
+	=>
+	(printout t crlf "Hai bisogno di:" crlf
+					" * cazzuole (grande e piccola, a punta e piatte)" crlf
+					" * 2-3 secchi per il cemento" crlf
+					" * stadie di diverse lunghezze" crlf
+					" * frattazzo in plastica" crlf
+					" * sabbia"
+					" * cemento"
+					" * acqua"
+					" * betoniera"
+					" * livella" crlf crlf)
+	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
+	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre in un angolo e fissalo con il cemento in modo che non faccia %nmovimenti e sia ben saldo%n")
+	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
+					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
+					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
+					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
+					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 3 quintali di cemento per metro cubo di sabbia." crlf
+					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
+					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
+					"a riempire tutta la superficie." crlf
+					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
+					"Una volta completato un piccolo pezzo di 1 metro quadro, misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
 
 
 
+;  /---------------------------------------------------------------------------/
+; /-----------------------------------FUGHE-----------------------------------/
+;/---------------------------------------------------------------------------/
 
 
 
