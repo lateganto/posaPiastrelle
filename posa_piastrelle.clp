@@ -195,7 +195,7 @@
 ;/---------------------------------------------------------------------------/
 (defrule domanda_interno_esterno
 	(preparazione_utente ?)
-	(or (not (interno))
+	(and (not (interno))
 		(not (esterno)))
 	(not (continua))
 	=>
@@ -326,7 +326,7 @@
 			 (assert (massetto))
 		else (assert (no_lavoro (nome massetto)))))
 
-(defrule fughe1
+(defrule fughe_pavimento ;domanda fughe in caso di pavimento
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome fughe)))
@@ -344,7 +344,7 @@
 			 (assert (fughe))
 		else (assert (no_lavoro (nome fughe)))))
 
-(defrule fughe2
+(defrule fughe_rivestimento ;domanda fughe in caso di rivestimento
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome fughe)))
@@ -362,44 +362,60 @@
 			 (assert (fughe))
 		else (assert (no_lavoro (nome fughe)))))
 
-(defrule battiscopa 
+(defrule battiscopa1
 	(declare (salience ?*high_priority*))
 	(not (continua))
 	(not (no_lavoro (nome battiscopa)))
 
-	(or (interno)
-		(esterno))
-	(not (or (tipo_stanza bagno)
-			 (tipo_stanza cucina)))
+	(esterno)
 	(presenza_pavimento TRUE)
 	(condizioni_pavimento buone)
 	(ristrutturazione_pavimento FALSE)
 	=>
-	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il posizionamento del battiscopa, negativamente in caso contrario")
+	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il posizionamento del battiscopa, negativamente in caso contrario.")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il battiscopa?"))
 	(if ?risposta
 		then (assert (continua))
 			 (assert (battiscopa))
 		else (assert (no_lavoro (nome battiscopa)))))
 
-(defrule rattoppo
+(defrule battiscopa2
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome rattoppo)))
+	(not (no_lavoro (nome battiscopa)))
 
-	(or (interno)
-		(esterno))
+	(interno)
+	(or (tipo_stanza altro)
+		(tipo_stanza cucina))
 	(presenza_pavimento TRUE)
 	(condizioni_pavimento buone)
-	(anni_pavimento ?x)
-	(test (<= ?x 6))  ;se il pavimento è troppo vecchio non si fa il rattoppo perché ci sarà una differenza di colore tra la piastrella nuova e quella vecchia
+	(ristrutturazione_pavimento FALSE)
 	=>
-	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è un rattoppo, come la sostituzione di una o più piastrelle scheggiate, %nalzate o usurate; rispondere negativamente in caso contrario")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è un rattoppo?"))
+	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il posizionamento del battiscopa, negativamente in caso contrario.")
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il battiscopa?"))
 	(if ?risposta
 		then (assert (continua))
-			 (assert (rattoppo))
-		else (assert (no_lavoro (nome rattoppo)))))
+			 (assert (battiscopa))
+		else (assert (no_lavoro (nome battiscopa)))))
+
+;(defrule rattoppo
+;	(declare (salience ?*high_priority*))
+;	(not (continua))
+;	(not (no_lavoro (nome rattoppo)))
+;
+;	(or (interno)
+;		(esterno))
+;	(presenza_pavimento TRUE)
+;	(condizioni_pavimento buone)
+;	(anni_pavimento ?x)
+;	(test (<= ?x 6))  ;se il pavimento è troppo vecchio non si fa il rattoppo perché ci sarà una differenza di colore tra la piastrella nuova e quella vecchia
+;	=>
+;	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è un rattoppo, come la sostituzione di una o più piastrelle scheggiate, %nalzate o usurate; ;rispondere negativamente in caso contrario")
+;	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è un rattoppo?"))
+;	(if ?risposta
+;		then (assert (continua))
+;			 (assert (rattoppo))
+;		else (assert (no_lavoro (nome rattoppo)))))
 
 (defrule pavimento
 	(declare (salience ?*high_priority*))
@@ -560,7 +576,7 @@
 	(preparazione_utente ?)
 	(massetto)
 	(pavimento_da_raccordare FALSE)
-	(not porte_da_raccordare ?)
+	(not (porte_da_raccordare ?))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Sono presenti porte o balconi già montati?"))
@@ -700,16 +716,16 @@
 	(or (pavimento_da_raccordare FALSE)
 		(porte_da_raccordare FALSE))
 	=>
-	(printout t crlf "Hai bisogno di:" crlf
-					" * cazzuole (grande e piccola, a punta e piatte)" crlf
-					" * 2-3 secchi per il cemento" crlf
-					" * stadie di diverse lunghezze" crlf
-					" * frattazzo in plastica" crlf
-					" * sabbia"
-					" * cemento"
-					" * acqua"
-					" * betoniera"
-					" * livella" crlf crlf)
+	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
+					 " * cazzuole (grande e piccola, a punta e piatte)" crlf
+					 " * 2-3 secchi per il cemento" crlf
+					 " * stadie di diverse lunghezze" crlf
+					 " * frattazzo in plastica" crlf
+					 " * sabbia" crlf
+					 " * cemento" crlf
+					 " * acqua" crlf
+					 " * betoniera" crlf
+					 " * livella" crlf crlf)
 	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
 	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre in un angolo e fissalo con il cemento in modo che non faccia %nmovimenti e sia ben saldo%n")
 	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
@@ -728,25 +744,125 @@
 ;  /---------------------------------------------------------------------------/
 ; /-----------------------------------FUGHE-----------------------------------/
 ;/---------------------------------------------------------------------------/
+(defrule fughe_interno_rivestimento
+	(preparazione_utente ?)
+	(fughe)
+	=>
+	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
+					 " * stucco per fughe per interni" crlf
+					 " * vasca di lavaggio per piastrellisti o un normale secchio" crlf
+					 " * frattazzo in gomma (per spatolare lo stucco)" crlf
+					 " * frattazzo in spugna (per la pulizia delle piastrelle)" crlf 
+					 " * secchio e cazzuola piccola" crlf crlf)
+	(printout t crlf "Metti un po' di stucco in polvere nel secchio e aggiungi l'acqua mescolando con la cazzuola fino ad ottenere un composto denso." crlf 
+					 "Infatti se c'è un rivestimento deve essere tale da non colare nel momento in cui lo si pone sulle fughe." crlf
+					 "Porre una piccola quantità sul frattazzo in gomma con la cazzuola e spalmarlo in corrispondenza delle fughe, ricordando che con movimenti" crlf 
+					 "paralleli alla fuga si rimuove il composto in eccesso e si liscia, mentre con movimenti opposti al verso della fuga si riempie." crlf
+					 "Dopo aver stuccato tutte le fughe, aspettare circa un'ora e proseguire alla pulizia." crlf crlf
+					 "Riempire il secchio con acqua, inumidire il frattazzo in spugna e procedere a pulire l'intera area stuccata stando attenti a non scavare " crlf 
+					 "troppo le fughe. Risciacquare spesso la spugna e cambiare l'acqua del secchio quando è troppo sporca." crlf
+					 "Fare attenzione soprattutto alle piastrelle ruvide che possono nascondere lo sporco dato dallo stucco in eccesso." crlf crlf))
+
+;  /---------------------------------------------------------------------------/
+; /---------------------------------RATTOPPO----------------------------------/
+;/---------------------------------------------------------------------------/
 
 
 
 
 
+;  /---------------------------------------------------------------------------/
+; /--------------------------------BATTISCOPA---------------------------------/
+;/---------------------------------------------------------------------------/
+(defrule chiedi_rivestimento_cucina
+	(preparazione_utente ?)
+	(battiscopa)
+	(tipo_stanza cucina)
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "La cucina presenta un rivestimento che parte dal pavimento?"))
+	(if ?risposta
+		then (printout t crlf "Non si può apporre il battiscopa poiché è presente un rivestimento!" crlf)
+			 (printout t crlf "Premi 'c' per chiudere il programma: ")
+			 (while (neq (read) c)
+			 	(printout t crlf "Premi 'c' per chiudere il programma: "))
+			 (halt)))
 
+(defrule battiscopa_interno_principiante
+	(preparazione_utente bassa)
+	(battiscopa)
+	(interno)
+	=>
+	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
+					 " * colla per interni" crlf
+					 " * acqua" crlf
+					 " * livella" crlf
+					 " * miscelatore elettrico (consigliato)" crlf
+					 " * distanziatori" crlf 
+					 " * secchio e cazzuola (piccola e grande)" crlf)
+	(printout t crlf "Versa la colla in polvere nel secchio, aggiungi acqua in modo che tutta la polvere lo assorba e gira a mano o con il miscelatore." crlf
+					 "L'impasto non deve essere molto liquido." crlf
+					 "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
+					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
+					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
+					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
 
+(defrule battiscopa_interno_esperto
+	(preparazione_utente alta)
+	(battiscopa)
+	(interno)
+	=>
+	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
+					 " * colla per interni" crlf
+					 " * acqua" crlf
+					 " * livella" crlf
+					 " * miscelatore elettrico (consigliato)" crlf
+					 " * distanziatori" crlf 
+					 " * secchio e cazzuola (piccola e grande)" crlf)
+	(printout t crlf "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
+					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
+					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
+					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
 
+(defrule battiscopa_esterno_principiante
+	(preparazione_utente bassa)
+	(battiscopa)
+	(esterno)
+	=>
+	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
+					 " * colla per interni" crlf
+					 " * acqua" crlf
+					 " * livella" crlf
+					 " * miscelatore elettrico (consigliato)" crlf
+					 " * distanziatori" crlf 
+					 " * secchio e cazzuola (piccola e grande)" crlf)
+	(printout t crlf "Versa la colla in polvere nel secchio, aggiungi acqua in modo che tutta la polvere lo assorba e gira a mano o con il miscelatore." crlf
+					 "L'impasto non deve essere molto liquido." crlf
+					 "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
+					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
+					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
+					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
 
-
-
-
-
-
-
-
-
-
-
+(defrule battiscopa_esterno_esperto
+	(preparazione_utente bassa)
+	(battiscopa)
+	(esterno)
+	=>
+	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
+					 " * colla per interni" crlf
+					 " * acqua" crlf
+					 " * livella" crlf
+					 " * miscelatore elettrico (consigliato)" crlf
+					 " * distanziatori" crlf 
+					 " * secchio e cazzuola (piccola e grande)" crlf)
+	(printout t crlf "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
+					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
+					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
+					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
+					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf))
 
 
 
