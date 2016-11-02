@@ -20,6 +20,10 @@
 (deftemplate no_lavoro
 	(slot nome))
 
+(deftemplate car
+	(slot nome)
+	(slot valore))
+
 ;  /---------------------------------------------------------------------------/
 ; /---------------------------------FUNCTIONS---------------------------------/
 ;/---------------------------------------------------------------------------/
@@ -198,118 +202,128 @@
 ;/---------------------------------------------------------------------------/
 (defrule domanda_interno_esterno
 	(preparazione_utente ?)
-	(and (not (interno))
-		(not (esterno)))
 	(not (continua))
+
+	(and (not (car (nome luogo) (valore interno)))
+		 (not (car (nome luogo) (valore esterno))))
 	=>
 	(bind ?*help* "Rispondere 'interno' se il lavoro deve essere effettuato in una stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da %nletto, etc), 'esterno' in caso contrario (balcone, terrazzo).")
 	(bind ?risposta (ask_question "Il lavoro riguarda l'interno o l'esterno?" interno esterno))
 	(if (eq ?risposta interno)
-		then (assert (interno))
-		else (assert (esterno))))
+		then (assert (car (nome luogo) (valore interno)))
+		else (assert (car (nome luogo) (valore esterno)))))
 
 (defrule domanda_tipo_stanza
 	(preparazione_utente ?)
-	(not (tipo_stanza ?))
-	(interno)
 	(not (continua))
+
+	(not (car (nome tipo_stanza) (valore ?)))
+	(car (nome luogo) (valore interno))
 	=>
 	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro. Nel caso in cui ci sia più di una %nrisposta, allora effettuare la scelta di una stanza e continuare, poi riavviare il sistema e procedere con la successiva scelta.")
 	(bind ?risposta (ask_question "Quale stanza riguarda il lavoro?" bagno cucina altro))
-	(assert (tipo_stanza ?risposta)))
+	(assert (car (nome tipo_stanza) (valore ?risposta))))
 
 (defrule domanda_presenza_pavimento
 	(preparazione_utente ?)
-	(not (presenza_pavimento ?))
 	(not (continua))
+
+	(not (car (nome presenza_pavimento) (valore ?)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un pavimento nella stanza in cui si intende lavorare, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
-	(assert (presenza_pavimento ?risposta)))
+	(assert (car (nome presenza_pavimento) (valore ?risposta))))
 
 (defrule domanda_presenza_rivestimento
 	(preparazione_utente ?)
-	(not (presenza_rivestimento ?))
-	(or (tipo_stanza bagno)
-		(tipo_stanza cucina))
 	(not (continua))
+
+	(not (car (nome presenza_rivestimento) (valore ?)))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un rivestimento, cioè le pareti della stanza sono ricoperte con piastrelle, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un rivestimento?"))
-	(assert (presenza_rivestimento ?risposta)))
+	(assert (car (nome presenza_rivestimento) (valore ?risposta))))
 
 (defrule domanda_presenza_massetto
 	(preparazione_utente ?)
-	(not (presenza_massetto ?))
-	(presenza_pavimento FALSE)
 	(not (continua))
+
+	(not (car (nome presenza_massetto) (valore ?)))
+	(car (nome presenza_pavimento) (valore FALSE))
 	=>
 	(bind ?*help* "Il massetto è quello strato di cemento la cui presenza è fondamentale perché sopra di esso verranno poste le piastrelle.")
 	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
-	(assert (presenza_massetto ?risposta)))
+	(assert (car (nome presenza_massetto) (valore ?risposta))))
 
 (defrule domanda_condizioni_pavimento_presente
 	(preparazione_utente ?)
-	(presenza_pavimento TRUE)
-	(not (condizioni_pavimento ?))
-	(not (ristrutturazione_pavimento TRUE))
 	(not (continua))
+
+	(car (nome presenza_pavimento) (valore TRUE))
+	(not (car (nome condizioni_pavimento) (valore ?)))
+	(not (car (nome ristrutturazione_pavimento) (valore TRUE)))
 	=>
 	(bind ?*help* "Rispondere 'si' se il pavimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
 	(bind ?risposta (yes_or_no_p "Il pavimento esistente presenta molte piastrelle consumate o non perfettamente aderenti?"))
 	(if ?risposta
-		then (assert (condizioni_pavimento cattive))
-		else (assert (condizioni_pavimento buone))))
+		then (assert (car (nome condizioni_pavimento) (valore cattive)))
+		else (assert (car (nome condizioni_pavimento) (valore buone)))))
 
 (defrule domanda_pavimento_presente_rinnovo
 	(preparazione_utente ?)
-	(presenza_pavimento TRUE)
-	(not (ristrutturazione_pavimento ?))
 	(not (continua))
+
+	(car (nome presenza_pavimento) (valore TRUE))
+	(not (car (nome ristrutturazione_pavimento) (valore ?)))
 	=>
 	(bind ?*help* "Rispondere decidendo se si vuole sostituire il pavimento presente con uno nuovo oppure no.")
 	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il pavimento esistente?"))
 	(if ?risposta
-		then (assert (ristrutturazione_pavimento TRUE)) ;chiedi se deve fare fughe o battiscopa o solo aggiustare una piastrella scheggiata
-		else (assert (ristrutturazione_pavimento FALSE)))) ;deve rimuovere il pavimento
+		then (assert (car (nome ristrutturazione_pavimento) (valore TRUE))) ;chiedi se deve fare fughe o battiscopa o solo aggiustare una piastrella scheggiata
+		else (assert (car (nome ristrutturazione_pavimento) (valore FALSE))))) ;deve rimuovere il pavimento
 
 (defrule domanda_condizioni_rivestimento_presente
 	(preparazione_utente ?)
-	(presenza_rivestimento TRUE)
-	(not (condizioni_rivestimento ?))
-	(not (ristrutturazione_rivestimento TRUE))
 	(not (continua))
+
+	(car (nome presenza_rivestimento) (valore TRUE))
+	(not (car (nome condizioni_rivestimento) (valore ?)))
+	(not (car (nome ristrutturazione_rivestimento) (valore TRUE)))
 	=>
 	(bind ?*help* "Rispondere 'si' se il rivestimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
 	(bind ?risposta (yes_or_no_p "Il rivestimento presenta molte piastrelle non aderenti, mancanti, scheggiate o consumate?"))
 	(if ?risposta 
-		then (assert (condizioni_rivestimento cattive))
-		else (assert (condizioni_rivestimento buone))))
+		then (assert (car (nome condizioni_rivestimento) (valore cattive)))
+		else (assert (car (nome condizioni_rivestimento) (valore buone)))))
 
 (defrule domanda_rivestimento_presente_rinnovo
 	(preparazione_utente ?)
-	(presenza_rivestimento TRUE)
-	(not (ristrutturazione_rivestimento ?))
 	(not (continua))
+
+	(car (nome presenza_rivestimento) (valore TRUE))
+	(not (car (nome ristrutturazione_rivestimento) (valore ?)))
 	=>
 	(bind ?*help* "Rispondere decidendo se si vuole sostituire il rivestimento presente con uno nuovo oppure no.")
 	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il rivestimento presente?"))
 	(if ?risposta
-		then (assert (ristrutturazione_rivestimento TRUE)) 
-		else (assert (ristrutturazione_rivestimento FALSE))))
+		then (assert (car (nome ristrutturazione_rivestimento) (valore TRUE))) 
+		else (assert (car (nome ristrutturazione_rivestimento) (valore FALSE)))))
 
 (defrule domanda_anni_presenza_pavimento
 	(preparazione_utente ?)
-	(presenza_pavimento TRUE)
-	(not (anni_pavimento ?))
 	(not (continua))
+
+	(car (nome presenza_pavimento) (valore TRUE))
+	(not (car (nome anni_pavimento) (valore ?)))
 	=>
-	(bind ?*help* "Rispondere indicando (se si conosce) gli anni che ha il pavimento presente.")
+	(bind ?*help* "Rispondere indicando (se si conoscono) gli anni che ha il pavimento presente.")
 	(bind ?risposta (ask_number "Quanti anni sono che il pavimento non viene sostituito (-1 nel caso non si sappia)?"))
 	(while (< ?risposta -1)
 		(printout t crlf "Inserisci un numero da 0 in poi, o -1 nel caso tu non conosca gli anni.")
 		(bind ?risposta (ask_number "Quanti anni sono che il pavimento non viene sostituito (-1 nel caso non si sappia)?")))
-	(assert (anni_pavimento ?risposta)))
+	(assert (car (nome anni_pavimento) (valore ?risposta))))
 
 ;---------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -318,9 +332,9 @@
 	(not (continua))
 	(not (no_lavoro (nome massetto)))
 
-	(or (interno)
-		(esterno))
-	(presenza_massetto FALSE)
+	(or (car (nome luogo) (valore intero))
+		(car (nome luogo) (valore esterno)))
+	(car (nome presenza_massetto) (valore FALSE))
 	=>
 	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il massetto, negativamente in caso contrario.")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il massetto?"))
@@ -334,11 +348,11 @@
 	(not (continua))
 	(not (no_lavoro (nome fughe)))
 
-	(or (interno)
-		(esterno))
-	(presenza_pavimento TRUE)
-	(condizioni_pavimento buone)
-	(ristrutturazione_pavimento FALSE)
+	(or (car (nome luogo) (valore intero))
+		(car (nome luogo) (valore esterno)))
+	(car (nome presenza_pavimento) (valore TRUE))
+	(car (nome condizioni_pavimento) (valore buone))
+	(car (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
 	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il riempimento delle fughe, negativamente in caso contrario.")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare sono le fughe?"))
@@ -352,11 +366,11 @@
 	(not (continua))
 	(not (no_lavoro (nome fughe)))
 
-	(or (interno)
-		(esterno))
-	(presenza_rivestimento TRUE)
-	(condizioni_rivestimento buone)
-	(ristrutturazione_rivestimento FALSE)
+	(or (car (nome luogo) (valore intero) )
+		(car (nome luogo) (valore esterno) ))
+	(car (nome presenza_rivestimento) (valore TRUE))
+	(car (nome condizioni_rivestimento) (valore buone))
+	(car (nome ristrutturazione_rivestimento) (valore FALSE))
 	=>
 	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il riempimento delle fughe, negativamente in caso contrario.")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare sono le fughe?"))
@@ -370,10 +384,10 @@
 	(not (continua))
 	(not (no_lavoro (nome battiscopa)))
 
-	(esterno)
-	(presenza_pavimento TRUE)
-	(condizioni_pavimento buone)
-	(ristrutturazione_pavimento FALSE)
+	(car (nome luogo) (valore esterno) )
+	(car (nome presenza_pavimento) (valore TRUE))
+	(car (nome condizioni_pavimento) (valore buone))
+	(car (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
 	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il posizionamento del battiscopa, negativamente in caso contrario.")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il battiscopa?"))
@@ -387,12 +401,12 @@
 	(not (continua))
 	(not (no_lavoro (nome battiscopa)))
 
-	(interno)
-	(or (tipo_stanza altro)
-		(tipo_stanza cucina))
-	(presenza_pavimento TRUE)
-	(condizioni_pavimento buone)
-	(ristrutturazione_pavimento FALSE)
+	(car (nome luogo) (valore intero) )
+	(or (car (nome tipo_stanza) (valore altro))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_pavimento) (valore TRUE))
+	(car (nome condizioni_pavimento) (valore buone))
+	(car (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
 	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il posizionamento del battiscopa, negativamente in caso contrario.")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il battiscopa?"))
@@ -406,10 +420,10 @@
 ;	(not (continua))
 ;	(not (no_lavoro (nome rattoppo)))
 ;
-;	(or (interno)
-;		(esterno))
-;	(presenza_pavimento TRUE)
-;	(condizioni_pavimento buone)
+;	(or (car (nome luogo) (valore intero) )
+;		(car (nome luogo) (valore esterno) ))
+;	(car (nome presenza_pavimento) (valore TRUE))
+;	(car (nome condizioni_pavimento) (valore buone))
 ;	(anni_pavimento ?x)
 ;	(test (<= ?x 6))  ;se il pavimento è troppo vecchio non si fa il rattoppo perché ci sarà una differenza di colore tra la piastrella nuova e quella vecchia
 ;	=>
@@ -425,15 +439,15 @@
 	(not (continua))
 	(not (no_lavoro (nome pavimento)))
 
-	(or (interno)
-		(esterno))
-	(or (condizioni_pavimento cattive)
-		(ristrutturazione_pavimento TRUE)
-		(presenza_pavimento FALSE)
-		(presenza_massetto TRUE))
+	(or (car (nome luogo) (valore intero))
+		(car (nome luogo) (valore esterno)))
+	(or (car (nome condizioni_pavimento) (valore cattive))
+		(car (nome ristrutturazione_pavimento) (valore TRUE))
+		(car (nome presenza_pavimento) (valore FALSE))
+		(car (nome presenza_massetto) (valore TRUE)))
 	=>
 	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il pavimento? %n(ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il pavimento!) "))
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il pavimento? (ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il pavimento!) "))
 	(if ?risposta
 		then (assert (continua))
 			 (assert (pavimento))
@@ -444,12 +458,12 @@
 	(not (continua))
 	(not (no_lavoro (nome rivestimento)))
 
-	(or (condizioni_rivestimento cattive)
-		(ristrutturazione_rivestimento TRUE)
-		(presenza_rivestimento FALSE))
+	(or (car (nome condizioni_rivestimento) (valore cattive))
+		(car (nome ristrutturazione_rivestimento) (valore TRUE))
+		(car (nome presenza_rivestimento) (valore FALSE)))
 	=>
 	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il rivestimento? %n(ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il rivestimento!) "))
+	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il rivestimento? (ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il rivestimento!) "))
 	(if ?risposta
 		then (assert (continua))
 			 (assert (rivestimento))
@@ -460,13 +474,13 @@
 	(not (continua))
 	(not (no_lavoro (nome pavimento_rivestimento)))
 
-	(or (condizioni_pavimento cattive)
-		(ristrutturazione_pavimento TRUE)
-		(presenza_pavimento FALSE)
-		(presenza_massetto TRUE))
-	(or (condizioni_rivestimento cattive)
-		(ristrutturazione_rivestimento TRUE)
-		(presenza_rivestimento FALSE))
+	(or (car (nome condizioni_pavimento) (valore cattive))
+		(car (nome ristrutturazione_pavimento) (valore TRUE))
+		(car (nome presenza_pavimento) (valore FALSE))
+		(car (nome presenza_massetto) (valore TRUE)))
+	(or (car (nome condizioni_rivestimento) (valore cattive))
+		(car (nome ristrutturazione_rivestimento) (valore TRUE))
+		(car (nome presenza_rivestimento) (valore FALSE)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
@@ -481,9 +495,9 @@
 	(not (no_lavoro (nome pavimento_rivestimento)))
 
 	(no_lavoro (nome pavimento))
-	(or (condizioni_rivestimento cattive)
-		(ristrutturazione_rivestimento TRUE)
-		(presenza_rivestimento FALSE))
+	(or (car (nome condizioni_rivestimento) (valore cattive))
+		(car (nome ristrutturazione_rivestimento) (valore TRUE))
+		(car (nome presenza_rivestimento) (valore FALSE)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
@@ -498,10 +512,10 @@
 	(not (no_lavoro (nome pavimento_rivestimento)))
 
 	(no_lavoro (nome rivestimento))
-	(or (condizioni_pavimento cattive)
-		(ristrutturazione_pavimento TRUE)
-		(presenza_pavimento FALSE)
-		(presenza_massetto TRUE))
+	(or (car (nome condizioni_pavimento) (valore cattive))
+		(car (nome ristrutturazione_pavimento) (valore TRUE))
+		(car (nome presenza_pavimento) (valore FALSE))
+		(car (nome presenza_massetto) (valore TRUE)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
@@ -509,6 +523,7 @@
 		then (assert (continua))
 			 (assert (pavimento_rivestimento))
 		else (assert (no_lavoro (nome pavimento_rivestimento)))))
+
 ;-----------------------------------------------------------------------------------------------------------------
 
 (defrule lavoro_trovato
@@ -535,25 +550,25 @@
 
 (defrule domanda_pavimento_da_raccordare
 	(massetto)
-	(not (pavimento_da_raccordare ?))
+	(not (car (nome pavimento_da_raccordare) (valore ?)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Nello stesso piano ci sono altri pavimenti già posati?"))
-	(assert (pavimento_da_raccordare ?risposta)))
+	(assert (car (nome pavimento_da_raccordare) (valore ?risposta))))
 
 (defrule domanda_dimensione_pavimento_esperto
 	(preparazione_utente alta)
 	(massetto)
-	(not (dimensione_area ?))
+	(not (car (nome dimensione_area) (valore ?)))
 	=>
 	(bind ?*help* "Indicare il numero che rappresenta la dimensione in metri quadri dell'area in cui si intende lavorare.")
 	(bind ?risposta (ask_number "Fornire la dimensione in metri quadri dell'area in cui si deve lavorare: "))
-	(assert (dimensione_area ?risposta)))
+	(assert (car (nome dimensione_area) (valore ?risposta))))
 
 (defrule domanda_dimensione_pavimento_principiante
 	(preparazione_utente bassa)
 	(massetto)
-	(not (dimensione_area ?))
+	(not (car (nome dimensione_area) (valore ?)))
 	=>
 	(printout t "La misura dell'area da pavimentare non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un pavimento si" crlf 
 				"effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella" crlf
@@ -574,24 +589,24 @@
 				"Le misure vanno espresse in metri al quadrato" crlf crlf)
 	(bind ?*help* "Indicare il numero che rappresenta la dimensione in metri quadri dell'area in cui si intende lavorare.")
 	(bind ?risposta (ask_number "Fornire quindi la dimensione in metri quadri dell'area in cui si deve lavorare?"))
-	(assert (dimensione_area ?risposta)))
+	(assert (car (nome dimensione_area) (valore ?risposta))))
 
 (defrule domanda_presenza_porte
 	(preparazione_utente ?)
 	(massetto)
-	(pavimento_da_raccordare FALSE)
-	(not (porte_da_raccordare ?))
+	(car (nome pavimento_da_raccordare) (valore FALSE))
+	(not (car (nome porte_da_raccordare) (valore ?)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Sono presenti porte o balconi già montati?"))
-	(assert (porte_da_raccordare TRUE)))
+	(assert (car (nome porte_da_raccordare) (valore TRUE))))
 
 ;------------------------------------------------------------------------
 (defrule area_troppo_grande
 	(declare (salience ?*high_priority*))
 	(preparazione_utente ?)
 	(massetto)
-	(dimensione_area ?dim)
+	(car (nome dimensione_area) (valore ?dim))
 	(test (> ?dim 50))
 	=>
 	(printout t crlf "L'area in cui si deve fare il massetto è troppo ampia! Consulta un muratore!" crlf)
@@ -603,16 +618,16 @@
 (defrule domanda_spessore_piastrella
 	(preparazione_utente ?)
 	(massetto)
-	(or (pavimento_da_raccordare TRUE)
-		(porte_da_raccordare TRUE))
-	(not (spessore_piastrella_pavimento ?))
+	(or (car (nome pavimento_da_raccordare) (valore TRUE))
+		(car (nome porte_da_raccordare) (valore TRUE)))
+	(not (car (nome spessore_piastrella_pavimento) (valore ?)))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "Hai già scelto la piastrella da usare?"))
 	(if ?risposta 
 		then (bind ?*help* "")
 			 (bind ?risposta (ask_number "Indica lo spessore della piastrella in millimetri"))
-			 (assert (spessore_piastrella_pavimento ?risposta))
+			 (assert (car (nome spessore_piastrella_pavimento) (valore ?risposta)))
 		else (printout t crlf "Senza lo spessore della piastrella non si può sapere quanto sarà alto il massetto!")
 			(printout t crlf "Premi 'c' per chiudere il programma: ")
 			(while (neq (read) c)
@@ -622,10 +637,10 @@
 (defrule guide_e_massetto_raccordo_interno
 	(preparazione_utente ?)
 	(massetto)
-	(or (pavimento_da_raccordare TRUE)
-		(porte_da_raccordare TRUE))
-	(spessore_piastrella_pavimento ?spessore_piastrella)
-	(interno)
+	(or (car (nome pavimento_da_raccordare) (valore TRUE))
+		(car (nome porte_da_raccordare) (valore TRUE)))
+	(car (nome spessore_piastrella_pavimento) (valore ?spessore_piastrella))
+	(car (nome luogo) (valore interno))
 	=> 
 	(printout t crlf "Hai bisogno di:" crlf
 					" * cazzuole (grande e piccola, a punta e piatta)" crlf
@@ -654,10 +669,10 @@
 (defrule guide_e_massetto_raccordo_esterno
 	(preparazione_utente ?)
 	(massetto)
-	(or (pavimento_da_raccordare TRUE)
-		(porte_da_raccordare TRUE))
-	(spessore_piastrella_pavimento ?spessore_piastrella)
-	(esterno)
+	(or (car (nome pavimento_da_raccordare) (valore TRUE))
+		(car (nome porte_da_raccordare) (valore TRUE)))
+	(car (nome spessore_piastrella_pavimento) (valore ?spessore_piastrella))
+	(car (nome luogo) (valore esterno))
 	=>
 	(printout t crlf "Hai bisogno di:" crlf
 					" * cazzuole (grande e piccola, a punta e piatta)" crlf
@@ -688,9 +703,9 @@
 (defrule guide_e_massetto_no_raccordo_interno
 	(preparazione_utente ?)
 	(massetto)
-	(interno)
-	(or (pavimento_da_raccordare FALSE)
-		(porte_da_raccordare FALSE))
+	(car (nome luogo) (valore interno))
+	(or (car (nome pavimento_da_raccordare) (valore FALSE))
+		(car (nome porte_da_raccordare) (valore FALSE)))
 	=>
 	(printout t crlf "Hai bisogno di:" crlf
 					" * cazzuole (grande e piccola, a punta e piatta)" crlf
@@ -718,9 +733,9 @@
 (defrule guide_e_massetto_no_raccordo_esterno
 	(preparazione_utente ?)
 	(massetto)
-	(esterno)
-	(or (pavimento_da_raccordare FALSE)
-		(porte_da_raccordare FALSE))
+	(car (nome luogo) (valore esterno))
+	(or (car (nome pavimento_da_raccordare) (valore FALSE))
+		(car (nome porte_da_raccordare) (valore FALSE)))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
 					 " * cazzuole (grande e piccola, a punta e piatta)" crlf
@@ -786,7 +801,7 @@
 	(declare (salience ?*high_priority*))
 	(preparazione_utente ?)
 	(battiscopa)
-	(tipo_stanza cucina)
+	(car (nome tipo_stanza) (valore cucina))
 	=>
 	(bind ?*help* "")
 	(bind ?risposta (yes_or_no_p "La cucina presenta un rivestimento che parte dal pavimento?"))
@@ -800,7 +815,7 @@
 (defrule battiscopa_interno_principiante
 	(preparazione_utente bassa)
 	(battiscopa)
-	(interno)
+	(car (nome luogo) (valore interno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
 					 " * colla per interni" crlf
@@ -832,7 +847,7 @@
 (defrule battiscopa_interno_esperto
 	(preparazione_utente alta)
 	(battiscopa)
-	(interno)
+	(car (nome luogo) (valore interno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
 					 " * colla per interni" crlf
@@ -860,7 +875,7 @@
 (defrule battiscopa_esterno_principiante
 	(preparazione_utente bassa)
 	(battiscopa)
-	(esterno)
+	(car (nome luogo) (valore esterno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
 					 " * colla per esterni" crlf
@@ -890,7 +905,7 @@
 (defrule battiscopa_esterno_esperto
 	(preparazione_utente alta)
 	(battiscopa)
-	(esterno)
+	(car (nome luogo) (valore esterno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
 					 " * colla per esterni" crlf
@@ -924,128 +939,127 @@
 ;partenza?
 
 
-(defrule domanda_presenza_massetto_pavimento
-	(preparazione_utente ?)
-	(pavimento)
-	(not (presenza_massetto ?))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
-	(assert (presenza_massetto ?risposta)))
-
-(defrule domanda_presenza_pavimento_pavimento
-	(preparazione_utente ?)
-	(pavimento)
-	(not (presenza_pavimento ?))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "E' presente già un pavimento?"))
-	(assert (presenza_pavimento ?risposta)))
-
-(defrule domanda_pavimento_da_raccordare_pavimento
-	(preparazione_utente ?)
-	(not (pavimento_da_raccordare ?))
-	(pavimento)
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Nello stesso piano ci sono altri pavimenti già posati?"))
-	(assert (pavimento_da_raccordare ?risposta)))
-
-
-;/------------posa_sopra------------/
-
-(defrule domanda_posa_sopra
-	(preparazione_utente ?)
-	(pavimento)
-	(not (posa_sopra ?))
-	(presenza_pavimento TRUE)
-	(pavimento_da_raccordare FALSE)
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Vuoi effettuare la posa sopra il pavimento esistente?"))
-	(assert (posa_sopra ?risposta)))
-;TODO considerare che il pavimento si rialza
-
-(defrule controllo_condizioni_posa_sopra
-	(declare (salience ?*high_priority*))
-	(preparazione_utente ?)
-	?f <- (posa_sopra TRUE)
-	(pavimento)
-	=>
-	(bind ?*help* "")
-	(bind ?risposta1 (yes_or_no_p "Il pavimento presenta molte piastrelle alzate o non aderenti?"))
-
-	(bind ?*help* "")
-	(bind ?risposta2 (yes_or_no_p "Il pavimento è a livello?"))
-
-	(if (and (not (risposta1)) ?risposta2)
-		then (assert (inizio_posa))
-		else (assert (posa_sopra FALSE))))
-
-(defrule posa_sopra_no
-	(preparazione_utente ?)
-	(pavimento)
-	(posa_sopra FALSE)
-	=>
-	(printout t crlf "Procedi alla rimozione del pavimento e del materiale sottostante (massetto)." crlf)
-	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-	;(inizia posa) 
-	;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
-	)
-
-
-;/-------------massetto------------/
-
-(defrule controllo_condizioni_massetto_raccordo
-	(preparazione_utente ?)
-	(pavimento)
-	(pavimento_da_raccordare TRUE)
-	(spessore_piastrella_pavimento ?spessore_piastrella)
-	?f <- (presenza_massetto TRUE)
-	=>
-	(bind ?*help* "")
-	(bind ?risposta1 (yes_or_no_p "Il massetto è a livello?"))
-
-	(bind ?*help* "")
-	(format t "Considerando che la piastrella è %d mm più lo spessore della colla sarà di 3-4 mm%n" ?spessore_piastrella)
-	(bind ?risposta2 (yes_or_no_p "Il massetto si trova alla dimensione giusta sotto al pavimento presente?"))
-
-	(if (and ?risposta1 ?risposta2)
-		then (inizia_posa)
-		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
-			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-			;(inizia posa) 
-			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
-			 ))
-
-(defrule controllo_condizioni_massetto
-	(preparazione_utente ?)
-	(pavimento)
-	(pavimento_da_raccordare FALSE)
-	?f <- (presenza_massetto TRUE)
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
-	(if ?risposta
-		then (inizia_posa)
-		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
-			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-			;(inizia posa) 
-			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
-			 ))
-
-(defrule massetto_non_presente
-	(preparazione_utente ?)
-	(presenza_massetto FALSE)
-	(pavimento)
-	=>
-	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-			;(inizia posa) 
-	)
-
-
-;/----------------inizia posa--------------/
-(defrule )
+;(defrule domanda_presenza_massetto_pavimento
+;	(preparazione_utente ?)
+;	(pavimento)
+;	(not (presenza_massetto ?))
+;	=>
+;	(bind ?*help* "")
+;	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
+;	(assert (presenza_massetto ?risposta)))
+;
+;(defrule domanda_presenza_pavimento_pavimento
+;	(preparazione_utente ?)
+;	(pavimento)
+;	(not (presenza_pavimento ?))
+;	=>
+;	(bind ?*help* "")
+;	(bind ?risposta (yes_or_no_p "E' presente già un pavimento?"))
+;	(assert (presenza_pavimento ?risposta)))
+;
+;(defrule domanda_pavimento_da_raccordare_pavimento
+;	(preparazione_utente ?)
+;	(not (pavimento_da_raccordare ?))
+;	(pavimento)
+;	=>
+;	(bind ?*help* "")
+;	(bind ?risposta (yes_or_no_p "Nello stesso piano ci sono altri pavimenti già posati?"))
+;	(assert (pavimento_da_raccordare ?risposta)))
+;
+;
+;;/------------posa_sopra------------/
+;
+;(defrule domanda_posa_sopra
+;	(preparazione_utente ?)
+;	(pavimento)
+;	(not (posa_sopra ?))
+;	(presenza_pavimento TRUE)
+;	(pavimento_da_raccordare FALSE)
+;	=>
+;	(bind ?*help* "")
+;	(bind ?risposta (yes_or_no_p "Vuoi effettuare la posa sopra il pavimento esistente?"))
+;	(assert (posa_sopra ?risposta)))
+;;TODO considerare che il pavimento si rialza
+;
+;(defrule controllo_condizioni_posa_sopra
+;	(declare (salience ?*high_priority*))
+;	(preparazione_utente ?)
+;	?f <- (posa_sopra TRUE)
+;	(pavimento)
+;	=>
+;	(bind ?*help* "")
+;	(bind ?risposta1 (yes_or_no_p "Il pavimento presenta molte piastrelle alzate o non aderenti?"))
+;
+;	(bind ?*help* "")
+;	(bind ?risposta2 (yes_or_no_p "Il pavimento è a livello?"))
+;
+;	(if (and (not (risposta1)) ?risposta2)
+;		then (assert (inizio_posa))
+;		else (assert (posa_sopra FALSE))))
+;
+;(defrule posa_sopra_no
+;	(preparazione_utente ?)
+;	(pavimento)
+;	(posa_sopra FALSE)
+;	=>
+;	(printout t crlf "Procedi alla rimozione del pavimento e del materiale sottostante (massetto)." crlf)
+;	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+;	;(inizia posa) 
+;	;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
+;	)
+;
+;;/-------------massetto------------/
+;
+;(defrule controllo_condizioni_massetto_raccordo
+;	(preparazione_utente ?)
+;	(pavimento)
+;	(pavimento_da_raccordare TRUE)
+;	(spessore_piastrella_pavimento ?spessore_piastrella)
+;	?f <- (presenza_massetto TRUE)
+;	=>
+;	(bind ?*help* "")
+;	(bind ?risposta1 (yes_or_no_p "Il massetto è a livello?"))
+;
+;	(bind ?*help* "")
+;	(format t "Considerando che la piastrella è %d mm più lo spessore della colla sarà di 3-4 mm%n" ?spessore_piastrella)
+;	(bind ?risposta2 (yes_or_no_p "Il massetto si trova alla dimensione giusta sotto al pavimento presente?"))
+;
+;	(if (and ?risposta1 ?risposta2)
+;		then (inizia_posa)
+;		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
+;			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+;			;(inizia posa) 
+;			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
+;			 ))
+;
+;(defrule controllo_condizioni_massetto
+;	(preparazione_utente ?)
+;	(pavimento)
+;	(pavimento_da_raccordare FALSE)
+;	?f <- (presenza_massetto TRUE)
+;	=>
+;	(bind ?*help* "")
+;	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
+;	(if ?risposta
+;		then (inizia_posa)
+;		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
+;			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+;			;(inizia posa) 
+;			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
+;			 ))
+;
+;(defrule massetto_non_presente
+;	(preparazione_utente ?)
+;	(presenza_massetto FALSE)
+;	(pavimento)
+;	=>
+;	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+;			;(inizia posa) 
+;	)
+;
+;
+;;/----------------inizia posa--------------/
+;(defrule )
 ;scegli posa
 ;parti da entrata 
 ;fai una posa di prova
