@@ -50,11 +50,39 @@
 
 	(nth ?answer ?allowed_values))
 
+(deffunction ask_question1 (?question $?allowed-values)
+  (printout t ?question)
+  (bind ?answer (read))
+  (if (lexemep ?answer) ;; TRUE is ?answer is a STRING or SYMBOL
+      then (bind ?answer (lowcase ?answer)))
+     (while (not (member ?answer ?allowed-values)) do
+	    (printout t ?question)
+	    (bind ?answer (read))
+	    (if (lexemep ?answer) 
+		then (bind ?answer (lowcase ?answer))))
+     ?answer)
+
 (deffunction yes_or_no_p (?question)
-    (bind ?response (ask_question ?question si no))
-    (if (or (eq ?response si) (eq ?response s))
-        then TRUE 
-        else FALSE))
+	(bind ?allowed_values (create$ si no s n))
+  	(format t (str-cat "%n" ?question " (si/s/no/n/help/h): "))
+  	(bind ?answer (read))
+
+  	(if (lexemep ?answer)
+		then (bind ?answer (lowcase ?answer)))
+
+  	(while (not (member ?answer ?allowed_values)) do
+		(if (or (eq ?answer help) (eq ?answer h))
+	  			then (if (eq (length$ ?*help*) 0)
+		  				then (printout t "Non è presente alcun help!" crlf)
+		  				else (format t (str-cat ?*help* "%n"))))
+		(format t (str-cat "%n" ?question " (si/s/no/n/help/h): "))
+	    (bind ?answer (read))
+	    (if (lexemep ?answer) 
+			then (bind ?answer (lowcase ?answer))))
+
+  	(if (or (eq ?answer si) (eq ?answer s))
+         then TRUE 
+         else FALSE))
 
 (deffunction ask_number (?question)
 	(format t (str-cat "%n" ?question " (help/h): "))
@@ -71,6 +99,53 @@
 		(format t (str-cat "%n" ?question " (help/h): "))
 	    (bind ?answer (read)))
 	 ?answer)
+
+;rivedere scelte
+
+(deffunction get-all-facts-by-names
+  ($?template-names)
+  (bind ?facts (create$))
+  (progn$ (?f (get-fact-list))
+	   (if (member$ (fact-relation ?f) $?template-names)
+	       then (bind ?facts (create$ ?facts ?f))))
+  ?facts)
+
+(deffunction stampa_scelte_lavoro ()
+	(bind ?i 1)
+	(progn$ (?f (get-all-facts-by-names car))
+		(if (numberp (fact-slot-value ?f valore))
+			then (format t "(%d) %s: %d%n" ?i (fact-slot-value ?f nome) (fact-slot-value ?f valore))
+			else (format t "(%d) %s: %s%n" ?i (fact-slot-value ?f nome) (fact-slot-value ?f valore)))
+		(bind ?i (+ 1 ?i))))
+
+(deffunction cambia_scelta_da_indice
+	(?indice)
+	(bind ?f (nth$ ?indice (get-all-facts-by-names car)))
+	(retract ?f))
+
+(deffunction gen-int-list
+  (?max-n)
+  (bind ?int-list (create$))
+  (loop-for-count (?i 1 ?max-n)
+		  (bind ?int-list (create$ ?int-list ?i)))
+  ?int-list)
+
+(deffunction chiedi_cambio_scelte_lavoro
+	(?question)
+	(printout t "Vuoi cambiare qualche scelta?" crlf)
+	(stampa_scelte_lavoro)
+
+	(bind ?num_scelte (length$ (get-all-facts-by-names car)))
+	(bind ?response (ask_question1 ?question (create$ (gen-int-list ?num_scelte) c e)))
+	(printout t crlf crlf)
+	(switch ?response 
+		(case c 
+			then (printout t "Bye bye!" crlf)
+	         	 (halt))
+		(case e
+			then (return))
+		(default (cambia_scelta_da_indice ?response)
+				 (chiedi_cambio_scelte_lavoro ?question))))
 
 
 ;  /---------------------------------------------------------------------------/
@@ -332,7 +407,7 @@
 	(not (continua))
 	(not (no_lavoro (nome massetto)))
 
-	(or (car (nome luogo) (valore intero))
+	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_massetto) (valore FALSE))
 	=>
@@ -348,7 +423,7 @@
 	(not (continua))
 	(not (no_lavoro (nome fughe)))
 
-	(or (car (nome luogo) (valore intero))
+	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore TRUE))
 	(car (nome condizioni_pavimento) (valore buone))
@@ -366,7 +441,7 @@
 	(not (continua))
 	(not (no_lavoro (nome fughe)))
 
-	(or (car (nome luogo) (valore intero) )
+	(or (car (nome luogo) (valore interno) )
 		(car (nome luogo) (valore esterno) ))
 	(car (nome presenza_rivestimento) (valore TRUE))
 	(car (nome condizioni_rivestimento) (valore buone))
@@ -401,7 +476,7 @@
 	(not (continua))
 	(not (no_lavoro (nome battiscopa)))
 
-	(car (nome luogo) (valore intero) )
+	(car (nome luogo) (valore interno) )
 	(or (car (nome tipo_stanza) (valore altro))
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_pavimento) (valore TRUE))
@@ -420,7 +495,7 @@
 ;	(not (continua))
 ;	(not (no_lavoro (nome rattoppo)))
 ;
-;	(or (car (nome luogo) (valore intero) )
+;	(or (car (nome luogo) (valore interno) )
 ;		(car (nome luogo) (valore esterno) ))
 ;	(car (nome presenza_pavimento) (valore TRUE))
 ;	(car (nome condizioni_pavimento) (valore buone))
@@ -439,7 +514,7 @@
 	(not (continua))
 	(not (no_lavoro (nome pavimento)))
 
-	(or (car (nome luogo) (valore intero))
+	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
 	(or (car (nome condizioni_pavimento) (valore cattive))
 		(car (nome ristrutturazione_pavimento) (valore TRUE))
@@ -542,6 +617,13 @@
 		(printout t crlf "Non posso aiutarti! Premi 'c' per riprovare: "))
 	(reset)
 	(run))
+
+
+;(defrule rivedi_scelte_lavoro
+;	(declare (salience ?*high_priority*))
+;	?f1 <- (rivedi_scelte_lavoro)
+;	=>
+;	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 'c' per terminare o 'e' per continuare: "))
 
 
 ;  /---------------------------------------------------------------------------/
