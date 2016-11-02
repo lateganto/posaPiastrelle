@@ -77,7 +77,6 @@
 	(assert (domande_poste (numero 0)))
 	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
 
-;Domanda 6: Ti serve un consiglio specifico?
 ;Domanda 7: sai usare un livello?
 
 (defrule domanda_anni
@@ -626,7 +625,7 @@
 	(interno)
 	=> 
 	(printout t crlf "Hai bisogno di:" crlf
-					" * cazzuole (grande e piccola, a punta e piatte)" crlf
+					" * cazzuole (grande e piccola, a punta e piatta)" crlf
 					" * 2-3 secchi per il cemento" crlf
 					" * stadie di diverse lunghezze" crlf
 					" * frattazzo in plastica" crlf
@@ -658,7 +657,7 @@
 	(esterno)
 	=>
 	(printout t crlf "Hai bisogno di:" crlf
-					" * cazzuole (grande e piccola, a punta e piatte)" crlf
+					" * cazzuole (grande e piccola, a punta e piatta)" crlf
 					" * 2-3 secchi per il cemento" crlf
 					" * stadie di diverse lunghezze" crlf
 					" * frattazzo in plastica" crlf
@@ -691,7 +690,7 @@
 		(porte_da_raccordare FALSE))
 	=>
 	(printout t crlf "Hai bisogno di:" crlf
-					" * cazzuole (grande e piccola, a punta e piatte)" crlf
+					" * cazzuole (grande e piccola, a punta e piatta)" crlf
 					" * 2-3 secchi per il cemento" crlf
 					" * stadie di diverse lunghezze" crlf
 					" * frattazzo in plastica" crlf
@@ -721,7 +720,7 @@
 		(porte_da_raccordare FALSE))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * cazzuole (grande e piccola, a punta e piatte)" crlf
+					 " * cazzuole (grande e piccola, a punta e piatta)" crlf
 					 " * 2-3 secchi per il cemento" crlf
 					 " * stadie di diverse lunghezze" crlf
 					 " * frattazzo in plastica" crlf
@@ -781,6 +780,7 @@
 ; /--------------------------------BATTISCOPA---------------------------------/
 ;/---------------------------------------------------------------------------/
 (defrule chiedi_rivestimento_cucina
+	(declare (salience ?*high_priority*))
 	(preparazione_utente ?)
 	(battiscopa)
 	(tipo_stanza cucina)
@@ -912,18 +912,152 @@
 					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
 					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
 
-
 ;  /---------------------------------------------------------------------------/
 ; /--------------------------------PAVIMENTO----------------------------------/
 ;/---------------------------------------------------------------------------/
 
+;ritaglio?
+;posa intero pavimento?
+;partenza?
 
 
+(defrule domanda_presenza_massetto_pavimento
+	(preparazione_utente ?)
+	(pavimento)
+	(not (presenza_massetto ?))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
+	(assert (presenza_massetto ?risposta)))
+
+(defrule domanda_presenza_pavimento_pavimento
+	(preparazione_utente ?)
+	(pavimento)
+	(not (presenza_pavimento ?))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "E' presente già un pavimento?"))
+	(assert (presenza_pavimento ?risposta)))
+
+(defrule domanda_pavimento_da_raccordare_pavimento
+	(preparazione_utente ?)
+	(not (pavimento_da_raccordare ?))
+	(pavimento)
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Nello stesso piano ci sono altri pavimenti già posati?"))
+	(assert (pavimento_da_raccordare ?risposta)))
 
 
+;/------------posa_sopra------------/
+
+(defrule domanda_posa_sopra
+	(preparazione_utente ?)
+	(pavimento)
+	(not (posa_sopra ?))
+	(presenza_pavimento TRUE)
+	(pavimento_da_raccordare FALSE)
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Vuoi effettuare la posa sopra il pavimento esistente?"))
+	(assert (posa_sopra ?risposta)))
+;TODO considerare che il pavimento si rialza
+
+(defrule controllo_condizioni_posa_sopra
+	(declare (salience ?*high_priority*))
+	(preparazione_utente ?)
+	?f <- (posa_sopra TRUE)
+	(pavimento)
+	=>
+	(bind ?*help* "")
+	(bind ?risposta1 (yes_or_no_p "Il pavimento presenta molte piastrelle alzate o non aderenti?"))
+
+	(bind ?*help* "")
+	(bind ?risposta2 (yes_or_no_p "Il pavimento è a livello?"))
+
+	(if (and (not (risposta1)) ?risposta2)
+		then (assert (inizio_posa))
+		else (assert (posa_sopra FALSE))))
+
+(defrule posa_sopra_no
+	(preparazione_utente ?)
+	(pavimento)
+	(posa_sopra FALSE)
+	=>
+	(printout t crlf "Procedi alla rimozione del pavimento e del materiale sottostante (massetto)." crlf)
+	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+	;(inizia posa) 
+	;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
+	)
 
 
+;/-------------massetto------------/
 
+(defrule controllo_condizioni_massetto_raccordo
+	(preparazione_utente ?)
+	(pavimento)
+	(pavimento_da_raccordare TRUE)
+	(spessore_piastrella_pavimento ?spessore_piastrella)
+	?f <- (presenza_massetto TRUE)
+	=>
+	(bind ?*help* "")
+	(bind ?risposta1 (yes_or_no_p "Il massetto è a livello?"))
+
+	(bind ?*help* "")
+	(format t "Considerando che la piastrella è %d mm più lo spessore della colla sarà di 3-4 mm%n" ?spessore_piastrella)
+	(bind ?risposta2 (yes_or_no_p "Il massetto si trova alla dimensione giusta sotto al pavimento presente?"))
+
+	(if (and ?risposta1 ?risposta2)
+		then (inizia_posa)
+		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
+			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+			;(inizia posa) 
+			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
+			 ))
+
+(defrule controllo_condizioni_massetto
+	(preparazione_utente ?)
+	(pavimento)
+	(pavimento_da_raccordare FALSE)
+	?f <- (presenza_massetto TRUE)
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
+	(if ?risposta
+		then (inizia_posa)
+		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
+			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+			;(inizia posa) 
+			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
+			 ))
+
+(defrule massetto_non_presente
+	(preparazione_utente ?)
+	(presenza_massetto FALSE)
+	(pavimento)
+	=>
+	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
+			;(inizia posa) 
+	)
+
+
+;/----------------inizia posa--------------/
+(defrule )
+;scegli posa
+;parti da entrata 
+;fai una posa di prova
+;mischia pacchi piastrelle
+;smonta porte
+;fai colla
+;poni prima piastrelle intere e poi ritagli
+;bagna piastrella e pavimento
+;stendi colla
+;vedi verso piastrella (freccia) e poni 
+;continua ponendo 2 o 3 e lasciando lo spazio del distanziatore
+;controlla livello
+;prosegui 
+;se lasci per troppo tempo la colla questa si asciuga
+;togliere colla eccesso
 
 
 
