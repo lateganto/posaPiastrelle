@@ -24,30 +24,33 @@
 ; /---------------------------------FUNCTIONS---------------------------------/
 ;/---------------------------------------------------------------------------/
 (deffunction ask_question (?question $?allowed_values)
-	(insert$ ?allowed_values 1 help h)
-	(format t (str-cat "%n" ?question "/help/h): "))
+	(format t (str-cat "%n" ?question))
+
+	(bind ?i 1)
+	(progn$ (?o ?allowed_values)
+		(format t (str-cat "%n (%d) %s" ) ?i (nth$ ?i ?allowed_values))
+		(bind ?i (+ 1 ?i)))
+	(format t "%n (%d) help%n" ?i)
+
+	(format t "Inserire scelta: ")
 	(bind ?answer (read))
 
-	(if (lexemep ?answer)
-		then (bind ?answer (lowcase ?answer)))
+	(while (or (not (numberp ?answer)) (< ?answer 1) (> ?answer (length$ ?allowed_values)))
+		(if (eq ?answer (+ 1 (length$ ?allowed_values)))
+			then (if (eq (length$ ?*help*) 0)
+				  	then (printout t "Non è presente alcun help!" crlf)
+				  	else (format t (str-cat ?*help* "%n"))))
 
-	(while (not (member ?answer ?allowed_values)) do
-		(if (or (eq ?answer help) (eq ?answer h))
-	  			then (if (eq (length$ ?*help*) 0)
-		  				then (printout t "Non è presente alcun help!" crlf)
-		  				else (format t (str-cat ?*help* "%n"))))
-		(format t (str-cat "%n" ?question "/help/h): "))
-	    (bind ?answer (read))
-	    (if (lexemep ?answer) 
-			then (bind ?answer (lowcase ?answer))))
-	 ?answer)
+		(format t "Inserire scelta: ")
+		(bind ?answer (read)))
+
+	(nth ?answer ?allowed_values))
 
 (deffunction yes_or_no_p (?question)
-  (bind ?question (sym-cat ?question " (si/s/no/n"))
-     (bind ?response (ask_question ?question si no s n))
-     (if (or (eq ?response si) (eq ?response s))
-         then TRUE 
-         else FALSE))
+    (bind ?response (ask_question ?question si no))
+    (if (or (eq ?response si) (eq ?response s))
+        then TRUE 
+        else FALSE))
 
 (deffunction ask_number (?question)
 	(format t (str-cat "%n" ?question " (help/h): "))
@@ -200,7 +203,7 @@
 	(not (continua))
 	=>
 	(bind ?*help* "Rispondere 'interno' se il lavoro deve essere effettuato in una stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da %nletto, etc), 'esterno' in caso contrario (balcone, terrazzo).")
-	(bind ?risposta (ask_question "Il lavoro riguarda l'interno o l'esterno? (esterno/interno" interno esterno))
+	(bind ?risposta (ask_question "Il lavoro riguarda l'interno o l'esterno?" interno esterno))
 	(if (eq ?risposta interno)
 		then (assert (interno))
 		else (assert (esterno))))
@@ -212,7 +215,7 @@
 	(not (continua))
 	=>
 	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro. Nel caso in cui ci sia più di una %nrisposta, allora effettuare la scelta di una stanza e continuare, poi riavviare il sistema e procedere con la successiva scelta.")
-	(bind ?risposta (ask_question "Quale stanza riguarda il lavoro? (bagno/cucina/altro" bagno cucina altro))
+	(bind ?risposta (ask_question "Quale stanza riguarda il lavoro?" bagno cucina altro))
 	(assert (tipo_stanza ?risposta)))
 
 (defrule domanda_presenza_pavimento
