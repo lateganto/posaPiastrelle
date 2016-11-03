@@ -136,13 +136,13 @@
 	(stampa_scelte_lavoro)
 
 	(bind ?num_scelte (length$ (get-all-facts-by-names car)))
-	(bind ?response (ask_question1 ?question (create$ (gen-int-list ?num_scelte) c e)))
+	(bind ?response (ask_question1 ?question (create$ (gen-int-list ?num_scelte) c t)))
 	(printout t crlf crlf)
 	(switch ?response 
-		(case c 
+		(case t 
 			then (printout t "Bye bye!" crlf)
 	         	 (halt))
-		(case e
+		(case c
 			then (return))
 		(default (cambia_scelta_da_indice ?response)
 				 (chiedi_cambio_scelte_lavoro ?question))))
@@ -577,7 +577,7 @@
 	?f1 <- (rivedi_scelte_lavoro)
 	=>
 	(retract ?f1 ?f2)
-	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 'c' per terminare o 'e' per continuare: "))
+	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 't' per terminare o 'c' per continuare: "))
 
 (defrule rivedi_scelte_no_lavoro
 	(declare (salience ?*high_priority*))
@@ -585,7 +585,7 @@
 	?f <- (rivedi_scelte_lavoro)
 	=>
 	(retract ?f)
-	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 'c' per terminare o 'e' per continuare: "))
+	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 't' per terminare o 'c' per continuare: "))
 
 
 ;  /---------------------------------------------------------------------------/
@@ -593,7 +593,8 @@
 ;/---------------------------------------------------------------------------/
 
 (defrule domanda_pavimento_da_raccordare
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(not (car (nome pavimento_da_raccordare) (valore ?)))
 	=>
 	(bind ?*help* "")
@@ -602,7 +603,8 @@
 
 (defrule domanda_dimensione_pavimento_esperto
 	(preparazione_utente alta)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(not (car (nome dimensione_area) (valore ?)))
 	=>
 	(bind ?*help* "Indicare il numero che rappresenta la dimensione in metri quadri dell'area in cui si intende lavorare.")
@@ -611,7 +613,8 @@
 
 (defrule domanda_dimensione_pavimento_principiante
 	(preparazione_utente bassa)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(not (car (nome dimensione_area) (valore ?)))
 	=>
 	(printout t "La misura dell'area da pavimentare non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un pavimento si" crlf 
@@ -637,7 +640,8 @@
 
 (defrule domanda_presenza_porte
 	(preparazione_utente ?)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(car (nome pavimento_da_raccordare) (valore FALSE))
 	(not (car (nome porte_da_raccordare) (valore ?)))
 	=>
@@ -649,7 +653,8 @@
 (defrule area_troppo_grande
 	(declare (salience ?*high_priority*))
 	(preparazione_utente ?)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(car (nome dimensione_area) (valore ?dim))
 	(test (> ?dim 50))
 	=>
@@ -661,7 +666,8 @@
 
 (defrule domanda_spessore_piastrella
 	(preparazione_utente ?)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(or (car (nome pavimento_da_raccordare) (valore TRUE))
 		(car (nome porte_da_raccordare) (valore TRUE)))
 	(not (car (nome spessore_piastrella_pavimento) (valore ?)))
@@ -680,7 +686,8 @@
 
 (defrule guide_e_massetto_raccordo_interno
 	(preparazione_utente ?)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(or (car (nome pavimento_da_raccordare) (valore TRUE))
 		(car (nome porte_da_raccordare) (valore TRUE)))
 	(car (nome spessore_piastrella_pavimento) (valore ?spessore_piastrella))
@@ -712,7 +719,8 @@
 
 (defrule guide_e_massetto_raccordo_esterno
 	(preparazione_utente ?)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(or (car (nome pavimento_da_raccordare) (valore TRUE))
 		(car (nome porte_da_raccordare) (valore TRUE)))
 	(car (nome spessore_piastrella_pavimento) (valore ?spessore_piastrella))
@@ -746,7 +754,8 @@
 
 (defrule guide_e_massetto_no_raccordo_interno
 	(preparazione_utente ?)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(car (nome luogo) (valore interno))
 	(or (car (nome pavimento_da_raccordare) (valore FALSE))
 		(car (nome porte_da_raccordare) (valore FALSE)))
@@ -776,7 +785,8 @@
 
 (defrule guide_e_massetto_no_raccordo_esterno
 	(preparazione_utente ?)
-	(massetto)
+	(lavoro massetto)
+	(continua)
 	(car (nome luogo) (valore esterno))
 	(or (car (nome pavimento_da_raccordare) (valore FALSE))
 		(car (nome porte_da_raccordare) (valore FALSE)))
@@ -813,7 +823,8 @@
 ;/---------------------------------------------------------------------------/
 (defrule fughe_interno_rivestimento
 	(preparazione_utente ?)
-	(fughe)
+	(lavoro fughe)
+	(continua)
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
 					 " * stucco per fughe per interni" crlf
@@ -844,7 +855,8 @@
 (defrule chiedi_rivestimento_cucina
 	(declare (salience ?*high_priority*))
 	(preparazione_utente ?)
-	(battiscopa)
+	(lavoro battiscopa)
+	(continua)
 	(car (nome tipo_stanza) (valore cucina))
 	=>
 	(bind ?*help* "")
@@ -858,7 +870,8 @@
 
 (defrule battiscopa_interno_principiante
 	(preparazione_utente bassa)
-	(battiscopa)
+	(lavoro battiscopa)
+	(continua)
 	(car (nome luogo) (valore interno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
@@ -890,7 +903,8 @@
 
 (defrule battiscopa_interno_esperto
 	(preparazione_utente alta)
-	(battiscopa)
+	(lavoro battiscopa)
+	(continua)
 	(car (nome luogo) (valore interno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
@@ -918,7 +932,8 @@
 
 (defrule battiscopa_esterno_principiante
 	(preparazione_utente bassa)
-	(battiscopa)
+	(lavoro battiscopa)
+	(continua)
 	(car (nome luogo) (valore esterno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
@@ -948,7 +963,8 @@
 
 (defrule battiscopa_esterno_esperto
 	(preparazione_utente alta)
-	(battiscopa)
+	(lavoro battiscopa)
+	(continua)
 	(car (nome luogo) (valore esterno))
 	=>
 	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
