@@ -278,6 +278,7 @@
 (defrule domanda_interno_esterno
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(and (not (car (nome luogo) (valore interno)))
 		 (not (car (nome luogo) (valore esterno))))
@@ -291,6 +292,7 @@
 (defrule domanda_tipo_stanza
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(not (car (nome tipo_stanza) (valore ?)))
 	(car (nome luogo) (valore interno))
@@ -302,6 +304,7 @@
 (defrule domanda_presenza_pavimento
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(not (car (nome presenza_pavimento) (valore ?)))
 	=>
@@ -312,6 +315,7 @@
 (defrule domanda_presenza_rivestimento
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(not (car (nome presenza_rivestimento) (valore ?)))
 	(or (car (nome tipo_stanza) (valore bagno))
@@ -324,6 +328,7 @@
 (defrule domanda_presenza_massetto
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(not (car (nome presenza_massetto) (valore ?)))
 	(car (nome presenza_pavimento) (valore FALSE))
@@ -335,6 +340,7 @@
 (defrule domanda_condizioni_pavimento_presente
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(car (nome presenza_pavimento) (valore TRUE))
 	(not (car (nome condizioni_pavimento) (valore ?)))
@@ -349,6 +355,7 @@
 (defrule domanda_pavimento_presente_rinnovo
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(car (nome presenza_pavimento) (valore TRUE))
 	(not (car (nome ristrutturazione_pavimento) (valore ?)))
@@ -362,6 +369,7 @@
 (defrule domanda_condizioni_rivestimento_presente
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(car (nome presenza_rivestimento) (valore TRUE))
 	(not (car (nome condizioni_rivestimento) (valore ?)))
@@ -376,6 +384,7 @@
 (defrule domanda_rivestimento_presente_rinnovo
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(car (nome presenza_rivestimento) (valore TRUE))
 	(not (car (nome ristrutturazione_rivestimento) (valore ?)))
@@ -389,6 +398,7 @@
 (defrule domanda_anni_presenza_pavimento
 	(preparazione_utente ?)
 	(not (continua))
+	(not (lavoro ?))
 
 	(car (nome presenza_pavimento) (valore TRUE))
 	(not (car (nome anni_pavimento) (valore ?)))
@@ -405,23 +415,16 @@
 (defrule massetto
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome massetto)))
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_massetto) (valore FALSE))
 	=>
-	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il massetto, negativamente in caso contrario.")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il massetto?"))
-	(if ?risposta 
-		then (assert (continua))
-			 (assert (massetto))
-		else (assert (no_lavoro (nome massetto)))))
+	(assert (lavoro massetto)))
 
 (defrule fughe_pavimento ;domanda fughe in caso di pavimento
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome fughe)))
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
@@ -429,17 +432,11 @@
 	(car (nome condizioni_pavimento) (valore buone))
 	(car (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
-	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il riempimento delle fughe, negativamente in caso contrario.")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare sono le fughe?"))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (fughe))
-		else (assert (no_lavoro (nome fughe)))))
+	(assert (lavoro fughe)))
 
 (defrule fughe_rivestimento ;domanda fughe in caso di rivestimento
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome fughe)))
 
 	(or (car (nome luogo) (valore interno) )
 		(car (nome luogo) (valore esterno) ))
@@ -447,34 +444,22 @@
 	(car (nome condizioni_rivestimento) (valore buone))
 	(car (nome ristrutturazione_rivestimento) (valore FALSE))
 	=>
-	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il riempimento delle fughe, negativamente in caso contrario.")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare sono le fughe?"))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (fughe))
-		else (assert (no_lavoro (nome fughe)))))
+	(assert (lavoro fughe)))
 
 (defrule battiscopa1
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome battiscopa)))
 
 	(car (nome luogo) (valore esterno) )
 	(car (nome presenza_pavimento) (valore TRUE))
 	(car (nome condizioni_pavimento) (valore buone))
 	(car (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
-	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il posizionamento del battiscopa, negativamente in caso contrario.")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il battiscopa?"))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (battiscopa))
-		else (assert (no_lavoro (nome battiscopa)))))
+	(assert (lavoro battiscopa)))
 
 (defrule battiscopa2
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome battiscopa)))
 
 	(car (nome luogo) (valore interno) )
 	(or (car (nome tipo_stanza) (valore altro))
@@ -483,12 +468,7 @@
 	(car (nome condizioni_pavimento) (valore buone))
 	(car (nome ristrutturazione_pavimento) (valore FALSE))
 	=>
-	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è il posizionamento del battiscopa, negativamente in caso contrario.")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il battiscopa?"))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (battiscopa))
-		else (assert (no_lavoro (nome battiscopa)))))
+	(assert (lavoro battiscopa)))
 
 ;(defrule rattoppo
 ;	(declare (salience ?*high_priority*))
@@ -512,7 +492,6 @@
 (defrule pavimento
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome pavimento)))
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
@@ -521,33 +500,21 @@
 		(car (nome presenza_pavimento) (valore FALSE))
 		(car (nome presenza_massetto) (valore TRUE)))
 	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il pavimento? (ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il pavimento!) "))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (pavimento))
-		else (assert (no_lavoro (nome pavimento)))))
+	(assert (lavoro pavimento)))
 
 (defrule rivestimento
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome rivestimento)))
 
 	(or (car (nome condizioni_rivestimento) (valore cattive))
 		(car (nome ristrutturazione_rivestimento) (valore TRUE))
 		(car (nome presenza_rivestimento) (valore FALSE)))
 	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è il rivestimento? (ATTENZIONE: Rispondi 'si' solo se devi realizzare unicamente il rivestimento!) "))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (rivestimento))
-		else (assert (no_lavoro (nome rivestimento)))))
+	(assert (lavoro rivestimento)))
 
 (defrule pavimento_rivestimento
 	(declare (salience ?*high_priority*))
 	(not (continua))
-	(not (no_lavoro (nome pavimento_rivestimento)))
 
 	(or (car (nome condizioni_pavimento) (valore cattive))
 		(car (nome ristrutturazione_pavimento) (valore TRUE))
@@ -557,73 +524,68 @@
 		(car (nome ristrutturazione_rivestimento) (valore TRUE))
 		(car (nome presenza_rivestimento) (valore FALSE)))
 	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (pavimento_rivestimento))
-		else (assert (no_lavoro (nome pavimento_rivestimento)))))
+	(assert (lavoro pavimento_rivestimento)))
 
-(defrule pavimento_rivestimento2  ;domanda nel caso in cui risponda no a pavimento, è molto probabile che voglia fare entrambi
-	(declare (salience ?*high_priority*))
-	(not (continua))
-	(not (no_lavoro (nome pavimento_rivestimento)))
-
-	(no_lavoro (nome pavimento))
-	(or (car (nome condizioni_rivestimento) (valore cattive))
-		(car (nome ristrutturazione_rivestimento) (valore TRUE))
-		(car (nome presenza_rivestimento) (valore FALSE)))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (pavimento_rivestimento))
-		else (assert (no_lavoro (nome pavimento_rivestimento)))))
-
-(defrule pavimento_rivestimento3  ;domanda nel caso in cui risponda no a rivestimento è molto probabile che voglia fare entrambi
-	(declare (salience ?*high_priority*))
-	(not (continua))
-	(not (no_lavoro (nome pavimento_rivestimento)))
-
-	(no_lavoro (nome rivestimento))
-	(or (car (nome condizioni_pavimento) (valore cattive))
-		(car (nome ristrutturazione_pavimento) (valore TRUE))
-		(car (nome presenza_pavimento) (valore FALSE))
-		(car (nome presenza_massetto) (valore TRUE)))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è sia il pavimento che il rivestimento?"))
-	(if ?risposta
-		then (assert (continua))
-			 (assert (pavimento_rivestimento))
-		else (assert (no_lavoro (nome pavimento_rivestimento)))))
+;(defrule pavimento_rivestimento2  ;domanda nel caso in cui risponda no a pavimento, è molto probabile che voglia fare entrambi
+;	(declare (salience ?*high_priority*))
+;	(not (continua))
+;
+;	;(no_lavoro (nome pavimento))
+;	(or (car (nome condizioni_rivestimento) (valore cattive))
+;		(car (nome ristrutturazione_rivestimento) (valore TRUE))
+;		(car (nome presenza_rivestimento) (valore FALSE)))
+;	=>
+;	(assert (lavoro pavimento_rivestimento)))
+;
+;(defrule pavimento_rivestimento3  ;domanda nel caso in cui risponda no a rivestimento è molto probabile che voglia fare entrambi
+;	(declare (salience ?*high_priority*))
+;	(not (continua))
+;
+;	;(no_lavoro (nome rivestimento))
+;	(or (car (nome condizioni_pavimento) (valore cattive))
+;		(car (nome ristrutturazione_pavimento) (valore TRUE))
+;		(car (nome presenza_pavimento) (valore FALSE))
+;		(car (nome presenza_massetto) (valore TRUE)))
+;	=>
+;	(assert (lavoro pavimento_rivestimento)))
 
 ;-----------------------------------------------------------------------------------------------------------------
 
 (defrule lavoro_trovato
 	(declare (salience ?*highest_priority*))
-	(continua)
+	(lavoro ?lavoro)
 	=>
-	(printout t crlf crlf)
-	(do-for-all-facts ((?no_lavoro no_lavoro)) TRUE (retract ?no_lavoro)))
+	(printout t crlf ">>>>> Il lavoro che devi fare è: " ?lavoro crlf crlf)
+
+	(if (yes_or_no_p "Non è quello che volevi e vuoi rivedere qualcosa?")
+		then (assert (rivedi_scelte_lavoro))
+		else (assert (continua))))
 
 (defrule lavoro_non_trovato
 	(declare (salience ?*lowest_priority*))
-	(not (continua))
+	(not (lavoro ?))
 	=>
-	(printout t crlf "Non posso aiutarti! Premi 'c' per riprovare: ")
-	(while (neq (read) c)
-		(printout t crlf "Non posso aiutarti! Premi 'c' per riprovare: "))
-	(reset)
-	(run))
+	(printout t crlf "Lavoro non trovato!" crlf)
+	(if (yes_or_no_p "Vuoi rivedere le scelte fatte o cambiare qualcosa?")
+		then (assert (rivedi_scelte_lavoro))
+		else (printout t crlf "Prova a riavviare il sistema") 
+			 (halt)))
 
+(defrule rivedi_scelte_lavoro
+	(declare (salience ?*high_priority*))
+	?f2 <- (lavoro ?)
+	?f1 <- (rivedi_scelte_lavoro)
+	=>
+	(retract ?f1 ?f2)
+	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 'c' per terminare o 'e' per continuare: "))
 
-;(defrule rivedi_scelte_lavoro
-;	(declare (salience ?*high_priority*))
-;	?f1 <- (rivedi_scelte_lavoro)
-;	=>
-;	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 'c' per terminare o 'e' per continuare: "))
+(defrule rivedi_scelte_no_lavoro
+	(declare (salience ?*high_priority*))
+	(not (lavoro ?))
+	?f <- (rivedi_scelte_lavoro)
+	=>
+	(retract ?f)
+	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 'c' per terminare o 'e' per continuare: "))
 
 
 ;  /---------------------------------------------------------------------------/
