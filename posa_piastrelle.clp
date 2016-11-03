@@ -17,9 +17,6 @@
 (deftemplate domanda
 	(slot valore))
 
-(deftemplate no_lavoro
-	(slot nome))
-
 (deftemplate car
 	(slot nome)
 	(slot valore))
@@ -100,7 +97,7 @@
 	    (bind ?answer (read)))
 	 ?answer)
 
-;rivedere scelte
+;FUNZIONI PER RITRATTAZIONE
 
 (deffunction get-all-facts-by-names
   ($?template-names)
@@ -170,10 +167,10 @@
 	(bind ?risposta (ask_number "Quanti anni hai?"))
 	(assert (domanda (valore one)))
 	(modify ?f2 (numero (+ ?x 1)))
-	(if (< ?risposta 16) 
+	(if (< ?risposta 14) 
 		then (printout t crlf "Forse non hai l'età per lavorare!" crlf) 
 	 		 (halt))
-	(if (and (>= ?risposta 16) (<= ?risposta 20)) 
+	(if (and (>= ?risposta 14) (<= ?risposta 20)) 
 		then (modify ?f1 (principiante (+ ?val_princ 3))))
 	(if (and (>= ?risposta 21) (<= ?risposta 30)) 
 		then (modify ?f1 (principiante (+ ?val_princ 2))))
@@ -269,7 +266,8 @@
 	=>
 	(do-for-all-facts ((?domanda domanda)) TRUE (retract ?domanda))  ;elimina tutti i fatti di tipo "domanda"
 	(retract ?f1 ?f2)
-	(printout t crlf crlf))
+	(printout t crlf crlf)
+	(set-strategy depth))
 
 
 ;  /---------------------------------------------------------------------------/ 
@@ -438,8 +436,8 @@
 	(declare (salience ?*high_priority*))
 	(not (continua))
 
-	(or (car (nome luogo) (valore interno) )
-		(car (nome luogo) (valore esterno) ))
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_rivestimento) (valore TRUE))
 	(car (nome condizioni_rivestimento) (valore buone))
 	(car (nome ristrutturazione_rivestimento) (valore FALSE))
@@ -450,7 +448,7 @@
 	(declare (salience ?*high_priority*))
 	(not (continua))
 
-	(car (nome luogo) (valore esterno) )
+	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore TRUE))
 	(car (nome condizioni_pavimento) (valore buone))
 	(car (nome ristrutturazione_pavimento) (valore FALSE))
@@ -461,7 +459,7 @@
 	(declare (salience ?*high_priority*))
 	(not (continua))
 
-	(car (nome luogo) (valore interno) )
+	(car (nome luogo) (valore interno))
 	(or (car (nome tipo_stanza) (valore altro))
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_pavimento) (valore TRUE))
@@ -552,14 +550,14 @@
 ;-----------------------------------------------------------------------------------------------------------------
 
 (defrule lavoro_trovato
-	(declare (salience ?*highest_priority*))
+	(declare (salience ?*high_priority*))
 	(lavoro ?lavoro)
 	=>
 	(printout t crlf ">>>>> Il lavoro che devi fare è: " ?lavoro crlf crlf)
 
-	(if (yes_or_no_p "Non è quello che volevi e vuoi rivedere qualcosa?")
-		then (assert (rivedi_scelte_lavoro))
-		else (assert (continua))))
+	(if (yes_or_no_p "È quello che volevi?")
+		then (assert (continua))
+		else (assert (rivedi_scelte_lavoro))))
 
 (defrule lavoro_non_trovato
 	(declare (salience ?*lowest_priority*))
@@ -586,570 +584,3 @@
 	=>
 	(retract ?f)
 	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 't' per terminare o 'c' per continuare: "))
-
-
-;  /---------------------------------------------------------------------------/
-; /----------------------------------MASSETTO---------------------------------/
-;/---------------------------------------------------------------------------/
-
-(defrule domanda_pavimento_da_raccordare
-	(lavoro massetto)
-	(continua)
-	(not (car (nome pavimento_da_raccordare) (valore ?)))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Nello stesso piano ci sono altri pavimenti già posati?"))
-	(assert (car (nome pavimento_da_raccordare) (valore ?risposta))))
-
-(defrule domanda_dimensione_pavimento_esperto
-	(preparazione_utente alta)
-	(lavoro massetto)
-	(continua)
-	(not (car (nome dimensione_area) (valore ?)))
-	=>
-	(bind ?*help* "Indicare il numero che rappresenta la dimensione in metri quadri dell'area in cui si intende lavorare.")
-	(bind ?risposta (ask_number "Fornire la dimensione in metri quadri dell'area in cui si deve lavorare: "))
-	(assert (car (nome dimensione_area) (valore ?risposta))))
-
-(defrule domanda_dimensione_pavimento_principiante
-	(preparazione_utente bassa)
-	(lavoro massetto)
-	(continua)
-	(not (car (nome dimensione_area) (valore ?)))
-	=>
-	(printout t "La misura dell'area da pavimentare non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un pavimento si" crlf 
-				"effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella" crlf
-				"dell'area da pavimentare, ma deve essere maggiore. Procedere individuando la forma di tale superficie, se questa può essere ricondotta" crlf 
-				"ad una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, allora, per ottenere l'area, bisogna ricordare che:" crlf
-				"	* se la superficie ha la forma di un quadrato, allora si calcola la lunghezza di un muro (che rappresenta il lato) e la si moltiplica" crlf
-				"	  per se stesso" crlf
-				"	* se la superficie ha la forma di un rettangolo, allora si moltiplica la dimensione del muro più lungo (che rappresenta la lunghezza)" crlf
-				"	  per la dimensione del muro più piccolo (che rappresenta la larghezza)" crlf
-				"	* se la superficie ha la forma di un triangolo, allora si trova la lunghezza del muro che rappresenta la base e quella del muro che" crlf
-				"	  rappresenta l'altezza  del triangolo, si moltiplicando tra di loro le due misure e si divide per due il risultato" crlf
-				"	* se la superficie ha la forma di un cerchio, allora si deve trovare la misura del raggio e si usa la formula 2πr, dove π = 3.14 e" crlf 
-				"	  r = raggio calcolato (cioè si calcola il raggio, che è la metà del diametro e lo si moltiplica prima per due e poi per 3.14)" crlf
-				"	* se la superficie ha la forma di una semicirconferenza, allora si procede come nel caso precedente (cerchio) a trovare la misura del" crlf
-				"	  raggio della circonferenza e si usa la formula 2πr (dove π = 3.14 e r = raggio trovato) e si divide il risultato per due." crlf
-				"Nel caso in cui la forma della superficie da pavimentare non fosse simile ad una delle precedenti, allora si suddivide l'area in parti più" crlf
-				"piccole dalla forma riconducibile ad una di quelle precedenti, si calcola l'area di ogni parte e si sommano i vari risultati ottenuti" crlf
-				"Le misure vanno espresse in metri al quadrato" crlf crlf)
-	(bind ?*help* "Indicare il numero che rappresenta la dimensione in metri quadri dell'area in cui si intende lavorare.")
-	(bind ?risposta (ask_number "Fornire quindi la dimensione in metri quadri dell'area in cui si deve lavorare?"))
-	(assert (car (nome dimensione_area) (valore ?risposta))))
-
-(defrule domanda_presenza_porte
-	(preparazione_utente ?)
-	(lavoro massetto)
-	(continua)
-	(car (nome pavimento_da_raccordare) (valore FALSE))
-	(not (car (nome porte_da_raccordare) (valore ?)))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Sono presenti porte o balconi già montati?"))
-	(assert (car (nome porte_da_raccordare) (valore TRUE))))
-
-;------------------------------------------------------------------------
-(defrule area_troppo_grande
-	(declare (salience ?*high_priority*))
-	(preparazione_utente ?)
-	(lavoro massetto)
-	(continua)
-	(car (nome dimensione_area) (valore ?dim))
-	(test (> ?dim 50))
-	=>
-	(printout t crlf "L'area in cui si deve fare il massetto è troppo ampia! Consulta un muratore!" crlf)
-	(printout t crlf "Premi 'c' per chiudere il programma: ")
-	(while (neq (read) c)
-		(printout t crlf "Premi 'c' per chiudere il programma: "))
-	(halt))
-
-(defrule domanda_spessore_piastrella
-	(preparazione_utente ?)
-	(lavoro massetto)
-	(continua)
-	(or (car (nome pavimento_da_raccordare) (valore TRUE))
-		(car (nome porte_da_raccordare) (valore TRUE)))
-	(not (car (nome spessore_piastrella_pavimento) (valore ?)))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Hai già scelto la piastrella da usare?"))
-	(if ?risposta 
-		then (bind ?*help* "")
-			 (bind ?risposta (ask_number "Indica lo spessore della piastrella in millimetri"))
-			 (assert (car (nome spessore_piastrella_pavimento) (valore ?risposta)))
-		else (printout t crlf "Senza lo spessore della piastrella non si può sapere quanto sarà alto il massetto!")
-			(printout t crlf "Premi 'c' per chiudere il programma: ")
-			(while (neq (read) c)
-				(printout t crlf "Premi 'c' per chiudere il programma: "))
-			(halt)))
-
-(defrule guide_e_massetto_raccordo_interno
-	(preparazione_utente ?)
-	(lavoro massetto)
-	(continua)
-	(or (car (nome pavimento_da_raccordare) (valore TRUE))
-		(car (nome porte_da_raccordare) (valore TRUE)))
-	(car (nome spessore_piastrella_pavimento) (valore ?spessore_piastrella))
-	(car (nome luogo) (valore interno))
-	=> 
-	(printout t crlf "Hai bisogno di:" crlf
-					" * cazzuole (grande e piccola, a punta e piatta)" crlf
-					" * 2-3 secchi per il cemento" crlf
-					" * stadie di diverse lunghezze" crlf
-					" * frattazzo in plastica" crlf
-					" * sabbia"
-					" * cemento"
-					" * acqua"
-					" * betoniera"
-					" * livella" crlf crlf)
-	(format t "%nIl massetto che si deve realizzare deve essere esattamente %d mm sotto il pavimento o le porte già presenti%n" (+ ?spessore_piastrella 3))
-	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
-	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre addossato al pavimento già presente (esattamente %d mm sotto)%n e fissalo con il cemento in modo che non faccia movimenti e sia ben saldo%n" (+ ?spessore_piastrella 3))
-	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
-					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
-					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
-					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
-					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 2 quintali di cemento per metro cubo di sabbia." crlf
-					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
-					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
-					"a riempire tutta la superficie." crlf
-					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
-					"Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
-
-(defrule guide_e_massetto_raccordo_esterno
-	(preparazione_utente ?)
-	(lavoro massetto)
-	(continua)
-	(or (car (nome pavimento_da_raccordare) (valore TRUE))
-		(car (nome porte_da_raccordare) (valore TRUE)))
-	(car (nome spessore_piastrella_pavimento) (valore ?spessore_piastrella))
-	(car (nome luogo) (valore esterno))
-	=>
-	(printout t crlf "Hai bisogno di:" crlf
-					" * cazzuole (grande e piccola, a punta e piatta)" crlf
-					" * 2-3 secchi per il cemento" crlf
-					" * stadie di diverse lunghezze" crlf
-					" * frattazzo in plastica" crlf
-					" * sabbia"
-					" * cemento"
-					" * acqua"
-					" * betoniera"
-					" * livella" crlf crlf)
-	(format t "%nIl massetto che si deve realizzare deve essere esattamente %d mm sotto il pavimento o le porte già presenti%n" (+ ?spessore_piastrella 3))
-	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
-	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre addossato al pavimento già presente (esattamente %d mm sotto)%n e fissalo con il cemento in modo che non faccia movimenti e sia ben saldo%n" (+ ?spessore_piastrella 3))
-	(printout t crlf "Bisogna individuare dove avverrà lo scolo dell'acqua; dopo averlo stabilito per creare la pendenza e permettere all'acqua di uscire" crlf
-					 "poni allo stesso modo un altro spessore che sarà più basso di 1-1,5 cm alla distanza di circa 2 metri da quello precedente e poni le" crlf 
-					 "estremità di una  stadia di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella e poni uno spessore" crlf
-					 "di 1-1,5 per controllare che sia all'altezza giusta." crlf
-					 "Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
-					 "Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
-					 "Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 3 quintali di cemento per metro cubo di sabbia." crlf
-					 "Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
-					 "Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
-					 "a riempire tutta la superficie." crlf
-					 "Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
-					 "Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
-
-(defrule guide_e_massetto_no_raccordo_interno
-	(preparazione_utente ?)
-	(lavoro massetto)
-	(continua)
-	(car (nome luogo) (valore interno))
-	(or (car (nome pavimento_da_raccordare) (valore FALSE))
-		(car (nome porte_da_raccordare) (valore FALSE)))
-	=>
-	(printout t crlf "Hai bisogno di:" crlf
-					" * cazzuole (grande e piccola, a punta e piatta)" crlf
-					" * 2-3 secchi per il cemento" crlf
-					" * stadie di diverse lunghezze" crlf
-					" * frattazzo in plastica" crlf
-					" * sabbia"
-					" * cemento"
-					" * acqua"
-					" * betoniera"
-					" * livella" crlf crlf)
-	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
-	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre in un angolo e fissalo con il cemento in modo che non faccia %nmovimenti e sia ben saldo%n")
-	(printout t crlf "Poni allo stesso modo un altro spessore alla distanza di circa 1,5 metri da quello precedente e poni le estremità di una stadia" crlf
-					"di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella." crlf
-					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
-					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
-					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 2 quintali di cemento per metro cubo di sabbia." crlf
-					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
-					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
-					"a riempire tutta la superficie." crlf
-					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
-					"Una volta completato un piccolo pezzo misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
-
-(defrule guide_e_massetto_no_raccordo_esterno
-	(preparazione_utente ?)
-	(lavoro massetto)
-	(continua)
-	(car (nome luogo) (valore esterno))
-	(or (car (nome pavimento_da_raccordare) (valore FALSE))
-		(car (nome porte_da_raccordare) (valore FALSE)))
-	=>
-	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * cazzuole (grande e piccola, a punta e piatta)" crlf
-					 " * 2-3 secchi per il cemento" crlf
-					 " * stadie di diverse lunghezze" crlf
-					 " * frattazzo in plastica" crlf
-					 " * sabbia" crlf
-					 " * cemento" crlf
-					 " * acqua" crlf
-					 " * betoniera" crlf
-					 " * livella" crlf crlf)
-	(format t "%nRealizza in un secchio un po' di impasto mescolando un po' di sabbia e cemento con acqua.%n")
-	(format t "%nRealizza un piccolo spessore con pezzi di piastrelle vecchie, da porre in un angolo e fissalo con il cemento in modo che non faccia %nmovimenti e sia ben saldo%n")
-	(printout t crlf "Bisogna individuare dove avverrà lo scolo dell'acqua; dopo averlo stabilito per creare la pendenza e permettere all'acqua di uscire" crlf
-					 "poni allo stesso modo un altro spessore che sarà più basso di 1-1,5 cm alla distanza di circa 2 metri da quello precedente e poni le" crlf 
-					 "estremità di una  stadia di dimensione adeguata su questi due spessori vicini. Posa sopra la stadia una livella e poni uno spessore" crlf
-					 "di 1-1,5 per controllare che sia all'altezza giusta." crlf
-					"Abbassa o alza il secondo spessore in base al posizionamento della bolla della livella (che deve essere in posizione centrale)." crlf
-					"Realizza altri spessori coprendo tutto il perimetro della stanza." crlf crlf
-					"Bisogna adesso realizzare l'impasto di sabbia e cemento con acqua miscelando 3 quintali di cemento per metro cubo di sabbia." crlf
-					"Non si può sapere quanto materiale servirà poiché dipende dalle irregolarità del fondo sottostante" crlf
-					"Partendo dal punto più lontano dall'uscita cominciare a riempire la parte vuota tra due spessori (riferimenti) e continuare così fino" crlf
-					"a riempire tutta la superficie." crlf
-					"Fare attenzione a lasciarsi sempre lo spazio per poter uscire, quindi il pezzo dell'ingresso va fatto per ultimo" crlf
-					"Una volta completato un piccolo pezzo di 1 metro quadro, misurare se è a livello e lisciare con il frattazzo in plastica."crlf crlf))
-
-
-
-;  /---------------------------------------------------------------------------/
-; /-----------------------------------FUGHE-----------------------------------/
-;/---------------------------------------------------------------------------/
-(defrule fughe_interno_rivestimento
-	(preparazione_utente ?)
-	(lavoro fughe)
-	(continua)
-	=>
-	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * stucco per fughe per interni" crlf
-					 " * vasca di lavaggio per piastrellisti o un normale secchio" crlf
-					 " * frattazzo in gomma (per spatolare lo stucco)" crlf
-					 " * frattazzo in spugna (per la pulizia delle piastrelle)" crlf 
-					 " * secchio e cazzuola piccola" crlf crlf)
-	(printout t crlf "Metti un po' di stucco in polvere nel secchio e aggiungi l'acqua mescolando con la cazzuola fino ad ottenere un composto denso." crlf 
-					 "Infatti se c'è un rivestimento deve essere tale da non colare nel momento in cui lo si pone sulle fughe." crlf
-					 "Porre una piccola quantità sul frattazzo in gomma con la cazzuola e spalmarlo in corrispondenza delle fughe, ricordando che con movimenti" crlf 
-					 "paralleli alla fuga si rimuove il composto in eccesso e si liscia, mentre con movimenti opposti al verso della fuga si riempie." crlf
-					 "Dopo aver stuccato tutte le fughe, aspettare circa un'ora e proseguire alla pulizia." crlf crlf
-					 "Riempire il secchio con acqua, inumidire il frattazzo in spugna e procedere a pulire l'intera area stuccata stando attenti a non scavare " crlf 
-					 "troppo le fughe. Risciacquare spesso la spugna e cambiare l'acqua del secchio quando è troppo sporca." crlf
-					 "Fare attenzione soprattutto alle piastrelle ruvide che possono nascondere lo sporco dato dallo stucco in eccesso." crlf crlf))
-
-;  /---------------------------------------------------------------------------/
-; /---------------------------------RATTOPPO----------------------------------/
-;/---------------------------------------------------------------------------/
-
-
-
-
-
-;  /---------------------------------------------------------------------------/
-; /--------------------------------BATTISCOPA---------------------------------/
-;/---------------------------------------------------------------------------/
-(defrule chiedi_rivestimento_cucina
-	(declare (salience ?*high_priority*))
-	(preparazione_utente ?)
-	(lavoro battiscopa)
-	(continua)
-	(car (nome tipo_stanza) (valore cucina))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "La cucina presenta un rivestimento che parte dal pavimento?"))
-	(if ?risposta
-		then (printout t crlf "Non si può apporre il battiscopa poiché è presente un rivestimento!" crlf)
-			 (printout t crlf "Premi 'c' per chiudere il programma: ")
-			 (while (neq (read) c)
-			 	(printout t crlf "Premi 'c' per chiudere il programma: "))
-			 (halt)))
-
-(defrule battiscopa_interno_principiante
-	(preparazione_utente bassa)
-	(lavoro battiscopa)
-	(continua)
-	(car (nome luogo) (valore interno))
-	=>
-	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * colla per interni" crlf
-					 " * acqua" crlf
-					 " * livella" crlf
-					 " * miscelatore elettrico (consigliato)" crlf
-					 " * distanziatori" crlf 
-					 " * secchio e cazzuola (piccola e grande)" crlf
-					 " * smerigliatrice" crlf
-					 " * matita da muratore" crlf crlf)
-
-	(printout t crlf "Versa la colla in polvere nel secchio, aggiungi acqua in modo che tutta la polvere lo assorba e gira a mano o con il miscelatore." crlf
-					 "L'impasto non deve essere molto liquido." crlf
-					 "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
-					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
-					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
-					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
-
-					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
-					 "e il muro. Ci possono essere due casi:" crlf
-					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
-					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
-					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
-					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
-					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
-					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
-
-(defrule battiscopa_interno_esperto
-	(preparazione_utente alta)
-	(lavoro battiscopa)
-	(continua)
-	(car (nome luogo) (valore interno))
-	=>
-	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * colla per interni" crlf
-					 " * acqua" crlf
-					 " * livella" crlf
-					 " * miscelatore elettrico (consigliato)" crlf
-					 " * distanziatori" crlf
-					 " * smerigliatrice" crlf 
-					 " * secchio e cazzuola (piccola e grande)" crlf)
-	(printout t crlf "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
-					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
-					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
-					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
-
-					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
-					 "e il muro. Ci possono essere due casi:" crlf
-					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
-					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
-					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
-					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
-					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
-					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
-
-(defrule battiscopa_esterno_principiante
-	(preparazione_utente bassa)
-	(lavoro battiscopa)
-	(continua)
-	(car (nome luogo) (valore esterno))
-	=>
-	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * colla per esterni" crlf
-					 " * acqua" crlf
-					 " * livella" crlf
-					 " * miscelatore elettrico (consigliato)" crlf
-					 " * distanziatori" crlf 
-					 " * smerigliatrice" crlf 
-					 " * secchio e cazzuola (piccola e grande)" crlf)
-	(printout t crlf "Versa la colla in polvere nel secchio, aggiungi acqua in modo che tutta la polvere lo assorba e gira a mano o con il miscelatore." crlf
-					 "L'impasto non deve essere molto liquido." crlf
-					 "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
-					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
-					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
-					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
-
-					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
-					 "e il muro. Ci possono essere due casi:" crlf
-					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
-					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
-					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
-					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
-					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
-					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
-
-(defrule battiscopa_esterno_esperto
-	(preparazione_utente alta)
-	(lavoro battiscopa)
-	(continua)
-	(car (nome luogo) (valore esterno))
-	=>
-	(printout t crlf "Ecco tutto quello di cui hai bisogno:" crlf
-					 " * colla per esterni" crlf
-					 " * acqua" crlf
-					 " * livella" crlf
-					 " * miscelatore elettrico (consigliato)" crlf
-					 " * distanziatori" crlf
-					 " * smerigliatrice" crlf 
-					 " * secchio e cazzuola (piccola e grande)" crlf)
-	(printout t crlf "Parti nella posa da uno degli spigoli nella stanza (se ve ne sono) in modo che eventuali ritagli vadano a finire negli angoli, perché" crlf
-					 "questi ultimi vengono generalmente coperti da elementi d'arredo. Se non vi sono spigoli partire da uno degli angoli." crlf
-					 "Prendi un bel po' di colla e spalmala bene sul battiscopa; poi addossalo al muro. Prosegui nella posizione degli altri pezzi allo stesso modo" crlf
-					 "In mezzo ad ogni battiscopa poni i distanziatori della dimensione desiderata." crlf
-					 "Controlla con un livello o una stadia da 50 cm, dopo averne messi due o tre, che siano precisi e prosegui." crlf crlf
-
-					 "Nel caso in cui non si possa inserire il pezzo intero del battiscopa occorrerà fare dunque un taglio, misurare la distanza tra il pezzo posato" crlf
-					 "e il muro. Ci possono essere due casi:" crlf
-					 " * nel caso in cui il taglio va effettuato all'ANGOLO, allora si toglie a tale misura della distanza, quella per la fuga (pari alla dimensione" crlf
-					 "   del distanziatore) e un mezzo centimetro per non far incastrare il pezzo." crlf
-					 " * nel caso in cui il taglio va effettuato allo SPIGOLO, allora bisogna fare in modo da aggiungere alla dimensione quella data dallo spessore" crlf 
-					 "   del pezzo più la colla. In modo che un pezzo vada a filo con l'altro che verrà posto in maniera perpendicolare." crlf
-					 "Segnare con la matita da muratore sulla piastrella il punto in cui deve effettuarsi il taglio e tracciare una linea più o meno dritta usando poi" crlf
-					 "la smerigliatrice per effettuare il taglio vero e proprio." crlf crlf))
-
-;  /---------------------------------------------------------------------------/
-; /--------------------------------PAVIMENTO----------------------------------/
-;/---------------------------------------------------------------------------/
-
-;ritaglio?
-;posa intero pavimento?
-;partenza?
-
-
-;(defrule domanda_presenza_massetto_pavimento
-;	(preparazione_utente ?)
-;	(pavimento)
-;	(not (presenza_massetto ?))
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
-;	(assert (presenza_massetto ?risposta)))
-;
-;(defrule domanda_presenza_pavimento_pavimento
-;	(preparazione_utente ?)
-;	(pavimento)
-;	(not (presenza_pavimento ?))
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta (yes_or_no_p "E' presente già un pavimento?"))
-;	(assert (presenza_pavimento ?risposta)))
-;
-;(defrule domanda_pavimento_da_raccordare_pavimento
-;	(preparazione_utente ?)
-;	(not (pavimento_da_raccordare ?))
-;	(pavimento)
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta (yes_or_no_p "Nello stesso piano ci sono altri pavimenti già posati?"))
-;	(assert (pavimento_da_raccordare ?risposta)))
-;
-;
-;;/------------posa_sopra------------/
-;
-;(defrule domanda_posa_sopra
-;	(preparazione_utente ?)
-;	(pavimento)
-;	(not (posa_sopra ?))
-;	(presenza_pavimento TRUE)
-;	(pavimento_da_raccordare FALSE)
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta (yes_or_no_p "Vuoi effettuare la posa sopra il pavimento esistente?"))
-;	(assert (posa_sopra ?risposta)))
-;;TODO considerare che il pavimento si rialza
-;
-;(defrule controllo_condizioni_posa_sopra
-;	(declare (salience ?*high_priority*))
-;	(preparazione_utente ?)
-;	?f <- (posa_sopra TRUE)
-;	(pavimento)
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta1 (yes_or_no_p "Il pavimento presenta molte piastrelle alzate o non aderenti?"))
-;
-;	(bind ?*help* "")
-;	(bind ?risposta2 (yes_or_no_p "Il pavimento è a livello?"))
-;
-;	(if (and (not (risposta1)) ?risposta2)
-;		then (assert (inizio_posa))
-;		else (assert (posa_sopra FALSE))))
-;
-;(defrule posa_sopra_no
-;	(preparazione_utente ?)
-;	(pavimento)
-;	(posa_sopra FALSE)
-;	=>
-;	(printout t crlf "Procedi alla rimozione del pavimento e del materiale sottostante (massetto)." crlf)
-;	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-;	;(inizia posa) 
-;	;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
-;	)
-;
-;;/-------------massetto------------/
-;
-;(defrule controllo_condizioni_massetto_raccordo
-;	(preparazione_utente ?)
-;	(pavimento)
-;	(pavimento_da_raccordare TRUE)
-;	(spessore_piastrella_pavimento ?spessore_piastrella)
-;	?f <- (presenza_massetto TRUE)
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta1 (yes_or_no_p "Il massetto è a livello?"))
-;
-;	(bind ?*help* "")
-;	(format t "Considerando che la piastrella è %d mm più lo spessore della colla sarà di 3-4 mm%n" ?spessore_piastrella)
-;	(bind ?risposta2 (yes_or_no_p "Il massetto si trova alla dimensione giusta sotto al pavimento presente?"))
-;
-;	(if (and ?risposta1 ?risposta2)
-;		then (inizia_posa)
-;		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
-;			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-;			;(inizia posa) 
-;			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
-;			 ))
-;
-;(defrule controllo_condizioni_massetto
-;	(preparazione_utente ?)
-;	(pavimento)
-;	(pavimento_da_raccordare FALSE)
-;	?f <- (presenza_massetto TRUE)
-;	=>
-;	(bind ?*help* "")
-;	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
-;	(if ?risposta
-;		then (inizia_posa)
-;		else (printout t crlf "Procedi alla rimozione del massetto." crlf)
-;			 (printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-;			;(inizia posa) 
-;			;TODO: nel modulo "massetto" verificare se presente il fatto "pavimento" cosicchè si ricollegherà alla parte di "inizio posa" 
-;			 ))
-;
-;(defrule massetto_non_presente
-;	(preparazione_utente ?)
-;	(presenza_massetto FALSE)
-;	(pavimento)
-;	=>
-;	(printout t crlf "Fai il massetto!" crlf) ;TODO collegamento con massetto (fai massetto) quindi il massetto sarà a livello
-;			;(inizia posa) 
-;	)
-;
-;
-;;/----------------inizia posa--------------/
-;(defrule )
-;scegli posa
-;parti da entrata 
-;fai una posa di prova
-;mischia pacchi piastrelle
-;smonta porte
-;fai colla
-;poni prima piastrelle intere e poi ritagli
-;bagna piastrella e pavimento
-;stendi colla
-;vedi verso piastrella (freccia) e poni 
-;continua ponendo 2 o 3 e lasciando lo spazio del distanziatore
-;controlla livello
-;prosegui 
-;se lasci per troppo tempo la colla questa si asciuga
-;togliere colla eccesso
-
-
-
-
-;  /---------------------------------------------------------------------------/
-; /------------------------------RIVESTIMENTO---------------------------------/
-;/---------------------------------------------------------------------------/
-
-
-
-
-
-
-
-
-;  /---------------------------------------------------------------------------/
-; /-------------------------PAVIMENTO RIVESTIMENTO-----------------------------/
-;/---------------------------------------------------------------------------/
