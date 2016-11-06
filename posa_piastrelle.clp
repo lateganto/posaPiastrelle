@@ -3,6 +3,8 @@
 (defglobal ?*low_priority* = -100)
 (defglobal ?*lowest_priority* = -1000)
 (defglobal ?*help* = "")
+(defglobal ?*spiegazione* = "")
+(defglobal ?*lavoro* = "")
 
 ;  /---------------------------------------------------------------------------/
 ; /---------------------------------TEMPLATES---------------------------------/
@@ -61,7 +63,7 @@
 
 (deffunction yes_or_no_p (?question)
 	(bind ?allowed_values (create$ si no s n))
-  	(format t (str-cat "%n" ?question " (si/s/no/n/help/h): "))
+  	(format t (str-cat "%n" ?question " (si/no/help): "))
   	(bind ?answer (read))
 
   	(if (lexemep ?answer)
@@ -72,7 +74,7 @@
 	  			then (if (eq (length$ ?*help*) 0)
 		  				then (printout t "Non è presente alcun help!" crlf)
 		  				else (format t (str-cat ?*help* "%n"))))
-		(format t (str-cat "%n" ?question " (si/s/no/n/help/h): "))
+		(format t (str-cat "%n" ?question " (si/no/help): "))
 	    (bind ?answer (read))
 	    (if (lexemep ?answer) 
 			then (bind ?answer (lowcase ?answer))))
@@ -82,7 +84,7 @@
          else FALSE))
 
 (deffunction ask_number (?question)
-	(format t (str-cat "%n" ?question " (help/h): "))
+	(format t (str-cat "%n" ?question " (help): "))
 	(bind ?answer (read))
 
 	(if (lexemep ?answer)
@@ -93,11 +95,13 @@
 	  			then (if (eq (length$ ?*help*) 0)
 		  				then (printout t "Non è presente alcun help!" crlf)
 		  				else (format t (str-cat ?*help* "%n"))))
-		(format t (str-cat "%n" ?question " (help/h): "))
+		(format t (str-cat "%n" ?question " (help): "))
 	    (bind ?answer (read)))
 	 ?answer)
 
-;FUNZIONI PER RITRATTAZIONE
+
+
+;----------------------FUNZIONI PER RITRATTAZIONE-------------------------
 
 (deffunction get-all-facts-by-names
   ($?template-names)
@@ -270,155 +274,399 @@
 	(set-strategy depth))
 
 
-;  /---------------------------------------------------------------------------/ 
-; /----------------------------------STEP 1-----------------------------------/		Capire cosa l'utente vuole fare
+;  /---------------------------------------------------------------------------/
+; /---------------------------------DIAGNOSI----------------------------------/
 ;/---------------------------------------------------------------------------/
 (defrule domanda_interno_esterno
 	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
-
-	(and (not (car (nome luogo) (valore interno)))
-		 (not (car (nome luogo) (valore esterno))))
+	(not (lavoro))
+	(not (car (nome luogo) (valore ?)))
 	=>
-	(bind ?*help* "Rispondere 'interno' se il lavoro deve essere effettuato in una stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da %nletto, etc), 'esterno' in caso contrario (balcone, terrazzo).")
-	(bind ?risposta (ask_question "Il lavoro riguarda l'interno o l'esterno?" interno esterno))
+	(bind ?*help* "'Interno' riguarda una qualsiasi stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da letto, etc), 'Esterno' in caso %ncontrario (balcone, terrazzo).")
+	(bind ?*spiegazione* "Potrebbero esserci dei problemi specifici relativi al luogo in cui si trova il pavimento.")
+	(bind ?risposta (ask_question "La stanza riguarda l'interno o l'esterno?" interno esterno))
 	(if (eq ?risposta interno)
 		then (assert (car (nome luogo) (valore interno)))
 		else (assert (car (nome luogo) (valore esterno)))))
 
 (defrule domanda_tipo_stanza
 	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
-
+	(not (lavoro))
 	(not (car (nome tipo_stanza) (valore ?)))
+
 	(car (nome luogo) (valore interno))
 	=>
-	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro. Nel caso in cui ci sia più di una %nrisposta, allora effettuare la scelta di una stanza e continuare, poi riavviare il sistema e procedere con la successiva scelta.")
-	(bind ?risposta (ask_question "Quale stanza riguarda il lavoro?" bagno cucina altro))
+	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro.")
+	(bind ?*spiegazione* "Potrebbero esserci dei problemi specifici relativi al diverso luogo in cui si trova il pavimento.")
+	(bind ?risposta (ask_question "Quale è il tipo di stanza?" bagno cucina altro))
 	(assert (car (nome tipo_stanza) (valore ?risposta))))
 
+(defrule domanda_rifacimento_impianti
+	(preparazione_utente ?)
+	(not (lavoro))
+	
+	(car (nome luogo) (valore interno))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Devi rifare qualche impianto (idrico, metano, etc.)?"))
+	(if ?risposta
+		then (assert (car (nome rifacimento_impianti) (valore si)))
+		else (assert (car (nome rifacimento_impianti) (valore no)))))
+
+(defrule domanda_umidita
+	(preparazione_utente ?)
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Hai problemi di umidità?"))
+	(if ?risposta
+		then (assert (car (nome umidita) (valore si)))
+		else (assert (car (nome umidita) (valore no)))))
+
+
+;/--------------------------------------------/
+;/-----------------PAVIMENTO-----------------/
+;/------------------------------------------/
 (defrule domanda_presenza_pavimento
 	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
-
+	(not (lavoro))
 	(not (car (nome presenza_pavimento) (valore ?)))
+
+	(not (car (nome presenza_massetto) (valore si)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un pavimento nella stanza in cui si intende lavorare, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
-	(assert (car (nome presenza_pavimento) (valore ?risposta))))
+	(if ?risposta
+		then (assert (car (nome presenza_pavimento) (valore si)))
+		else (assert (car (nome presenza_pavimento) (valore no)))))
 
+(defrule domanda_anni_pavimento
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome anni_pavimento) (valore ?)))
+
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "Rispondere indicando (se si conoscono) gli anni che ha il pavimento presente.")
+	(bind ?risposta (ask_number "Quanti anni sono che il pavimento presente non viene sostituito (-1 nel caso non si sappia)?"))
+	(while (< ?risposta -1)
+		(printout t crlf "Inserisci un numero da 0 in poi, o -1 nel caso tu non conosca gli anni.")
+		(bind ?risposta (ask_number "Quanti anni sono che il pavimento presente non viene sostituito (-1 nel caso non si sappia)?")))
+	(assert (car (nome anni_pavimento) (valore ?risposta))))
+
+(defrule domanda_dimensione_area_pavimento_esperto
+	(preparazione_utente alta)
+	(not (lavoro))
+	(not (car (nome area_pavimento) (valore ?)))
+
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (ask_number "Indicare la dimensione del pavimento in metri al quadrato"))
+	(assert (car (nome area_pavimento) (valore ?risposta))))
+
+(defrule domanda_dimensione_area_pavimento_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome area_pavimento) (valore ?)))
+
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "La misura dell'area da pavimentare non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un pavimento si%n" 
+				"effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella%n"
+				"dell'area da pavimentare, ma deve essere maggiore. Procedere individuando la forma di tale superficie, se questa può essere ricondotta%n" 
+				"ad una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, allora, per ottenere l'area, bisogna ricordare che:%n"
+				"	* se la superficie ha la forma di un quadrato, allora si calcola la lunghezza di un muro (che rappresenta il lato) e la si moltiplica%n"
+				"	  per se stesso%n"
+				"	* se la superficie ha la forma di un rettangolo, allora si moltiplica la dimensione del muro più lungo (che rappresenta la lunghezza)%n"
+				"	  per la dimensione del muro più piccolo (che rappresenta la larghezza)%n"
+				"	* se la superficie ha la forma di un triangolo, allora si trova la lunghezza del muro che rappresenta la base e quella del muro che%n"
+				"	  rappresenta l'altezza  del triangolo, si moltiplicando tra di loro le due misure e si divide per due il risultato%n"
+				"	* se la superficie ha la forma di un cerchio, allora si deve trovare la misura del raggio e si usa la formula 2πr, dove π = 3.14 e%n" 
+				"	  r = raggio calcolato (cioè si calcola il raggio, che è la metà del diametro e lo si moltiplica prima per due e poi per 3.14)%n"
+				"	* se la superficie ha la forma di una semicirconferenza, allora si procede come nel caso precedente (cerchio) a trovare la misura del%n"
+				"	  raggio della circonferenza e si usa la formula 2πr (dove π = 3.14 e r = raggio trovato) e si divide il risultato per due.%n"
+				"Nel caso in cui la forma della superficie da pavimentare non fosse simile ad una delle precedenti, allora si suddivide l'area in parti più%n"
+				"piccole dalla forma riconducibile ad una di quelle precedenti, si calcola l'area di ogni parte e si sommano i vari risultati ottenuti%n"
+				"Le misure vanno espresse in metri al quadrato")
+	(bind ?risposta (ask_number "Indicare la dimensione del pavimento in metri al quadrato"))
+	(assert (car (nome area_pavimento) (valore ?risposta))))
+
+(defrule domanda_condizioni_pavimento_esperto
+	(preparazione_utente alta)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(not (car (nome condizioni_pavimento) (valore ?)))
+	=>
+	(bind ?*help* "Rispondere 'si' se il pavimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
+	(bind ?risposta (yes_or_no_p "Il pavimento esistente presenta diverse piastrelle consumate o non perfettamente aderenti?"))
+	(if ?risposta
+		then (assert (car (nome condizioni_pavimento) (valore non_buone)))
+		else (assert (car (nome condizioni_pavimento) (valore buone)))))
+
+(defrule domanda_condizioni_pavimento_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(not (car (nome condizioni_pavimento) (valore ?)))
+	=>
+	(bind ?*help* "")
+	(bind ?usura (yes_or_no_p "Guarda attentamente il pavimento presente... %nLe piastrelle sembrano opache o sono graffiate (usurate)?"))
+
+	(bind ?*help* "")
+	(bind ?rumore (yes_or_no_p "Batti con il manico di un martello o con il piede la superficie dove sono posate le piastrelle... %nSenti un rumore vuoto?"))
+	(if (or ?usura ?rumore)
+		then (assert (car (nome condizioni_pavimento) (valore buone)))
+		else (assert (car (nome condizioni_pavimento) (valore non_buone)))))
+
+(defrule domanda_livello_pavimento_esterno
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome pavimento_livello) (valore ?)))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Controlla che il pavimento sia più basso di 1-1,5 cm ogni due metri lineari...%nÈ così?"))
+	(if ?risposta
+		then (assert (car (nome pavimento_livello) (valore si)))
+		else (assert (car (nome pavimento_livello) (valore si)))))
+
+(defrule domanda_piastrella_presente
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome tipo_piastrella) (valore ?)))
+
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (ask_question "Che tipo di pavimento è presente?" ))
+	)
+
+;/--------------------------------------------/
+;/-----------------MASSETTO------------------/
+;/------------------------------------------/
+(defrule domanda_presenza_massetto
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome presenza_massetto) (valore ?)))
+
+	(car (nome presenza_pavimento) (valore no))
+	=>
+	(bind ?*help* "Il massetto è quello strato di cemento e sabbia che deve essere perfettamente a livello e la cui presenza è fondamentale perché %nsopra di esso verrà posto il pavimento vero e proprio.")
+	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
+	(if ?risposta
+		then (assert (car (nome presenza_massetto) (valore si)))
+		else (assert (car (nome presenza_massetto) (valore no)))))
+
+(defrule domanda_massetto_friabile
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome massetto_friabile) (valore ?)))
+
+	(car (nome presenza_massetto) (valore si))
+	=>
+	(bind ?*help* "Il massetto non è consistente se presenta una superficie polverosa e si sgretola facilmente.")
+	(bind ?risposta (yes_or_no_p "Il massetto non è molto consistente?"))
+	(if ?risposta 
+		then (assert (car (nome massetto_friabile) (valore si)))
+		else (assert (car (nome massetto_friabile) (valore no)))))
+
+(defrule domanda_pavimento_raccordo
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome pavimento_da_raccordare) (valore ?)))
+
+	(or (car (nome presenza_massetto) (valore si))
+		(car (nome presenza_massetto) (valore no)))
+	=>
+	(bind ?*help* "")
+	(bind ?raccordo_pavimento (yes_or_no_p "Esistono dei pavimenti nello stesso piano?"))
+	(bind ?*help* "")
+	(bind ?raccordo_porte (yes_or_no_p "Esistono delle porte già montate o balconi nella stanza?"))
+	(if (or ?raccordo_pavimento ?raccordo_porte)
+		then (assert (car (nome pavimento_da_raccordare) (valore si)))
+		else (assert (car (nome pavimento_da_raccordare) (valore no)))))
+
+(defrule domanda_livello_massetto_interno
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome massetto_livello) (valore ?)))
+	
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
+	(if ?risposta
+		then (assert (car (nome massetto_livello) (valore si)))
+		else (assert (car (nome massetto_livello) (valore no)))))
+
+(defrule domanda_altezza_massetto
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome altezza_massetto) (valore ?)))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome pavimento_da_raccordare) (valore si))
+	(car (nome massetto_livello) (valore si))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (ask_number "Indica lo spessore della piastrella da porre in millimetri (-1 se non lo conosci)"))
+	(if (= ?risposta -1)
+		then (printout t crlf "Se non si conosce lo spessore della piastrella, allora non si può controllare se il massetto è al giusto livello!" crlf)
+			 (halt)
+		else (format t "%nConsidera che lo spessore complessivo del pavimento sarà di %d mm%n" (+ 3 ?risposta))
+			 (bind ?*help* "")
+			 (bind ?risposta (ask_question "Considerando lo spessore indicato, il massetto è alto, basso o alla dimensione giusta?" alto basso giusto))
+			 (assert (car (nome altezza_massetto) (valore ?risposta)))))
+
+(defrule domanda_livello_massetto_esterno
+	(preparazione_utente ?)
+	(not (lavoro))
+	(not (car (nome massetto_livello) (valore ?)))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_massetto) (valore si))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Controlla che il massetto sia più basso di 1-1,5 cm ogni due metri lineari...%nÈ così?"))
+	(if ?risposta
+		then (assert (car (nome massetto_livello) (valore si)))
+		else (assert (car (nome massetto_livello) (valore si)))))
+
+;/------------------------------------------------/
+;/------------------RIVESTIMENTO-----------------/
+;/----------------------------------------------/
 (defrule domanda_presenza_rivestimento
 	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
-
+	(not (lavoro))
 	(not (car (nome presenza_rivestimento) (valore ?)))
+
 	(or (car (nome tipo_stanza) (valore bagno))
 		(car (nome tipo_stanza) (valore cucina)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un rivestimento, cioè le pareti della stanza sono ricoperte con piastrelle, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un rivestimento?"))
-	(assert (car (nome presenza_rivestimento) (valore ?risposta))))
-
-(defrule domanda_presenza_massetto
-	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
-
-	(not (car (nome presenza_massetto) (valore ?)))
-	(car (nome presenza_pavimento) (valore FALSE))
-	=>
-	(bind ?*help* "Il massetto è quello strato di cemento la cui presenza è fondamentale perché sopra di esso verranno poste le piastrelle.")
-	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
-	(assert (car (nome presenza_massetto) (valore ?risposta))))
-
-(defrule domanda_condizioni_pavimento_presente
-	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
-
-	(car (nome presenza_pavimento) (valore TRUE))
-	(not (car (nome condizioni_pavimento) (valore ?)))
-	(not (car (nome ristrutturazione_pavimento) (valore TRUE)))
-	=>
-	(bind ?*help* "Rispondere 'si' se il pavimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
-	(bind ?risposta (yes_or_no_p "Il pavimento esistente presenta molte piastrelle consumate o non perfettamente aderenti?"))
 	(if ?risposta
-		then (assert (car (nome condizioni_pavimento) (valore cattive)))
-		else (assert (car (nome condizioni_pavimento) (valore buone)))))
+		then (assert (car (nome presenza_rivestimento) (valore si)))
+		else (assert (car (nome presenza_rivestimento) (valore no)))))
 
-(defrule domanda_pavimento_presente_rinnovo
+(defrule domanda_spostamento_sanitari
 	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
+	(not (lavoro))
+	(not (car (nome spostamento_sanitari) (valore ?)))
 
-	(car (nome presenza_pavimento) (valore TRUE))
-	(not (car (nome ristrutturazione_pavimento) (valore ?)))
+	(car (nome tipo_stanza) (valore bagno))
 	=>
-	(bind ?*help* "Rispondere decidendo se si vuole sostituire il pavimento presente con uno nuovo oppure no.")
-	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il pavimento esistente?"))
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Devi spostare i sanitari?"))
 	(if ?risposta
-		then (assert (car (nome ristrutturazione_pavimento) (valore TRUE))) ;chiedi se deve fare fughe o battiscopa o solo aggiustare una piastrella scheggiata
-		else (assert (car (nome ristrutturazione_pavimento) (valore FALSE))))) ;deve rimuovere il pavimento
+		then (assert (nome spostamento_sanitari) (valore si))
+		else (assert (nome spostamento_sanitari) (valore no))))
 
-(defrule domanda_condizioni_rivestimento_presente
+(defrule domanda_spostamento_cucina
 	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
+	(not (lavoro))
+	(not (car (nome spostamento_cucina) (valore ?)))
 
-	(car (nome presenza_rivestimento) (valore TRUE))
+	(car (nome tipo_stanza) (valore cucina))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (yes_or_no_p "Devi effettuare qualche spostamento di lavello o lavastoviglie?"))
+	(if ?risposta
+		then (assert (nome spostamento_cucina) (valore si))
+		else (assert (nome spostamento_cucina) (valore no))))
+
+(defrule domanda_dimensione_area_rivestimento_esperto
+	(preparazione_utente alta)
+	(not (lavoro))
+	(not (car (nome area_rivestimento) (valore ?)))
+
+	(car (nome presenza_rivestimento) (valore si))
+	=>
+	(bind ?*help* "")
+	(bind ?risposta (ask_number "Indicare la dimensione del rivestimento in metri al quadrato"))
+	(assert (car (nome area_rivestimento) (valore ?risposta))))
+
+(defrule domanda_dimensione_area_rivestimento_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome area_rivestimento) (valore ?)))
+
+	(car (nome presenza_rivestimento) (valore si))
+	=>
+	(bind ?*help* "La misura dell'area da rivestire non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un pavimento si%n" 
+				"effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella%n"
+				"dell'area, ma deve essere maggiore. Procedere individuando la forma di tale superficie, se questa può essere ricondotta%n" 
+				"ad una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, allora, per ottenere l'area, bisogna ricordare che:%n"
+				"	* se la superficie ha la forma di un quadrato, allora si calcola la lunghezza di un muro (che rappresenta il lato) e la si moltiplica%n"
+				"	  per se stesso%n"
+				"	* se la superficie ha la forma di un rettangolo, allora si moltiplica la dimensione del muro più lungo (che rappresenta la lunghezza)%n"
+				"	  per la dimensione del muro più piccolo (che rappresenta la larghezza)%n"
+				"	* se la superficie ha la forma di un triangolo, allora si trova la lunghezza del muro che rappresenta la base e quella del muro che%n"
+				"	  rappresenta l'altezza  del triangolo, si moltiplicando tra di loro le due misure e si divide per due il risultato%n"
+				"	* se la superficie ha la forma di un cerchio, allora si deve trovare la misura del raggio e si usa la formula 2πr, dove π = 3.14 e%n" 
+				"	  r = raggio calcolato (cioè si calcola il raggio, che è la metà del diametro e lo si moltiplica prima per due e poi per 3.14)%n"
+				"	* se la superficie ha la forma di una semicirconferenza, allora si procede come nel caso precedente (cerchio) a trovare la misura del%n"
+				"	  raggio della circonferenza e si usa la formula 2πr (dove π = 3.14 e r = raggio trovato) e si divide il risultato per due.%n"
+				"Nel caso in cui la forma della superficie da rivestire non fosse simile ad una delle precedenti, allora si suddivide l'area in parti più%n"
+				"piccole dalla forma riconducibile ad una di quelle precedenti, si calcola l'area di ogni parte e si sommano i vari risultati ottenuti%n"
+				"Le misure vanno espresse in metri al quadrato")
+	(bind ?risposta (ask_number "Indicare la dimensione dell'area del rivestimento in metri al quadrato"))
+	(assert (car (nome area_rivestimento) (valore ?risposta))))
+
+(defrule domanda_condizioni_rivestimento_esperto
+	(preparazione_utente alta)
+	(not (lavoro))
+
+	(car (nome presenza_rivestimento) (valore si))
 	(not (car (nome condizioni_rivestimento) (valore ?)))
-	(not (car (nome ristrutturazione_rivestimento) (valore TRUE)))
 	=>
 	(bind ?*help* "Rispondere 'si' se il rivestimento in questione presenta segni di usura come piastrelle scheggiate, consumate o non aderenti.")
-	(bind ?risposta (yes_or_no_p "Il rivestimento presenta molte piastrelle non aderenti, mancanti, scheggiate o consumate?"))
-	(if ?risposta 
-		then (assert (car (nome condizioni_rivestimento) (valore cattive)))
+	(bind ?risposta (yes_or_no_p "Il rivestimento esistente presenta diverse piastrelle consumate o non perfettamente aderenti?"))
+	(if ?risposta
+		then (assert (car (nome condizioni_rivestimento) (valore non_buone)))
 		else (assert (car (nome condizioni_rivestimento) (valore buone)))))
 
-(defrule domanda_rivestimento_presente_rinnovo
-	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
+(defrule domanda_condizioni_rivestimento_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
 
-	(car (nome presenza_rivestimento) (valore TRUE))
-	(not (car (nome ristrutturazione_rivestimento) (valore ?)))
+	(car (nome presenza_rivestimento) (valore si))
+	(not (car (nome condizioni_rivestimento) (valore ?)))
 	=>
-	(bind ?*help* "Rispondere decidendo se si vuole sostituire il rivestimento presente con uno nuovo oppure no.")
-	(bind ?risposta (yes_or_no_p "Vuoi ristrutturare il rivestimento presente?"))
-	(if ?risposta
-		then (assert (car (nome ristrutturazione_rivestimento) (valore TRUE))) 
-		else (assert (car (nome ristrutturazione_rivestimento) (valore FALSE)))))
+	(bind ?*help* "")
+	(bind ?usura (yes_or_no_p "Guarda attentamente il rivestimento presente... %nLe piastrelle sembrano opache o sono graffiate (usurate)?"))
 
-(defrule domanda_anni_presenza_pavimento
-	(preparazione_utente ?)
-	(not (continua))
-	(not (lavoro ?))
+	(bind ?*help* "")
+	(bind ?rumore (yes_or_no_p "Batti con il manico di un martello la superficie dove sono posate le piastrelle... %nSenti un rumore vuoto?"))
+	(if (or ?usura ?rumore)
+		then (assert (car (nome condizioni_rivestimento) (valore buone)))
+		else (assert (car (nome condizioni_rivestimento) (valore non_buone)))))
 
-	(car (nome presenza_pavimento) (valore TRUE))
-	(not (car (nome anni_pavimento) (valore ?)))
-	=>
-	(bind ?*help* "Rispondere indicando (se si conoscono) gli anni che ha il pavimento presente.")
-	(bind ?risposta (ask_number "Quanti anni sono che il pavimento non viene sostituito (-1 nel caso non si sappia)?"))
-	(while (< ?risposta -1)
-		(printout t crlf "Inserisci un numero da 0 in poi, o -1 nel caso tu non conosca gli anni.")
-		(bind ?risposta (ask_number "Quanti anni sono che il pavimento non viene sostituito (-1 nel caso non si sappia)?")))
-	(assert (car (nome anni_pavimento) (valore ?risposta))))
 
-;---------------------------------------------------------------------------------------------------------------------------------------------------------
+;/------------------------------------------/
+;/-----------------LAVORI------------------/
+;/----------------------------------------/
 
-(defrule massetto
+(defrule umidita_massetto
 	(declare (salience ?*high_priority*))
-	(not (continua))
+	(not (lavoro))
 
-	(or (car (nome luogo) (valore interno))
-		(car (nome luogo) (valore esterno)))
-	(car (nome presenza_massetto) (valore FALSE))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome umidita) (valore si))
 	=>
-	(assert (lavoro massetto)))
+	(bind ?*lavoro* "Devi rompere il massetto e verificare se qualche tubo perde, poi aggiungi uno strato impermeabilizzante, il massetto e il pavimento.")
+	(assert (lavoro)))
+
+(defrule umidita_pavimento
+	(declare (salience ?*high_priority*)))
 
 (defrule fughe_pavimento ;domanda fughe in caso di pavimento
 	(declare (salience ?*high_priority*))
@@ -426,9 +674,9 @@
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
-	(car (nome presenza_pavimento) (valore TRUE))
+	(car (nome presenza_pavimento) (valore si))
 	(car (nome condizioni_pavimento) (valore buone))
-	(car (nome ristrutturazione_pavimento) (valore FALSE))
+	(car (nome ristrutturazione_pavimento) (valore no))
 	=>
 	(assert (lavoro fughe)))
 
@@ -438,9 +686,9 @@
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
-	(car (nome presenza_rivestimento) (valore TRUE))
+	(car (nome presenza_rivestimento) (valore si))
 	(car (nome condizioni_rivestimento) (valore buone))
-	(car (nome ristrutturazione_rivestimento) (valore FALSE))
+	(car (nome ristrutturazione_rivestimento) (valore no))
 	=>
 	(assert (lavoro fughe)))
 
@@ -449,9 +697,9 @@
 	(not (continua))
 
 	(car (nome luogo) (valore esterno))
-	(car (nome presenza_pavimento) (valore TRUE))
+	(car (nome presenza_pavimento) (valore si))
 	(car (nome condizioni_pavimento) (valore buone))
-	(car (nome ristrutturazione_pavimento) (valore FALSE))
+	(car (nome ristrutturazione_pavimento) (valore no))
 	=>
 	(assert (lavoro battiscopa)))
 
@@ -462,30 +710,22 @@
 	(car (nome luogo) (valore interno))
 	(or (car (nome tipo_stanza) (valore altro))
 		(car (nome tipo_stanza) (valore cucina)))
-	(car (nome presenza_pavimento) (valore TRUE))
+	(car (nome presenza_pavimento) (valore si))
 	(car (nome condizioni_pavimento) (valore buone))
-	(car (nome ristrutturazione_pavimento) (valore FALSE))
+	(car (nome ristrutturazione_pavimento) (valore no))
 	=>
 	(assert (lavoro battiscopa)))
 
-;(defrule rattoppo
-;	(declare (salience ?*high_priority*))
-;	(not (continua))
-;	(not (no_lavoro (nome rattoppo)))
-;
-;	(or (car (nome luogo) (valore interno) )
-;		(car (nome luogo) (valore esterno) ))
-;	(car (nome presenza_pavimento) (valore TRUE))
-;	(car (nome condizioni_pavimento) (valore buone))
-;	(anni_pavimento ?x)
-;	(test (<= ?x 6))  ;se il pavimento è troppo vecchio non si fa il rattoppo perché ci sarà una differenza di colore tra la piastrella nuova e quella vecchia
-;	=>
-;	(bind ?*help* "Rispondere affermativamente se il lavoro che si deve fare è un rattoppo, come la sostituzione di una o più piastrelle scheggiate, %nalzate o usurate; ;rispondere negativamente in caso contrario")
-;	(bind ?risposta (yes_or_no_p "Quello che vuoi realizzare è un rattoppo?"))
-;	(if ?risposta
-;		then (assert (continua))
-;			 (assert (rattoppo))
-;		else (assert (no_lavoro (nome rattoppo)))))
+(defrule rattoppo
+	(declare (salience ?*high_priority*))
+	(not (continua))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome condizioni_pavimento) (valore buone))
+	(car (nome anni_pavimento) (valore ?x))
+	(test (<= ?x 6))  ;se il pavimento è troppo vecchio non si fa il rattoppo perché ci sarà una differenza di colore tra la piastrella nuova e quella vecchia
+	=>
+	(assert (rattoppo)))
 
 (defrule pavimento
 	(declare (salience ?*high_priority*))
@@ -494,9 +734,9 @@
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
 	(or (car (nome condizioni_pavimento) (valore cattive))
-		(car (nome ristrutturazione_pavimento) (valore TRUE))
-		(car (nome presenza_pavimento) (valore FALSE))
-		(car (nome presenza_massetto) (valore TRUE)))
+		(car (nome ristrutturazione_pavimento) (valore si))
+		(car (nome presenza_pavimento) (valore no))
+		(car (nome presenza_massetto) (valore si)))
 	=>
 	(assert (lavoro pavimento)))
 
@@ -505,8 +745,8 @@
 	(not (continua))
 
 	(or (car (nome condizioni_rivestimento) (valore cattive))
-		(car (nome ristrutturazione_rivestimento) (valore TRUE))
-		(car (nome presenza_rivestimento) (valore FALSE)))
+		(car (nome ristrutturazione_rivestimento) (valore si))
+		(car (nome presenza_rivestimento) (valore no)))
 	=>
 	(assert (lavoro rivestimento)))
 
@@ -515,53 +755,31 @@
 	(not (continua))
 
 	(or (car (nome condizioni_pavimento) (valore cattive))
-		(car (nome ristrutturazione_pavimento) (valore TRUE))
-		(car (nome presenza_pavimento) (valore FALSE))
-		(car (nome presenza_massetto) (valore TRUE)))
+		(car (nome ristrutturazione_pavimento) (valore si))
+		(car (nome presenza_pavimento) (valore no))
+		(car (nome presenza_massetto) (valore si)))
 	(or (car (nome condizioni_rivestimento) (valore cattive))
-		(car (nome ristrutturazione_rivestimento) (valore TRUE))
-		(car (nome presenza_rivestimento) (valore FALSE)))
+		(car (nome ristrutturazione_rivestimento) (valore si))
+		(car (nome presenza_rivestimento) (valore no)))
 	=>
 	(assert (lavoro pavimento_rivestimento)))
 
-;(defrule pavimento_rivestimento2  ;domanda nel caso in cui risponda no a pavimento, è molto probabile che voglia fare entrambi
-;	(declare (salience ?*high_priority*))
-;	(not (continua))
-;
-;	;(no_lavoro (nome pavimento))
-;	(or (car (nome condizioni_rivestimento) (valore cattive))
-;		(car (nome ristrutturazione_rivestimento) (valore TRUE))
-;		(car (nome presenza_rivestimento) (valore FALSE)))
-;	=>
-;	(assert (lavoro pavimento_rivestimento)))
-;
-;(defrule pavimento_rivestimento3  ;domanda nel caso in cui risponda no a rivestimento è molto probabile che voglia fare entrambi
-;	(declare (salience ?*high_priority*))
-;	(not (continua))
-;
-;	;(no_lavoro (nome rivestimento))
-;	(or (car (nome condizioni_pavimento) (valore cattive))
-;		(car (nome ristrutturazione_pavimento) (valore TRUE))
-;		(car (nome presenza_pavimento) (valore FALSE))
-;		(car (nome presenza_massetto) (valore TRUE)))
-;	=>
-;	(assert (lavoro pavimento_rivestimento)))
 
 ;-----------------------------------------------------------------------------------------------------------------
 
 (defrule lavoro_trovato
 	(declare (salience ?*high_priority*))
-	(lavoro ?lavoro)
+	(lavoro)
 	=>
-	(printout t crlf ">>>>> Il lavoro che devi fare è: " ?lavoro crlf crlf)
+	(printout t crlf ">>>>> Il lavoro diagnosticato da fare è: " ?lavoro crlf crlf)
 
-	(if (yes_or_no_p "È quello che volevi?")
-		then (assert (continua))
+	(if (yes_or_no_p "Vuoi rivedere qualcosa?")
+		then (halt)
 		else (assert (rivedi_scelte_lavoro))))
 
 (defrule lavoro_non_trovato
 	(declare (salience ?*lowest_priority*))
-	(not (lavoro ?))
+	(not (lavoro))
 	=>
 	(printout t crlf "Lavoro non trovato!" crlf)
 	(if (yes_or_no_p "Vuoi rivedere le scelte fatte o cambiare qualcosa?")
@@ -571,7 +789,7 @@
 
 (defrule rivedi_scelte_lavoro
 	(declare (salience ?*high_priority*))
-	?f2 <- (lavoro ?)
+	?f2 <- (lavoro)
 	?f1 <- (rivedi_scelte_lavoro)
 	=>
 	(retract ?f1 ?f2)
@@ -579,8 +797,10 @@
 
 (defrule rivedi_scelte_no_lavoro
 	(declare (salience ?*high_priority*))
-	(not (lavoro ?))
+	(not (lavoro))
 	?f <- (rivedi_scelte_lavoro)
 	=>
 	(retract ?f)
 	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 't' per terminare o 'c' per continuare: "))
+
+
