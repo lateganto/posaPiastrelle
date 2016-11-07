@@ -30,7 +30,7 @@
 	(not (lavoro))
 	(not (car (nome presenza_pavimento) (valore ?)))
 
-	(not (car (nome presenza_massetto) (valore si)))
+	;(not (car (nome presenza_massetto) (valore si)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un pavimento nella stanza in cui si intende lavorare, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
@@ -43,6 +43,7 @@
 	(not (lavoro))
 	(not (car (nome presenza_rivestimento) (valore ?)))
 
+	(car (nome luogo) (valore interno))
 	(or (car (nome tipo_stanza) (valore bagno))
 		(car (nome tipo_stanza) (valore cucina)))
 	=>
@@ -181,7 +182,7 @@
 	(car (nome presenza_massetto) (valore si))
 	=>
 	(bind ?*help* "")
-	(bind ?risposta (yes_or_no_p "Controlla che il massetto sia più basso di 1-1,5 cm ogni due metri lineari...%nÈ così?"))
+	(bind ?risposta (yes_or_no_p "Controlla che il massetto sia più basso di 1 - 1,5 cm ogni due metri lineari...%nÈ così?"))
 	(if ?risposta
 		then (assert (car (nome massetto_pendenza) (valore si)))
 		else (assert (car (nome massetto_pendenza) (valore no)))))
@@ -191,50 +192,12 @@
 ;  /------------------------------------------/
 ; /-----------------PAVIMENTO----------------/
 ;/------------------------------------------/
-(defrule domanda_dimensione_area_pavimento_esperto
-	(preparazione_utente alta)
-	(not (lavoro))
-	(not (car (nome area_pavimento) (valore ?)))
-
-	(car (nome presenza_pavimento) (valore si))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (ask_number "Indicare la dimensione del pavimento in metri al quadrato"))
-	(assert (car (nome area_pavimento) (valore ?risposta))))
-
-(defrule domanda_dimensione_area_pavimento_principiante
-	(preparazione_utente bassa)
-	(not (lavoro))
-	(not (car (nome area_pavimento) (valore ?)))
-
-	(car (nome presenza_pavimento) (valore si))
-	=>
-	(bind ?*help* "La misura dell'area da pavimentare non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un pavimento si%n" 
-				"effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella%n"
-				"dell'area da pavimentare, ma deve essere maggiore. Procedere individuando la forma di tale superficie, se questa può essere ricondotta%n" 
-				"ad una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, allora, per ottenere l'area, bisogna ricordare che:%n"
-				"	* se la superficie ha la forma di un quadrato, allora si calcola la lunghezza di un muro (che rappresenta il lato) e la si moltiplica%n"
-				"	  per se stesso%n"
-				"	* se la superficie ha la forma di un rettangolo, allora si moltiplica la dimensione del muro più lungo (che rappresenta la lunghezza)%n"
-				"	  per la dimensione del muro più piccolo (che rappresenta la larghezza)%n"
-				"	* se la superficie ha la forma di un triangolo, allora si trova la lunghezza del muro che rappresenta la base e quella del muro che%n"
-				"	  rappresenta l'altezza  del triangolo, si moltiplicando tra di loro le due misure e si divide per due il risultato%n"
-				"	* se la superficie ha la forma di un cerchio, allora si deve trovare la misura del raggio e si usa la formula 2πr, dove π = 3.14 e%n" 
-				"	  r = raggio calcolato (cioè si calcola il raggio, che è la metà del diametro e lo si moltiplica prima per due e poi per 3.14)%n"
-				"	* se la superficie ha la forma di una semicirconferenza, allora si procede come nel caso precedente (cerchio) a trovare la misura del%n"
-				"	  raggio della circonferenza e si usa la formula 2πr (dove π = 3.14 e r = raggio trovato) e si divide il risultato per due.%n"
-				"Nel caso in cui la forma della superficie da pavimentare non fosse simile ad una delle precedenti, allora si suddivide l'area in parti più%n"
-				"piccole dalla forma riconducibile ad una di quelle precedenti, si calcola l'area di ogni parte e si sommano i vari risultati ottenuti%n"
-				"Le misure vanno espresse in metri al quadrato")
-	(bind ?risposta (ask_number "Indicare la dimensione del pavimento in metri al quadrato"))
-	(assert (car (nome area_pavimento) (valore ?risposta))))
-
 (defrule domanda_piatrelle_scheggiate_pavimento
 	(preparazione_utente ?)
 	(not (lavoro))
+	(not (car (nome piastrelle_scheggiate_pavimento) (valore ?)))
 
 	(car (nome presenza_pavimento) (valore si))
-	(not (car (nome piastrelle_scheggiate_pavimento) (valore ?)))
 	=>
 	(bind ?*help* "Una piastrella è scheggiata se la superficie presenta delle irregolarità causate generalmente da un urto con qualche oggetto.")
 	(bind ?risposta (yes_or_no_p "È presente qualche piastrella scheggiata nel pavimento?"))
@@ -245,9 +208,9 @@
 (defrule domanda_piastrelle_sollevate_pavimento
 	(preparazione_utente ?)
 	(not (lavoro))
+	(not (car (nome piastrelle_sollevate_pavimento) (valore ?)))
 
 	(car (nome presenza_pavimento) (valore si))
-	(not (car (nome piastrelle_sollevate_pavimento) (valore ?)))
 	=>
 	(bind ?*help* "Una piastrella è non aderente se è sollevata o se battendola si sente un rumore vuoto.")
 	(bind ?risposta (yes_or_no_p "È presente qualche piastrella non aderente o sollevata nel pavimento?"))
@@ -293,6 +256,7 @@
 	(not (lavoro))
 	(not (car (nome spostamento_sanitari) (valore ?)))
 
+	(car (nome luogo) (valore interno))
 	(car (nome tipo_stanza) (valore bagno))
 	=>
 	(bind ?*help* "")
@@ -300,44 +264,6 @@
 	(if ?risposta
 		then (assert (nome spostamento_sanitari) (valore si))
 		else (assert (nome spostamento_sanitari) (valore no))))
-
-(defrule domanda_dimensione_area_rivestimento_esperto
-	(preparazione_utente alta)
-	(not (lavoro))
-	(not (car (nome area_rivestimento) (valore ?)))
-
-	(car (nome presenza_rivestimento) (valore si))
-	=>
-	(bind ?*help* "")
-	(bind ?risposta (ask_number "Indicare la dimensione del rivestimento in metri al quadrato"))
-	(assert (car (nome area_rivestimento) (valore ?risposta))))
-
-(defrule domanda_dimensione_area_rivestimento_principiante
-	(preparazione_utente bassa)
-	(not (lavoro))
-	(not (car (nome area_rivestimento) (valore ?)))
-
-	(car (nome presenza_rivestimento) (valore si))
-	=>
-	(bind ?*help* "La misura dell'area da rivestire non deve essere estremamente precisa. Tuttavia bisogna sapere che nel realizzare un rivestimento si%n" 
-				"effettuano diversi tagli di piastrelle. Quindi la quantità di piastrelle da avere a disposizione non deve essere precisamente quella%n"
-				"dell'area da rivestire, ma deve essere maggiore. Procedere individuando la forma di tale superficie, se questa può essere ricondotta%n" 
-				"ad una forma semplice come quadrato, rettangolo, triangolo, cerchio o semicerchio, allora, per ottenere l'area, bisogna ricordare che:%n"
-				"	* se la superficie ha la forma di un quadrato, allora si calcola la lunghezza di un muro (che rappresenta il lato) e la si moltiplica%n"
-				"	  per se stesso%n"
-				"	* se la superficie ha la forma di un rettangolo, allora si moltiplica la dimensione del muro più lungo (che rappresenta la lunghezza)%n"
-				"	  per la dimensione del muro più piccolo (che rappresenta la larghezza)%n"
-				"	* se la superficie ha la forma di un triangolo, allora si trova la lunghezza del muro che rappresenta la base e quella del muro che%n"
-				"	  rappresenta l'altezza  del triangolo, si moltiplicando tra di loro le due misure e si divide per due il risultato%n"
-				"	* se la superficie ha la forma di un cerchio, allora si deve trovare la misura del raggio e si usa la formula 2πr, dove π = 3.14 e%n" 
-				"	  r = raggio calcolato (cioè si calcola il raggio, che è la metà del diametro e lo si moltiplica prima per due e poi per 3.14)%n"
-				"	* se la superficie ha la forma di una semicirconferenza, allora si procede come nel caso precedente (cerchio) a trovare la misura del%n"
-				"	  raggio della circonferenza e si usa la formula 2πr (dove π = 3.14 e r = raggio trovato) e si divide il risultato per due.%n"
-				"Nel caso in cui la forma della superficie da rivestire non fosse simile ad una delle precedenti, allora si suddivide l'area in parti più%n"
-				"piccole dalla forma riconducibile ad una di quelle precedenti, si calcola l'area di ogni parte e si sommano i vari risultati ottenuti%n"
-				"Le misure vanno espresse in metri al quadrato")
-	(bind ?risposta (ask_number "Indicare la dimensione del rivestimento in metri al quadrato"))
-	(assert (car (nome area_rivestimento) (valore ?risposta))))
 
 (defrule domanda_piatrelle_scheggiate_rivestimento
 	(preparazione_utente ?)

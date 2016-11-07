@@ -160,8 +160,6 @@
 	(assert (domande_poste (numero 0)))
 	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
 
-;Domanda 7: sai usare un livello?
-
 (defrule domanda_anni
 	(not (domanda (valore one)))
 	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
@@ -286,7 +284,9 @@
 	(car (nome umidita) (valore si))
 	(car (nome impianti_umidita) (valore si))
 	=>
-	(bind ?*soluzione* "L'umidità potrebbe essere causata dalle tubazioni, rimuovi pavimento e massetto (se presenti) con attenzione (per non provocare %ndanni alle tubature) e controlla se ci sono perdite, poi chiama uno specialista.")
+	(bind ?*soluzione* "Controlla lo stato delle tubazioni.")
+	(bind ?*spiegazione* "Avendo dedotto che ci sono tubazioni che trasportano acqua sotto il pavimento, l'umidità potrebbe essere causata da esse.") 
+	(bind ?*help* "Rimuovi (con attenzione a non rompere nulla) il pavimento e il massetto (se presenti) e controlla se ci sono perdite, poi chiama uno specialista.")
 	(assert (lavoro)))
 
 (defrule umidita_principiante
@@ -297,6 +297,8 @@
 	(car (nome umidita) (valore si))
 	=>
 	(bind ?*soluzione* "L'umidità potrebbe essere causata da diversi fattori, chiama uno specialista.")
+	(bind ?*spiegazione* "")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule umidita_esperto
@@ -308,6 +310,8 @@
 	(car (nome impianti_umidita) (valore no))
 	=>
 	(bind ?*soluzione* "L'umidità potrebbe essere quella di risalita dai muri, consulta uno specialista.")
+	(bind ?*spiegazione* "Non essendoci tubazioni che trasportano acqua, l'umidità potrebbe essere causata da quella di risalita dei muri.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule rifacimento_impianti_esperto
@@ -316,105 +320,200 @@
 	(not (lavoro))
 
 	(car (nome rifacimento_impianti) (valore si))
-
 	=>
-	(bind ?*soluzione* "Rimuovi il massetto e il pavimento (se presenti), poi consulta uno specialista per il rifacimento degli impianti.")
+	(bind ?*soluzione* "Rimuovi tutto il pavimento e lo strato di cemento sottostante (massetto), poi chiama uno specialista per realizzare l'impianto.")
+	(bind ?*spiegazione* "Avendo dedotto che bisogna rifare gli impianti, il consiglio è quello di rimuovere tutto il pavimento e il massetto.")
+	(bind ?*help* "")
+	(assert (lavoro)))
+
+(defrule rifacimento_impianti_principiante
+	(preparazione_utente bassa)
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome rifacimento_impianti) (valore si))
+	=>
+	(bind ?*soluzione* "Consulta uno specialista.")
+	(bind ?*spiegazione* "")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 ;---------------------------------------------------------------------------------------------------------------------------------------
+
+(defrule fai_massetto_raccordo
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore no))
+	(car (nome presenza_pavimento) (valore no))
+	(car (nome umidita) (valore no))
+	(car (nome rifacimento_impianti) (valore no))
+	(car (nome pavimento_da_raccordare) (valore si))
+	=>
+	(bind ?*soluzione* "Realizza il massetto tenendo conto del fatto che bisogna raccordarsi con un pavimento già esistente.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente nè un pavimento nè un rivestimento, che non c'è umidità e non si devono fare impianti, ma c'è un pavimento con cui raccordarsi, allora il lavoro da fare è il massetto.")
+	(bind ?*help* "")
+	(assert (lavoro)))
+
+(defrule fai_massetto_no_raccordo
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore no))
+	(car (nome presenza_pavimento) (valore no))
+	(car (nome umidita) (valore no))
+	(car (nome rifacimento_impianti) (valore no))
+	(car (nome pavimento_da_raccordare) (valore no))
+	=>
+	(bind ?*soluzione* "Realizza il massetto.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente nè un pavimento nè un rivestimento, che non c'è umidità e non si devono fare impianti e no c'è un pavimento con cui raccordarsi, allora il lavoro da fare è il massetto.")
+	(bind ?*help* "")
+	(assert (lavoro)))
 
 (defrule ok_pavimento_interno1  ;pavimento non da raccordare
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome presenza_pavimento) (valore no))
+	(car (nome presenza_massetto) (valore si))
 	(car (nome pavimento_da_raccordare) (valore no))
 	(car (nome massetto_livello) (valore si))
 	(car (nome massetto_friabile) (valore no))
 	=>
 	(bind ?*soluzione* "Il massetto su cui porre il pavimento è a livello, puoi effettuare la posa.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente un pavimento, che è presente un massetto,che è a livello e in buone condizioni e che non ci si deve preoccupare di raccordarsi con un altro tipo di pavimento presente, si può iniziare la posa sopra di una qualsiasi tipo di pavimento.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule ok_pavimento_interno2  ;pavimento da raccordare
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome presenza_pavimento) (valore no))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_livello) (valore si))
 	(car (nome pavimento_da_raccordare) (valore si))
 	(car (nome massetto_altezza) (valore giusto))
 	(car (nome massetto_friabile) (valore no))
 	=>
-	(bind ?*soluzione* "Il massetto su cui porre il pavimento ha la giusta altezza per la posa del pavimento selezionato, puoi iniziare la posa.")
+	(bind ?*soluzione* "Il massetto su cui porre il pavimento è a livello e alla giusta altezza, puoi iniziare la posa.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente un pavimento il pavimento è da raccordare, ma è all'altezza giusta in base al tipo di pavimento da posare, e che è a livello e in buone condizioni, si può allora iniziare la posa.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule ok_pavimento_esterno
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
-	(car (nome massetto_pendenza) (valore si))
+	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore no))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_pendenza) (valore si))
 	(car (nome massetto_friabile) (valore no))
 	=>
 	(bind ?*soluzione* "Il massetto ha la giusta pendenza, puoi iniziare la posa sopra.")
+	(bind ?*spiegazione* "Avendo dedotto che si parla di lavoro esterno, che è presente un massetto che è in buone condizioni e che ha la giusta pendenza, si può allora iniziare la posa.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule massetto_friabile
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome presenza_massetto) (valore si))
 	(car (nome massetto_friabile) (valore si))
 	=>
-	(bind ?*soluzione* "Il massetto non può stare in queste condizioni, procedi alla rimozione e al rifacimento.")
+	(bind ?*soluzione* "Procedi alla rimozione e al rifacimento del massetto.")
+	(bind ?*spiegazione* "Avendo dedotto che è presente un massetto che non è compatto, conviene procedere alla sua rimozione e al rifacimento.")
+	(bind ?*help* "Rimuovi il massetto esistente e rifallo.")
 	(assert (lavoro)))
 
 (defrule massetto_non_a_livello
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
 	(car (nome massetto_livello) (valore no))
 	=>
-	(bind ?*soluzione* "Il massetto deve essere a livello per potervi effettuare la posa sopra, eliminare quello esistente e rifarlo.")
+	(bind ?*soluzione* "Elimina il massetto presente e rifallo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che è presente un massetto e che questo non è a livello, il consiglio è quello di rimuoverlo e rifarlo.")
+	(bind ?*help* "Rimuovi il massetto esistente e rifallo.")
 	(assert (lavoro)))
 
-(defrule massetto_alto_basso
+(defrule massetto_alto
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
-	(or (car (nome massetto_altezza) (valore alto))
-		(car (nome massetto_altezza) (valore basso)))
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome pavimento_da_raccordare) (valore si))
+	(car (nome massetto_livello) (valore si))
+	(car (nome massetto_altezza) (valore alto))
 	=>
-	(bind ?*soluzione* "Il massetto deve essere all'altezza giusta, se troppo basso creare sopra un nuovo massetto; se troppo alto, rimuoverlo e rifarlo daccapo.")
+	(bind ?*soluzione* "Rimuovi rifai daccapo il massetto.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che il pavimento da posare è da raccordare, che è presente un massetto, che è a livello ma che è troppo alto per il tipo di pavimento che si dovrà porre, allora il consiglio è di rimuoverlo e rifarlo.")
+	(bind ?*help* "Rimuovi il massetto esistente e rifallo.")
+	(assert (lavoro)))
+
+(defrule massetto_basso
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome pavimento_da_raccordare) (valore si))
+	(car (nome massetto_livello) (valore si))
+	(car (nome massetto_altezza) (valore basso))
+	=>
+	(bind ?*soluzione* "Costruisci sopra al presente massetto uno nuovo in modo che sia alla altezza esatta.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che il pavimento da posare è da raccordare, che è presente un massetto, che è a livello ma che è troppo basso per il tipo di pavimento che si dovrà porre, allora il consiglio è di costruire sopra il presente massetto uno nuovo per fare in modo che si trovi alla altezza giusta.")
+	(bind ?*help* "Costruisci un massetto su quello esistente.")
 	(assert (lavoro)))
 
 (defrule massetto_non_pendenza
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_massetto) (valore si))
 	(car (nome massetto_pendenza) (valore no))
 	=>
-	(bind ?*soluzione* "Il massetto non ha la giusta pendenza per favorire lo scolo dell'acqua, rimuoverlo e rifarlo daccapo.")
+	(bind ?*soluzione* "Rimuovere il massetto e rifarlo daccapo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, che è presente un massetto e che la pendenza per favorire lo scolo dell'acqua non è stata rispettata, il consiglio è quello di rimuoverlo e rifarlo daccapo.")
+	(bind ?*help* "Rimuovi il massetto facendo attenzione ad eventuali tubi di impianti e rifallo.")
 	(assert (lavoro)))
 
-(defrule fai_massetto
-	(declare (salience ?*high_priority*))
-	(not (lavoro))
-
-	(car (nome presenza_massetto) (valore no))
-	(not (nome rifacimento_impianti) (valore no))
-	(not (umid))
-
-	)
-
-
 ;----------------------------------------------------------------------------------------------------------------------------------------
-(defrule rattoppo_pavimento ;TODO da rivedere
+
+(defrule rattoppo_pavimento_interno
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome pavimento_livello) (valore si))
 	(or (car (nome piastrelle_sollevate_pavimento) (valore si))
 		(car (nome piastrelle_scheggiate_pavimento) (valore si)))
-	(or (car (nome pavimento_livello) (valore si))
-		(car (nome pendenza_pavimento) (valore si)))
 	=>
-	(bind ?*soluzione* "Se il numero di piastrelle difettate non è elevato, si può optare per la loro sostituzione (rattoppo), facendo attenzione al fatto che %nnon vi sia differenza di tonalità tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, che un pavimento è presente ed è a livello ma vi sono piastrelle danneggiate, il consiglio è di sostituirle se sono poche, altrimenti rifare tutto il pavimento.")
+	(bind ?*help* "")
+	(assert (lavoro)))
+
+(defrule rattoppo_pavimento_esterno
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome pendenza_pavimento) (valore si))
+	(or (car (nome piastrelle_sollevate_pavimento) (valore si))
+		(car (nome piastrelle_scheggiate_pavimento) (valore si)))
+	=>
+	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, che un pavimento è presente ed ha la pendenza giusta ma vi sono piastrelle danneggiate, il consiglio è di sostituirle se sono poche, altrimenti rifare tutto il pavimento.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule posa_sopra_interno ;TODO da rivedere
@@ -422,11 +521,14 @@
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome pavimento_livello) (valore si))
 	(and (not (car (nome piastrelle_sollevate_pavimento) (valore no)))
 		 (not (car (nome piastrelle_scheggiate_pavimento) (valore no))))
-	(car (nome pavimento_livello) (valore si))
 	=>
-	(bind ?*soluzione* "Se si deve rinnovare il pavimento si può decidere anche per la posa sopra al pavimento esistente. Bisogna considerare però che vi sarà %nun innalzamento del pavimento che dovrà portare a diverse modifiche (è il caso delle porte), altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*soluzione* "Si può optare per la posa sopra al pavimento esistente. Bisogna considerare però che vi sarà un innalzamento del pavimento che dovrà portare a diverse modifiche (è il caso delle porte), altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, il pavimento è presente ed è a livello e non vi sono piastrelle scheggiate o sollevate, si può optare per la posa sopra.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule posa_sopra_esterno ;TODO da rivedere
@@ -434,29 +536,40 @@
 	(not (lavoro))
 
 	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome pendenza_pavimento) (valore si))
 	(and (not (car (nome piastrelle_sollevate_pavimento) (valore no)))
 		 (not (car (nome piastrelle_scheggiate_pavimento) (valore no))))
-	(car (nome pendenza_pavimento) (valore si))
 	=>
 	(bind ?*soluzione* "Se si deve rinnovare il pavimento si può decidere anche per la posa sopra al pavimento esistente. Bisogna considerare però che vi sarà %nun innalzamento del pavimento che dovrà portare a diverse modifiche (è il caso delle porte), altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, il pavimento è presente ed è alla giusta pendenza e non vi sono piastrelle scheggiate o sollevate, si può optare per la posa sopra.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule pavimento_non_a_livello
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 	
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
 	(car (nome pavimento_livello) (valore no))
 	=>
-	(bind ?*soluzione* "Il pavimento non è a livello, toglilo insieme allo strato di cemento sottostante (massetto) e rifallo.")
+	(bind ?*soluzione* "Rimuovi il pavimento assieme allo strato di cemento sottostante (massetto) e rifai entrambi.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un luogo esterno, che il pavimento è presente ma non è a livello, quindi occorre toglierlo e rifarlo.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule pavimento_non_pendenza
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
 	(car (nome pendenza_pavimento) (valore no))
 	=>
-	(bind ?*soluzione* "Il pavimento non ha la pendenza giusta per garantire lo scolo dell'acqua, eliminalo insieme allo strato di cemento sottostante (massetto) e rifallo.")
+	(bind ?*soluzione* "Rimuovi il pavimento insieme allo strato di cemento sottostante (massetto) e rifallo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un luogo esterno, che il pavimento è presente ma non ha la pendenza giusta per favorire lo scolo dell'acqua, quindi occorre toglierlo e rifarlo.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 ;------------------------------------------------------------------------------------------------------------------------------------------------
@@ -465,28 +578,40 @@
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome luogo) (valore interno))
+	(car (nome tipo_stanza) (valore bagno))
 	(car (nome spostamento_sanitari) (valore si))
 	=>
-	(bind ?*soluzione* "Bisogna rimuovere il pavimento esistente e lo strato di cemento sottostante (massetto), poi chiamare un idraulico per l'aggiustamento.")
+	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di cemento sottostante (massetto), poi chiama uno specialista.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, in particolare il bagno e che si deve fare uno spostamento di sanitari, il consiglio è quello di rimuovere il pavimento e il massetto se presenti e poi procedere chiamando uno specialista per il posizionamento degli impianti")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule muri_non_a_piombo
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_rivestimento) (valore si))
 	(car (nome muri_a_piombo) (valore no))
 	=>
 	(bind ?*soluzione* "Raddrizzare i muri in modo che siano a piombo, poi procedere con la posa o con l'intonaco.")
+	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un rivestimento e che i muri non sono a piombo, il consiglio è di rifare i muri e poi procedere alla posa del rivestimento")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 (defrule rattoppo_rivestimento
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
 
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
 	(or (car (nome piastrelle_scheggiate_rivestimento) (valore si))
 		(car (nome piastrelle_sollevate_rivestimento) (valore si)))
 	=>
-	(bind ?*soluzione* "Se il numero delle piastrelle difettate non è elevato si può decidere per il rattoppo, altrimenti eliminare il rivestimento esistente e rifarlo.")
+	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il rivestimento con uno nuovo..")
+	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un pavimento e che ci sono piastrelle scheggiate o sollevate, il consiglio è di effettuare un rattoppo se il numero delle piastrelle è limitato, altrimenti rifare tutto il rivestimento.")
+	(bind ?*help* "")
 	(assert (lavoro)))
 
 
