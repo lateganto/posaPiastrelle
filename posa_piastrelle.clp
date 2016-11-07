@@ -33,7 +33,12 @@
 	(progn$ (?o ?allowed_values)
 		(format t (str-cat "%n (%d) %s" ) ?i (nth$ ?i ?allowed_values))
 		(bind ?i (+ 1 ?i)))
-	(format t "%n (%d) help%n" ?i)
+	(format t "%n (%d) help" ?i)
+
+	(if (neq (length$ ?*spiegazione*) 0)
+		then (format t "%n (%d) perché" (+ ?i 1)))
+	(printout t crlf) 
+	
 
 	(format t "Inserire scelta: ")
 	(bind ?answer (read))
@@ -41,8 +46,13 @@
 	(while (or (not (numberp ?answer)) (< ?answer 1) (> ?answer (length$ ?allowed_values)))
 		(if (eq ?answer (+ 1 (length$ ?allowed_values)))
 			then (if (eq (length$ ?*help*) 0)
-				  	then (printout t "Non è presente alcun help!" crlf)
+				  	then (printout t "Non è presente alcun aiuto!" crlf)
 				  	else (format t (str-cat ?*help* "%n"))))
+
+		(if (neq (length$ ?*spiegazione*) 0)
+			then 
+				(if (eq ?answer (+ 2 (length$ ?allowed_values)))
+					then (format t (str-cat ?*spiegazione* "%n"))))
 
 		(format t "Inserire scelta: ")
 		(bind ?answer (read)))
@@ -63,7 +73,10 @@
 
 (deffunction yes_or_no_p (?question)
 	(bind ?allowed_values (create$ si no s n))
-  	(format t (str-cat "%n" ?question " (si/no/help): "))
+
+	(if (neq (length$ ?*spiegazione*) 0)
+		then (format t (str-cat "%n" ?question " (si/no/help/perche): "))
+		else (format t (str-cat "%n" ?question " (si/no/help): ")))
   	(bind ?answer (read))
 
   	(if (lexemep ?answer)
@@ -72,9 +85,17 @@
   	(while (not (member ?answer ?allowed_values)) do
 		(if (or (eq ?answer help) (eq ?answer h))
 	  			then (if (eq (length$ ?*help*) 0)
-		  				then (printout t "Non è presente alcun help!" crlf)
+		  				then (printout t "Non è presente alcun aiuto!" crlf)
 		  				else (format t (str-cat ?*help* "%n"))))
-		(format t (str-cat "%n" ?question " (si/no/help): "))
+
+		(if (neq (length$ ?*spiegazione*) 0)
+			then 
+				(if (or (eq ?answer perche) (eq ?answer p))
+					then (format t (str-cat ?*spiegazione* "%n"))))
+
+		(if (neq (length$ ?*spiegazione*) 0)
+			then (format t (str-cat "%n" ?question " (si/no/help/perche): "))
+			else (format t (str-cat "%n" ?question " (si/no/help): ")))
 	    (bind ?answer (read))
 	    (if (lexemep ?answer) 
 			then (bind ?answer (lowcase ?answer))))
@@ -84,7 +105,9 @@
          else FALSE))
 
 (deffunction ask_number (?question)
-	(format t (str-cat "%n" ?question " (help): "))
+	(if (neq (length$ ?*spiegazione*) 0)
+		then (format t (str-cat "%n" ?question " (help/perche): "))
+		else (format t (str-cat "%n" ?question " (help): ")))
 	(bind ?answer (read))
 
 	(if (lexemep ?answer)
@@ -95,7 +118,15 @@
 	  			then (if (eq (length$ ?*help*) 0)
 		  				then (printout t "Non è presente alcun help!" crlf)
 		  				else (format t (str-cat ?*help* "%n"))))
-		(format t (str-cat "%n" ?question " (help): "))
+
+		(if (neq (length$ ?*spiegazione*) 0)
+			then 
+				(if (or (eq ?answer perche) (eq ?answer p))
+					then (format t (str-cat ?*spiegazione* "%n"))))
+
+		(if (neq (length$ ?*spiegazione*) 0)
+			then (format t (str-cat "%n" ?question " (help/perche): "))
+			else (format t (str-cat "%n" ?question " (help): ")))
 	    (bind ?answer (read)))
 	 ?answer)
 
