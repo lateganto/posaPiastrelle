@@ -30,7 +30,8 @@
 	(not (lavoro))
 	(not (car (nome presenza_pavimento) (valore ?)))
 
-	;(not (car (nome presenza_massetto) (valore si)))
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un pavimento nella stanza in cui si intende lavorare, 'no' altrimenti.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
