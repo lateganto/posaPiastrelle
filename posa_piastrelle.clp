@@ -153,7 +153,33 @@
 (deffunction cambia_scelta_da_indice
 	(?indice)
 	(bind ?f (nth$ ?indice (get-all-facts-by-names car)))
-	(retract ?f))
+
+	
+	(bind ?fact-name (fact-slot-value ?f nome))
+
+	(switch ?fact-name
+		(case luogo
+			then (progn$ (?f1 (get-all-facts-by-names car)) ;elimina tutti i fatti di tipo caratteristica
+					(retract ?f1)))
+		(case tipo_stanza
+			then (do-for-all-facts ((?f1 car)) (neq ?f1:valore interno) ;elimina tutti i fatti tranne interno
+					(retract ?f1)))
+		(case presenza_pavimento
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
+					(retract ?f1)))
+		(case presenza_rivestimento
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
+					(retract ?f1)))
+		(case umidita
+			then (do-for-all-facts ((?f1 car)) (neq ?f1:nome luogo) ;elimina tutti i fatti tranne interno
+					(retract ?f1)))
+		(case impianti_umidita
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome umidita))) ;elimina tutti i fatti tranne interno/esterno e umidità
+					(retract ?f1)))
+		(case rifacimento_impianti
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_pavimento))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
+					(retract ?f)))
+))
 
 (deffunction gen-int-list
   (?max-n)
@@ -311,7 +337,7 @@
 	(not (lavoro))
 	(not (car (nome luogo) (valore ?)))
 	=>
-	(bind ?*help* "'Interno' riguarda una qualsiasi stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da letto, etc), 'Esterno' %nin caso contrario (balcone, terrazzo,etc).")
+	(bind ?*help* "Interno riguarda una qualsiasi stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da letto, etc), Esterno %nin caso contrario (balcone, terrazzo,etc).")
 	(bind ?*spiegazione* "")
 	(bind ?risposta (ask_question "La stanza riguarda l'interno o l'esterno?" interno esterno))
 	(if (eq ?risposta interno)
@@ -416,9 +442,7 @@
 		then (assert (car (nome impianti_umidita) (valore no)))
 		else (assert (car (nome impianti_umidita) (valore si)))))
 
-
 ; /-----------------MASSETTO-----------------/
-
 (defrule domanda_massetto_friabile
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -441,9 +465,10 @@
 	(or (car (nome presenza_massetto) (valore si))
 		(car (nome presenza_massetto) (valore no)))
 	=>
-	(bind ?*help* "Rispondere 'si' se ci sono dei pavimenti già posati che non si devono rimuovere.")
+	(bind ?*help* "Rispondere 'si' se ci sono dei pavimenti già posati.")
 	(bind ?*spiegazione* "Se ci sono pavimenti già posati si dovrà raccordare il pavimento esistente con questi.")
 	(bind ?raccordo_pavimento (yes_or_no_p "Esistono dei pavimenti nello stesso piano?"))
+
 	(bind ?*help* "Rispondere 'si' se ci sono porte o balconi nella stanza in cui si deve lavorare.")
 	(bind ?*spiegazione* "Se sono presenti vuol dire che il pavimento dovrà essere raccordato con essi.")
 	(bind ?raccordo_porte (yes_or_no_p "Esistono delle porte già montate o balconi nella stanza?"))
@@ -459,7 +484,7 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_massetto) (valore si))
 	=>
-	(bind ?*help* "Rispondere 'si' se il massetto è a livello.")
+	(bind ?*help* "Poni sul massetto una stadia della dimensione adeguata alla dimensione della stanza e adagia su di essa una livella per controllare che la bolla %nsia in posizione centrale. Ripeti poi l'operazione diverse volte per controllare tutta l'area.")
 	(bind ?*spiegazione* "Se il massetto non fosse a livello occorre rifarlo.")
 	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
 	(if ?risposta
@@ -468,8 +493,18 @@
 
 (defrule domanda_livello_massetto_interno_principiante
 	(preparazione_utente bassa)
-
-	)
+	(not (lavoro))
+	(not (car (nome massetto_livello) (valore ?)))
+	
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	=>
+	(bind ?*help* "La livella è lo strumento che permette di verificare che una superficie sia a livello, la stadia è un'asta di alluminio con dimensione da 50 a 200 cm.")
+	(bind ?*spiegazione* "Se il massetto non fosse a livello occorre rifarlo.")
+	(bind ?risposta (yes_or_no_p "Prendi una stadia di dimensione adeguata a quella della stanza e ponila sul massetto, adagia sopra essa una livella %ne verifica che la bolla presente sia esattamente in posizione centrale. Ripeti l'operazione diverse volte in diversi punti della stanza. %nLa bolla nella livella è sempre in posizione centrale?"))
+	(if ?risposta
+		then (assert (car (nome massetto_livello) (valore si)))
+		else (assert (car (nome massetto_livello) (valore no)))))
 
 (defrule domanda_altezza_massetto
 	(preparazione_utente alta | bassa)
@@ -492,24 +527,37 @@
 			 (bind ?risposta (ask_question "Considerando lo spessore indicato, il massetto è alto, basso o alla dimensione giusta?" alto basso giusto))
 			 (assert (car (nome massetto_altezza) (valore ?risposta)))))
 
-(defrule domanda_pendenza_massetto_esterno
-	(preparazione_utente alta | bassa)
+(defrule domanda_pendenza_massetto_esterno_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome massetto_pendenza) (valore ?)))
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_massetto) (valore si))
 	=>
-	(bind ?*help* "Poni una stadia di 2 metri sul massetto verso il punto in cui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più bassa della stadia. Adagia sulla stadia una livella controllando che la bolla sia precisamente nella posizione centrale.")
+	(bind ?*help* "Poni una stadia di 2 metri sul massetto verso il punto in cui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più %nbassa della stadia. Adagia sulla stadia una livella controllando che la bolla sia precisamente nella posizione centrale.")
 	(bind ?*spiegazione* "Questo abbassamento del massetto garantisce la pendenza giusta per lo scolo dell'acqua.")
 	(bind ?risposta (yes_or_no_p "Controlla che il massetto sia più basso di 1 - 1,5 cm ogni due metri lineari...%nÈ così?"))
 	(if ?risposta
 		then (assert (car (nome massetto_pendenza) (valore si)))
 		else (assert (car (nome massetto_pendenza) (valore no)))))
 
+(defrule domanda_pendenza_massetto_esterno_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome massetto_pendenza) (valore ?)))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_massetto) (valore si))
+	=>
+	(bind ?*help* "La livella è lo strumento che permette di verificare che una superficie sia a livello, la stadia è un'asta di alluminio con dimensione da 50 a 200 cm.")
+	(bind ?*spiegazione* "Questo abbassamento del massetto garantisce la pendenza giusta per lo scolo dell'acqua.")
+	(bind ?risposta (yes_or_no_p "Poni una stadia di 2 metri (di dimensione adeguata a quella dell'area in cui si sta lavorando) sul massetto verso il punto in %ncui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più bassa della stadia. Adagia su di essa una livella controllando %nche la bolla sia precisamente nella posizione centrale. %nÈ così?"))
+	(if ?risposta
+		then (assert (car (nome massetto_pendenza) (valore si)))
+		else (assert (car (nome massetto_pendenza) (valore no)))))
 
 ; /-----------------PAVIMENTO----------------/
-
 (defrule domanda_piatrelle_scheggiate_pavimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -539,39 +587,67 @@
 		else (assert (car (nome piastrelle_sollevate_pavimento) (valore no)))))
 
 ;TODO valutare
-(defrule domanda_livello_pavimento_interno
-	(preparazione_utente alta | bassa)
+(defrule domanda_livello_pavimento_interno_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome pavimento_livello) (valore ?)))
 	
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "Poni una stadia della dimensione adeguata alla dimensione della stanza e adagia su di essa una livella per controllare che la bolla sia in posizione centrale. Ripeti poi l'operazione diverse volte per coprire tutta l'area.")
+	(bind ?*help* "Poni sul pavimento una stadia della dimensione adeguata alla dimensione della stanza e adagia su di essa una livella per controllare che la bolla %nsia in posizione centrale. Ripeti poi l'operazione diverse volte per coprire tutta l'area.")
 	(bind ?*spiegazione* "Se il pavimento non è a livello conviene rifarlo.")
 	(bind ?risposta (yes_or_no_p "Il pavimento è a livello?"))
 	(if ?risposta
 		then (assert (car (nome pavimento_livello) (valore si)))
 		else (assert (car (nome pavimento_livello) (valore no)))))
 
-(defrule domanda_pendenza_pavimento_esterno
-	(preparazione_utente alta | bassa)
+(defrule domanda_livello_pavimento_interno_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome pavimento_livello) (valore ?)))
+	
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "La livella è lo strumento che permette di verificare che una superficie sia a livello, la stadia è un'asta di alluminio con dimensione da 50 a 200 cm.")
+	(bind ?*spiegazione* "Se il pavimento non è a livello conviene rifarlo.")
+	(bind ?risposta (yes_or_no_p "Prendi una stadia di dimensione adeguata a quella della stanza e ponila sul pavimento, adagia sopra essa una livella %ne verifica che la bolla presente sia esattamente in posizione centrale. Ripeti l'operazione diverse volte in diversi punti della stanza. %nLa bolla nella livella è sempre in posizione centrale?"))
+	(if ?risposta
+		then (assert (car (nome pavimento_livello) (valore si)))
+		else (assert (car (nome pavimento_livello) (valore no)))))
+
+(defrule domanda_pendenza_pavimento_esterno_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome pendenza_pavimento) (valore ?)))
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "Poni una stadia di 2 metri sul pavimento verso il punto in cui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più bassa della stadia. Adagia sulla stadia una livella controllando che la bolla sia precisamente nella posizione centrale.")
+	(bind ?*help* "Poni una stadia di 2 metri sul pavimento verso il punto in cui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più %nbassa della stadia. Adagia sulla stadia una livella controllando che la bolla sia precisamente nella posizione centrale.")
 	(bind ?*spiegazione* "Se il pavimento non ha la pendenza giusta non permette all'acqua di fuoriuscire.")
-	(bind ?risposta (yes_or_no_p "Controlla che il pavimento sia più basso di 1-1,5 cm ogni due metri lineari...%nÈ così?"))
+	(bind ?risposta (yes_or_no_p "Controlla che il pavimento sia più basso di 1 - 1,5 cm ogni due metri lineari...%nÈ così?"))
 	(if ?risposta
 		then (assert (car (nome pendenza_pavimento) (valore si)))
 		else (assert (car (nome pendenza_pavimento) (valore no)))))
 
+(defrule domanda_pendenza_pavimento_esterno_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome pendenza_pavimento) (valore ?)))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "La livella è lo strumento che permette di verificare che una superficie sia a livello, la stadia è un'asta di alluminio con dimensione da 50 a 200 cm.")
+	(bind ?*spiegazione* "Se il pavimento non ha la pendenza giusta non permette all'acqua di fuoriuscire.")
+	(bind ?risposta (yes_or_no_p "Poni una stadia di 2 metri (di dimensione adeguata a quella dell'area in cui si sta lavorando) sul pavimento verso il punto in %ncui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più bassa della stadia. Adagia su di essa una livella controllando %nche la bolla sia precisamente nella posizione centrale. %nÈ così?"))
+	(if ?risposta
+		then (assert (car (nome pendenza_pavimento) (valore si)))
+		else (assert (car (nome pendenza_pavimento) (valore no)))))
 
 ; /------------------RIVESTIMENTO----------------/
-
 (defrule domanda_spostamento_sanitari
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -615,16 +691,30 @@
 		then (assert (car (nome piastrelle_sollevate_rivestimento) (valore si)))
 		else (assert (car (nome piastrelle_sollevate_rivestimento) (valore no)))))
 
-(defrule domanda_piombo_muri
-	(preparazione_utente alta | bassa)
+(defrule domanda_piombo_muri_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 
 	(car (nome presenza_rivestimento) (valore si))
 	(not (car (nome muri_a_piombo) (valore ?)))
 	=>
-	(bind ?*help* "Prendi la livella e ponila sulla parete in posizione perpendicolare al pavimento e verifica se la bolla è in posizione centrale.")
+	(bind ?*help* "Prendi la livella e ponila sulla parete in posizione perpendicolare al pavimento e verifica se la bolla è in posizione centrale. %nRipeti l'operazione per ogni muro e in punti diversi.")
 	(bind ?*spiegazione* "Se il muro non è a piombo, occorre raddrizzarlo.")
 	(bind ?risposta (yes_or_no_p "I muri sono a piombo?"))
+	(if ?risposta
+		then (assert (car (nome muri_a_piombo) (valore si)))
+		else (assert (car (nome muri_a_piombo) (valore no)))))
+
+(defrule domanda_piombo_muri_principiante
+	(preparazione_utente bassa)
+	(not (lavoro))
+
+	(car (nome presenza_rivestimento) (valore si))
+	(not (car (nome muri_a_piombo) (valore ?)))
+	=>
+	(bind ?*help* "La livella è lo strumento che permette di verificare che una superficie sia a livello.")
+	(bind ?*spiegazione* "Se il muro non è a piombo, occorre raddrizzarlo.")
+	(bind ?risposta (yes_or_no_p "Prendi una livella e ponila sulla parete in posizione perpendicolare al pavimento e verifica se la bolla è in posizione centrale. %nIn tutte le misurazioni la bolla è sempre in posizione centrale?"))
 	(if ?risposta
 		then (assert (car (nome muri_a_piombo) (valore si)))
 		else (assert (car (nome muri_a_piombo) (valore no)))))
@@ -693,7 +783,7 @@
 	(car (nome rifacimento_impianti) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi tutto il pavimento e lo strato di cemento sottostante (massetto).")
-	(bind ?*spiegazione* "Avendo dedotto che bisogna rifare gli impianti, il consiglio è quello di rimuovere tutto il pavimento e il massetto in modo da poter rifare gli impianti.")
+	(bind ?*spiegazione* "Avendo dedotto che bisogna rifare gli impianti, il consiglio è quello di rimuovere tutto il pavimento e il massetto in modo da %npoter rifare gli impianti.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -711,7 +801,7 @@
 	(car (nome pavimento_da_raccordare) (valore si))
 	=>
 	(bind ?*soluzione* "Realizza il massetto tenendo conto del fatto che bisogna raccordarsi con un pavimento già esistente.")
-	(bind ?*spiegazione* "Avendo dedotto che non è presente né un pavimento né un rivestimento, che non c'è umidità e non si devono fare impianti, ma c'è un pavimento con cui raccordarsi, allora il lavoro da fare è il massetto.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente né un pavimento né un rivestimento, che non c'è umidità e non si devono fare impianti, ma c'è %nun pavimento con cui raccordarsi, allora il lavoro da fare è il massetto.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -727,7 +817,7 @@
 	(car (nome pavimento_da_raccordare) (valore no))
 	=>
 	(bind ?*soluzione* "Realizza il massetto.")
-	(bind ?*spiegazione* "Avendo dedotto che non è presente né un pavimento né un rivestimento, che non c'è umidità e non si devono fare impianti e no c'è un pavimento con cui raccordarsi, allora il lavoro da fare è il massetto.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente né un pavimento né un rivestimento, che non c'è umidità e non si devono fare impianti e no c'è %nun pavimento con cui raccordarsi, allora il lavoro da fare è il massetto.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -743,7 +833,7 @@
 	(car (nome massetto_friabile) (valore no))
 	=>
 	(bind ?*soluzione* "Il massetto su cui porre il pavimento è a livello, puoi effettuare la posa.")
-	(bind ?*spiegazione* "Avendo dedotto che non è presente un pavimento, che è presente un massetto,che è a livello e in buone condizioni e che non ci si deve preoccupare di raccordarsi con un altro tipo di pavimento presente, si può iniziare la posa sopra di una qualsiasi tipo di pavimento.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente un pavimento, che è presente un massetto,che è a livello e in buone condizioni e che non ci si %ndeve preoccupare di raccordarsi con un altro tipo di pavimento presente, si può iniziare la posa sopra di una qualsiasi tipo di pavimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -760,7 +850,7 @@
 	(car (nome massetto_friabile) (valore no))
 	=>
 	(bind ?*soluzione* "Il massetto su cui porre il pavimento è a livello e alla giusta altezza, puoi iniziare la posa.")
-	(bind ?*spiegazione* "Avendo dedotto che non è presente un pavimento il pavimento è da raccordare, ma è all'altezza giusta in base al tipo di pavimento da posare, e che è a livello e in buone condizioni, si può allora iniziare la posa.")
+	(bind ?*spiegazione* "Avendo dedotto che non è presente un pavimento il pavimento è da raccordare, ma è all'altezza giusta in base al tipo di pavimento %nda posare, e che è a livello e in buone condizioni, si può allora iniziare la posa.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -776,7 +866,7 @@
 	(car (nome massetto_friabile) (valore no))
 	=>
 	(bind ?*soluzione* "Il massetto ha la giusta pendenza, puoi iniziare la posa sopra.")
-	(bind ?*spiegazione* "Avendo dedotto che si parla di lavoro esterno, che è presente un massetto che è in buone condizioni e che ha la giusta pendenza, si può allora iniziare la posa.")
+	(bind ?*spiegazione* "Avendo dedotto che si parla di lavoro esterno, che è presente un massetto che è in buone condizioni e che ha la giusta pendenza, %nsi può allora iniziare la posa.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -803,7 +893,7 @@
 	(car (nome massetto_livello) (valore no))
 	=>
 	(bind ?*soluzione* "Elimina il massetto presente e rifallo.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che è presente un massetto e che questo non è a livello, il consiglio è quello di rimuoverlo e rifarlo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che è presente un massetto e che questo non è a livello, il consiglio è quello %ndi rimuoverlo e rifarlo.")
 	(bind ?*help* "Rimuovi il massetto esistente e rifallo.")
 	(assert (lavoro)))
 
@@ -819,7 +909,7 @@
 	(car (nome massetto_altezza) (valore alto))
 	=>
 	(bind ?*soluzione* "Rimuovi rifai daccapo il massetto.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che il pavimento da posare è da raccordare, che è presente un massetto, che è a livello ma che è troppo alto per il tipo di pavimento che si dovrà porre, allora il consiglio è di rimuoverlo e rifarlo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che il pavimento da posare è da raccordare, che è presente un massetto, che è %na livello ma che è troppo alto per il tipo di pavimento che si dovrà porre, allora il consiglio è di rimuoverlo e rifarlo.")
 	(bind ?*help* "Rimuovi il massetto esistente e rifallo.")
 	(assert (lavoro)))
 
@@ -835,7 +925,7 @@
 	(car (nome massetto_altezza) (valore basso))
 	=>
 	(bind ?*soluzione* "Costruisci sopra al presente massetto uno nuovo in modo che sia alla altezza esatta.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che il pavimento da posare è da raccordare, che è presente un massetto, che è a livello ma che è troppo basso per il tipo di pavimento che si dovrà porre, allora il consiglio è di costruire sopra il presente massetto uno nuovo per fare in modo che si trovi alla altezza giusta.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di lavoro interno, che il pavimento da posare è da raccordare, che è presente un massetto, che è %na livello ma che è troppo basso per il tipo di pavimento che si dovrà porre, allora il consiglio è di costruire sopra il presente %nmassetto uno nuovo per fare in modo che si trovi alla altezza giusta.")
 	(bind ?*help* "Costruisci un massetto su quello esistente.")
 	(assert (lavoro)))
 
@@ -849,7 +939,7 @@
 	(car (nome massetto_pendenza) (valore no))
 	=>
 	(bind ?*soluzione* "Rimuovere il massetto e rifarlo daccapo.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, che è presente un massetto e che la pendenza per favorire lo scolo dell'acqua non è stata rispettata, il consiglio è quello di rimuoverlo e rifarlo daccapo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, che è presente un massetto e che la pendenza per favorire lo scolo dell'acqua %nnon è stata rispettata, il consiglio è quello di rimuoverlo e rifarlo daccapo.")
 	(bind ?*help* "Rimuovi il massetto facendo attenzione ad eventuali tubi di impianti e rifallo.")
 	(assert (lavoro)))
 
@@ -866,8 +956,8 @@
 	(or (car (nome piastrelle_sollevate_pavimento) (valore si))
 		(car (nome piastrelle_scheggiate_pavimento) (valore si)))
 	=>
-	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il pavimento con uno nuovo.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, che un pavimento è presente ed è a livello ma vi sono piastrelle danneggiate, il consiglio è di sostituirle se sono poche, altrimenti rifare tutto il pavimento.")
+	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità %ntra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, che un pavimento è presente ed è a livello ma vi sono piastrelle danneggiate, %nil consiglio è di sostituirle se sono poche, altrimenti rifare tutto il pavimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -882,8 +972,8 @@
 	(or (car (nome piastrelle_sollevate_pavimento) (valore si))
 		(car (nome piastrelle_scheggiate_pavimento) (valore si)))
 	=>
-	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il pavimento con uno nuovo.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, che un pavimento è presente ed ha la pendenza giusta ma vi sono piastrelle danneggiate, il consiglio è di sostituirle se sono poche, altrimenti rifare tutto il pavimento.")
+	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità %ntra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, che un pavimento è presente ed ha la pendenza giusta ma vi sono piastrelle %ndanneggiate, il consiglio è di sostituirle se sono poche, altrimenti rifare tutto il pavimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -898,8 +988,8 @@
 	(and (not (car (nome piastrelle_sollevate_pavimento) (valore no)))
 		 (not (car (nome piastrelle_scheggiate_pavimento) (valore no))))
 	=>
-	(bind ?*soluzione* "Si può optare per la posa sopra al pavimento esistente. Bisogna considerare però che vi sarà un innalzamento del pavimento che dovrà portare a diverse modifiche (è il caso delle porte), altrimenti procedere a sostituire il pavimento con uno nuovo.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, il pavimento è presente ed è a livello e non vi sono piastrelle scheggiate o sollevate, si può optare per la posa sopra.")
+	(bind ?*soluzione* "Si può optare per la posa sopra al pavimento esistente. Bisogna considerare però che vi sarà un innalzamento del pavimento che %ndovrà portare a diverse modifiche (è il caso delle porte), altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, il pavimento è presente ed è a livello e non vi sono piastrelle scheggiate %no sollevate, si può optare per la posa sopra.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -914,7 +1004,7 @@
 	(and (not (car (nome piastrelle_sollevate_pavimento) (valore no)))
 		 (not (car (nome piastrelle_scheggiate_pavimento) (valore no))))
 	=>
-	(bind ?*soluzione* "Se si deve rinnovare il pavimento si può decidere anche per la posa sopra al pavimento esistente. Bisogna considerare però che vi sarà %nun innalzamento del pavimento che dovrà portare a diverse modifiche (è il caso delle porte), altrimenti procedere a sostituire il pavimento con uno nuovo.")
+	(bind ?*soluzione* "Se si deve rinnovare il pavimento si può decidere anche per la posa sopra al pavimento esistente. Bisogna considerare però %nche vi sarà %nun innalzamento del pavimento che dovrà portare a diverse modifiche (è il caso delle porte), altrimenti %nprocedere a sostituire il pavimento con uno nuovo.")
 	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro esterno, il pavimento è presente ed è alla giusta pendenza e non vi sono piastrelle scheggiate o sollevate, si può optare per la posa sopra.")
 	(bind ?*help* "")
 	(assert (lavoro)))
@@ -943,7 +1033,7 @@
 	(car (nome pendenza_pavimento) (valore no))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento insieme allo strato di cemento sottostante (massetto) e rifallo.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di un luogo esterno, che il pavimento è presente ma non ha la pendenza giusta per favorire lo scolo dell'acqua, quindi occorre toglierlo e rifarlo.")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un luogo esterno, che il pavimento è presente ma non ha la pendenza giusta per favorire lo %nscolo dell'acqua, quindi occorre toglierlo e rifarlo.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -959,7 +1049,7 @@
 	(car (nome spostamento_sanitari) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di cemento sottostante (massetto), poi chiama uno specialista.")
-	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, in particolare il bagno e che si deve fare uno spostamento di sanitari, il consiglio è quello di rimuovere il pavimento e il massetto se presenti e poi procedere chiamando uno specialista per il posizionamento degli impianti")
+	(bind ?*spiegazione* "Avendo dedotto che si tratta di un lavoro interno, in particolare il bagno e che si deve fare uno spostamento di sanitari, %nil consiglio è quello di rimuovere il pavimento e il massetto se presenti e poi procedere chiamando uno specialista per il posizionamento degli impianti")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -973,7 +1063,7 @@
 	(car (nome muri_a_piombo) (valore no))
 	=>
 	(bind ?*soluzione* "Raddrizzare i muri in modo che siano a piombo, poi procedere con la posa o con l'intonaco.")
-	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un rivestimento e che i muri non sono a piombo, il consiglio è di rifare i muri e poi procedere alla posa del rivestimento")
+	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un rivestimento e che i muri non sono a piombo, il consiglio %nè di rifare i muri e poi procedere alla posa del rivestimento")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -983,12 +1073,12 @@
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
-	(car (nome presenza_pavimento) (valore si))
+	(car (nome presenza_rivestimento) (valore si))
 	(or (car (nome piastrelle_scheggiate_rivestimento) (valore si))
 		(car (nome piastrelle_sollevate_rivestimento) (valore si)))
 	=>
-	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il rivestimento con uno nuovo..")
-	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un pavimento e che ci sono piastrelle scheggiate o sollevate, il consiglio è di effettuare un rattoppo se il numero delle piastrelle è limitato, altrimenti rifare tutto il rivestimento.")
+	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità %n tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il rivestimento con uno nuovo..")
+	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un pavimento e che ci sono piastrelle scheggiate o sollevate, %n il consiglio è di effettuare un rattoppo se il numero delle piastrelle è limitato, altrimenti rifare tutto il rivestimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -1009,7 +1099,7 @@
 
 	(printout t crlf "Digita il numero corrispondente alla scelta:" crlf
 				"(1) Rivedi scelte o modifica" crlf
-				"(2) Termina" crlf)
+				"(2) Termina" crlf crlf)
 
 	(printout t "Scelta: ")
 	(bind ?risposta (read))
@@ -1046,3 +1136,5 @@
 	=>
 	(retract ?f)
 	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 't' per terminare o 'c' per continuare: "))
+
+
