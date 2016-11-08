@@ -36,7 +36,7 @@
 	(format t "%n (%d) help" ?i)
 
 	(if (neq (length$ ?*spiegazione*) 0)
-		then (format t "%n (%d) perché" (+ ?i 1)))
+		then (format t "%n (%d) perche" (+ ?i 1)))
 	(printout t crlf) 
 	
 
@@ -293,7 +293,7 @@
 
 (defrule pulizia
 	(declare (salience ?*high_priority*))
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	?f1 <- (domande_poste (numero ?))
 	?f2 <- (esperienza (esperto ?) (principiante ?))
 	=>
@@ -307,11 +307,11 @@
 ; /----------------------------------DOMANDE----------------------------------/
 ;/---------------------------------------------------------------------------/
 (defrule domanda_interno_esterno
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome luogo) (valore ?)))
 	=>
-	(bind ?*help* "'Interno' riguarda una qualsiasi stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da letto, etc), 'Esterno' in caso %ncontrario (balcone, terrazzo,etc).")
+	(bind ?*help* "'Interno' riguarda una qualsiasi stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da letto, etc), 'Esterno' %nin caso contrario (balcone, terrazzo,etc).")
 	(bind ?*spiegazione* "")
 	(bind ?risposta (ask_question "La stanza riguarda l'interno o l'esterno?" interno esterno))
 	(if (eq ?risposta interno)
@@ -319,7 +319,7 @@
 		else (assert (car (nome luogo) (valore esterno)))))
 
 (defrule domanda_tipo_stanza
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome tipo_stanza) (valore ?)))
 
@@ -331,7 +331,7 @@
 	(assert (car (nome tipo_stanza) (valore ?risposta))))
 
 (defrule domanda_presenza_pavimento
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome presenza_pavimento) (valore ?)))
 
@@ -339,13 +339,14 @@
 		(car (nome luogo) (valore esterno)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un pavimento nella stanza in cui si intende lavorare, 'no' altrimenti.")
+	(bind ?*spiegazione* "In base al fatto che sia presente o no il pavimento si dovranno realizzare lavori diversi.")
 	(bind ?risposta (yes_or_no_p "È già presente un pavimento?"))
 	(if ?risposta
 		then (assert (car (nome presenza_pavimento) (valore si)))
 		else (assert (car (nome presenza_pavimento) (valore no)))))
 
 (defrule domanda_presenza_rivestimento
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome presenza_rivestimento) (valore ?)))
 
@@ -354,44 +355,48 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	=>
 	(bind ?*help* "Rispondere 'si' se è già presente un rivestimento, cioè le pareti della stanza sono ricoperte con piastrelle, 'no' altrimenti.")
+	(bind ?*spiegazione* "In base al fatto che sia presente o no il rivestimento si dovranno realizzare lavori diversi.")
 	(bind ?risposta (yes_or_no_p "È già presente un rivestimento?"))
 	(if ?risposta
 		then (assert (car (nome presenza_rivestimento) (valore si)))
 		else (assert (car (nome presenza_rivestimento) (valore no)))))
 
 (defrule domanda_presenza_massetto
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome presenza_massetto) (valore ?)))
 
 	(car (nome presenza_pavimento) (valore no))
 	=>
 	(bind ?*help* "Il massetto è quello strato di cemento e sabbia che deve essere perfettamente a livello e la cui presenza è fondamentale perché %nsopra di esso verrà posto il pavimento vero e proprio.")
+	(bind ?*spiegazione* "In base al fatto che sia presente o no il massetto si dovranno realizzare lavori diversi.")
 	(bind ?risposta (yes_or_no_p "È presente un massetto?"))
 	(if ?risposta
 		then (assert (car (nome presenza_massetto) (valore si)))
 		else (assert (car (nome presenza_massetto) (valore no)))))
 
 (defrule domanda_rifacimento_impianti
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome rifacimento_impianti) (valore ?)))
 
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Rispondi 'si' se si deve rifare qualche impianto che ha a che fare con il pavimento o o i muri.")
+	(bind ?*spiegazione* "Nel caso in cui si dovrà rifare l'impianto, si dovrà rimuovere il pavimento o il rivestimento esistente.")
 	(bind ?risposta (yes_or_no_p "Devi rifare qualche impianto che passa per il pavimento o i muri (idrico, termosifoni, fognatura, etc.)?"))
 	(if ?risposta
 		then (assert (car (nome rifacimento_impianti) (valore si)))
 		else (assert (car (nome rifacimento_impianti) (valore no)))))
 
 (defrule domanda_umidita
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome umidita) (valore ?)))
 
 	(car (nome luogo) (valore interno))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Rispondere 'si' se sono presenti macchie di umidità sui muri o sulle fughe tra le piastrelle.")
+	(bind ?*spiegazione* "Se c'è umidità allora bisogna eliminare tale problema, altrimenti la posa delle piastrelle potrebbe non essere duratura.")
 	(bind ?risposta (yes_or_no_p "Hai problemi di umidità?"))
 	(if ?risposta
 		then (assert (car (nome umidita) (valore si)))
@@ -404,7 +409,8 @@
 
 	(car (nome umidita) (valore si))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Controllare nei progetti della casa se nella stanza dove si sta lavorando passano degli impianti sotto il pavimento o nei muri.")
+	(bind ?*spiegazione* "Se passano dei tubi, potrebbe significare che qualcuno di essi è rotto e causa l'umidità.")
 	(bind ?risposta (ask_question "Passano dei tubi di acqua, fognatura o riscaldamento sotto il pavimento o nei muri?" si no non_so))
 	(if (eq ?risposta no)
 		then (assert (car (nome impianti_umidita) (valore no)))
@@ -414,50 +420,59 @@
 ; /-----------------MASSETTO-----------------/
 
 (defrule domanda_massetto_friabile
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome massetto_friabile) (valore ?)))
 
 	(car (nome presenza_massetto) (valore si))
 	=>
 	(bind ?*help* "Il massetto non è consistente se presenta una superficie polverosa e si sgretola facilmente.")
+	(bind ?*spiegazione* "Se non è consistente occorre rimuoverlo prima di andare avanti.")
 	(bind ?risposta (yes_or_no_p "Il massetto non è molto consistente?"))
 	(if ?risposta 
 		then (assert (car (nome massetto_friabile) (valore si)))
 		else (assert (car (nome massetto_friabile) (valore no)))))
 
 (defrule domanda_pavimento_raccordo
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome pavimento_da_raccordare) (valore ?)))
 
 	(or (car (nome presenza_massetto) (valore si))
 		(car (nome presenza_massetto) (valore no)))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Rispondere 'si' se ci sono dei pavimenti già posati che non si devono rimuovere.")
+	(bind ?*spiegazione* "Se ci sono pavimenti già posati si dovrà raccordare il pavimento esistente con questi.")
 	(bind ?raccordo_pavimento (yes_or_no_p "Esistono dei pavimenti nello stesso piano?"))
-	(bind ?*help* "")
+	(bind ?*help* "Rispondere 'si' se ci sono porte o balconi nella stanza in cui si deve lavorare.")
+	(bind ?*spiegazione* "Se sono presenti vuol dire che il pavimento dovrà essere raccordato con essi.")
 	(bind ?raccordo_porte (yes_or_no_p "Esistono delle porte già montate o balconi nella stanza?"))
 	(if (or ?raccordo_pavimento ?raccordo_porte)
 		then (assert (car (nome pavimento_da_raccordare) (valore si)))
 		else (assert (car (nome pavimento_da_raccordare) (valore no)))))
 
-(defrule domanda_livello_massetto_interno
-	(preparazione_utente ?)
+(defrule domanda_livello_massetto_interno_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome massetto_livello) (valore ?)))
 	
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_massetto) (valore si))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Rispondere 'si' se il massetto è a livello.")
+	(bind ?*spiegazione* "Se il massetto non fosse a livello occorre rifarlo.")
 	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
 	(if ?risposta
 		then (assert (car (nome massetto_livello) (valore si)))
 		else (assert (car (nome massetto_livello) (valore no)))))
 
+(defrule domanda_livello_massetto_interno_principiante
+	(preparazione_utente bassa)
+
+	)
+
 (defrule domanda_altezza_massetto
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome massetto_altezza) (valore ?)))
 
@@ -465,25 +480,28 @@
 	(car (nome pavimento_da_raccordare) (valore si))
 	(car (nome massetto_livello) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?risposta (ask_number "Indica lo spessore della piastrella da porre in millimetri (-1 se non lo conosci)"))
+	(bind ?*help* "Misura lo spessore della piastrella o del pavimento che verrà posto.")
+	(bind ?*spiegazione* "Serve per capire quale dovrà essere l'altezza del massetto.")
+	(bind ?risposta (ask_number "Indica lo spessore della piastrella o del pavimento da porre in millimetri (-1 se non lo conosci)"))
 	(if (= ?risposta -1)
 		then (printout t crlf "Se non si conosce lo spessore della piastrella, allora non si può controllare se il massetto è al giusto livello!" crlf)
 			 (halt)
 		else (format t "%nConsidera che lo spessore complessivo del pavimento sarà di %d mm%n" (+ 3 ?risposta))
-			 (bind ?*help* "")
+			 (bind ?*help* "Misura la differenza di altezza tra il massetto presente e le porte o un altro pavimento presente.")
+			 (bind ?*spiegazione* "Serve per capire se il massetto va bene o deve essere sostituito.")
 			 (bind ?risposta (ask_question "Considerando lo spessore indicato, il massetto è alto, basso o alla dimensione giusta?" alto basso giusto))
 			 (assert (car (nome massetto_altezza) (valore ?risposta)))))
 
 (defrule domanda_pendenza_massetto_esterno
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome massetto_pendenza) (valore ?)))
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_massetto) (valore si))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Poni una stadia di 2 metri sul massetto verso il punto in cui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più bassa della stadia. Adagia sulla stadia una livella controllando che la bolla sia precisamente nella posizione centrale.")
+	(bind ?*spiegazione* "Questo abbassamento del massetto garantisce la pendenza giusta per lo scolo dell'acqua.")
 	(bind ?risposta (yes_or_no_p "Controlla che il massetto sia più basso di 1 - 1,5 cm ogni due metri lineari...%nÈ così?"))
 	(if ?risposta
 		then (assert (car (nome massetto_pendenza) (valore si)))
@@ -493,26 +511,28 @@
 ; /-----------------PAVIMENTO----------------/
 
 (defrule domanda_piatrelle_scheggiate_pavimento
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome piastrelle_scheggiate_pavimento) (valore ?)))
 
 	(car (nome presenza_pavimento) (valore si))
 	=>
 	(bind ?*help* "Una piastrella è scheggiata se la superficie presenta delle irregolarità causate generalmente da un urto con qualche oggetto.")
+	(bind ?*spiegazione* "Se sono presenti diverse piastrelle scheggiate conviene rifare il pavimento.")
 	(bind ?risposta (yes_or_no_p "È presente qualche piastrella scheggiata nel pavimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_scheggiate_pavimento) (valore si)))
 		else (assert (car (nome piastrelle_scheggiate_pavimento) (valore no)))))
 
 (defrule domanda_piastrelle_sollevate_pavimento
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome piastrelle_sollevate_pavimento) (valore ?)))
 
 	(car (nome presenza_pavimento) (valore si))
 	=>
 	(bind ?*help* "Una piastrella è non aderente se è sollevata o se battendola si sente un rumore vuoto.")
+	(bind ?*spiegazione* "Se sono presenti diverse piastrelle sollevate conviene rifare il pavimento.")
 	(bind ?risposta (yes_or_no_p "È presente qualche piastrella non aderente o sollevata nel pavimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_pavimento) (valore si)))
@@ -520,28 +540,30 @@
 
 ;TODO valutare
 (defrule domanda_livello_pavimento_interno
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome pavimento_livello) (valore ?)))
 	
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Poni una stadia della dimensione adeguata alla dimensione della stanza e adagia su di essa una livella per controllare che la bolla sia in posizione centrale. Ripeti poi l'operazione diverse volte per coprire tutta l'area.")
+	(bind ?*spiegazione* "Se il pavimento non è a livello conviene rifarlo.")
 	(bind ?risposta (yes_or_no_p "Il pavimento è a livello?"))
 	(if ?risposta
 		then (assert (car (nome pavimento_livello) (valore si)))
 		else (assert (car (nome pavimento_livello) (valore no)))))
 
 (defrule domanda_pendenza_pavimento_esterno
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome pendenza_pavimento) (valore ?)))
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Poni una stadia di 2 metri sul pavimento verso il punto in cui dovrà uscire l'acqua e poni uno spessore di 1,5 cm all'estremità più bassa della stadia. Adagia sulla stadia una livella controllando che la bolla sia precisamente nella posizione centrale.")
+	(bind ?*spiegazione* "Se il pavimento non ha la pendenza giusta non permette all'acqua di fuoriuscire.")
 	(bind ?risposta (yes_or_no_p "Controlla che il pavimento sia più basso di 1-1,5 cm ogni due metri lineari...%nÈ così?"))
 	(if ?risposta
 		then (assert (car (nome pendenza_pavimento) (valore si)))
@@ -551,53 +573,57 @@
 ; /------------------RIVESTIMENTO----------------/
 
 (defrule domanda_spostamento_sanitari
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome spostamento_sanitari) (valore ?)))
 
 	(car (nome luogo) (valore interno))
 	(car (nome tipo_stanza) (valore bagno))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Rispondere 'si' se si deve cambiare la disposizione di lavabo, bidet, tazza o doccia o bagno.")
+	(bind ?*spiegazione* "Se si deve cambiare la disposizione dei sanitari, si deve obbligatoriamente rimuovere il pavimento e il massetto.")
 	(bind ?risposta (yes_or_no_p "Devi cambiare la disposizione dei sanitari?"))
 	(if ?risposta
 		then (assert (nome spostamento_sanitari) (valore si))
 		else (assert (nome spostamento_sanitari) (valore no))))
 
 (defrule domanda_piatrelle_scheggiate_rivestimento
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_rivestimento) (valore si))
 	(not (car (nome piastrelle_scheggiate_rivestimento) (valore ?)))
 	=>
 	(bind ?*help* "Una piastrella è scheggiata se la superficie presenta delle irregolarità causate generalmente da un urto con qualche oggetto.")
+	(bind ?*spiegazione* "Se è presente qualche piastrella scheggiata potrebbe essere necessario sostituire il rivestimento.")
 	(bind ?risposta (yes_or_no_p "È presente qualche piastrella scheggiata nel rivestimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_scheggiate_rivestimento) (valore si)))
 		else (assert (car (nome piastrelle_scheggiate_rivestimento) (valore no)))))
 
 (defrule domanda_piastrelle_sollevate_rivestimento
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_rivestimento) (valore si))
 	(not (car (nome piastrelle_sollevate_rivestimento) (valore ?)))
 	=>
 	(bind ?*help* "Una piastrella è non aderente se è sollevata o se battendola si sente un rumore vuoto.")
+	(bind ?*spiegazione* "Se è presente qualche piastrella sollevata potrebbe essere necessario sostituire il rivestimento.")
 	(bind ?risposta (yes_or_no_p "È presente qualche piastrella non aderente o sollevata nel rivestimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_rivestimento) (valore si)))
 		else (assert (car (nome piastrelle_sollevate_rivestimento) (valore no)))))
 
 (defrule domanda_piombo_muri
-	(preparazione_utente ?)
+	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_rivestimento) (valore si))
 	(not (car (nome muri_a_piombo) (valore ?)))
 	=>
-	(bind ?*help* "")
+	(bind ?*help* "Prendi la livella e ponila sulla parete in posizione perpendicolare al pavimento e verifica se la bolla è in posizione centrale.")
+	(bind ?*spiegazione* "Se il muro non è a piombo, occorre raddrizzarlo.")
 	(bind ?risposta (yes_or_no_p "I muri sono a piombo?"))
 	(if ?risposta
 		then (assert (car (nome muri_a_piombo) (valore si)))
