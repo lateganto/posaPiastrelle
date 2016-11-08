@@ -154,9 +154,7 @@
 	(?indice)
 	(bind ?f (nth$ ?indice (get-all-facts-by-names car)))
 
-	
 	(bind ?fact-name (fact-slot-value ?f nome))
-
 	(switch ?fact-name
 		(case luogo
 			then (progn$ (?f1 (get-all-facts-by-names car)) ;elimina tutti i fatti di tipo caratteristica
@@ -170,16 +168,29 @@
 		(case presenza_rivestimento
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
 					(retract ?f1)))
+		(case presenza_massetto
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
+					(retract ?f1)))
 		(case umidita
-			then (do-for-all-facts ((?f1 car)) (neq ?f1:nome luogo) ;elimina tutti i fatti tranne interno
+			then (do-for-all-facts ((?f1 car)) (neq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) ;elimina tutti i fatti tranne interno
 					(retract ?f1)))
 		(case impianti_umidita
-			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome umidita))) ;elimina tutti i fatti tranne interno/esterno e umidità
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome umidita))) ;elimina tutti i fatti tranne interno e umidità e tipo_stanza
 					(retract ?f1)))
 		(case rifacimento_impianti
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_pavimento))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
 					(retract ?f)))
-))
+
+		(case massetto_friabile
+			then (retract ?f))
+		(case pavimento_da_raccordare
+			then (do-for-all-facts ((?f1 car)) (eq ?f1:nome massetto_altezza)
+					(retract ?f1)))
+		(case massetto_livello
+			then (do-for-all-facts ((?f1 car)) (eq ?f1:nome massetto_altezza)
+					(retract ?f1)))
+
+	 	(default (retract ?f))))
 
 (deffunction gen-int-list
   (?max-n)
