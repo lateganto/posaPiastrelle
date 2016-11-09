@@ -1088,11 +1088,10 @@
 	(or (car (nome piastrelle_scheggiate_rivestimento) (valore si))
 		(car (nome piastrelle_sollevate_rivestimento) (valore si)))
 	=>
-	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità %n tra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il rivestimento con uno nuovo..")
-	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un pavimento e che ci sono piastrelle scheggiate o sollevate, %n il consiglio è di effettuare un rattoppo se il numero delle piastrelle è limitato, altrimenti rifare tutto il rivestimento.")
+	(bind ?*soluzione* "Sostituisci le piastrelle difettate se sono poche (rattoppo), facendo attenzione al fatto che non vi sia differenza di tonalità %ntra le piastrelle nuove e quelle vecchie; altrimenti procedere a sostituire il rivestimento con uno nuovo.")
+	(bind ?*spiegazione* "Avendo dedotto che il lavoro riguarda l'interno, che è presente un pavimento e che ci sono piastrelle scheggiate o sollevate, %nil consiglio è di effettuare un rattoppo se il numero delle piastrelle è limitato, altrimenti rifare tutto il rivestimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
-
 
 ;-----------------------------------------------------------------------------------------------------------------
 ;-----------------------------------------------------------------------------------------------------------------
@@ -1101,11 +1100,11 @@
 	(declare (salience ?*high_priority*))
 	(lavoro)
 	=>
-	(format t "%n>>SOLUZIONE: %n%s%n" ?*soluzione*)
+	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
 	(if (neq (length$ ?*spiegazione*) 0)
-		then (format t "%n>>SPIEGAZIONE: %n%s%n" ?*spiegazione*))
+		then (format t (str-cat "%n>>>SPIEGAZIONE:%n" ?*spiegazione* "%n")))
 	(if (neq (length$ ?*help*) 0) 
-		then (format t "%n>>AIUTO: %n%s%n" ?*soluzione*))
+		then (format t (str-cat "%n>>>AIUTO:%n" ?*help* "%n")))
 
 
 	(printout t crlf "Digita il numero corrispondente alla scelta:" crlf
