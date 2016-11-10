@@ -27,6 +27,7 @@
 ; /---------------------------------FUNCTIONS---------------------------------/
 ;/---------------------------------------------------------------------------/
 (deffunction ask_question (?question $?allowed_values)
+	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf) 
 	(format t (str-cat "%n" ?question))
 
 	(bind ?i 1)
@@ -72,6 +73,7 @@
      ?answer)
 
 (deffunction yes_or_no_p (?question)
+	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
 	(bind ?allowed_values (create$ si no s n))
 
 	(if (neq (length$ ?*spiegazione*) 0)
@@ -105,6 +107,7 @@
          else FALSE))
 
 (deffunction ask_number (?question)
+	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
 	(if (neq (length$ ?*spiegazione*) 0)
 		then (format t (str-cat "%n" ?question " (help/perche): "))
 		else (format t (str-cat "%n" ?question " (help): ")))
@@ -336,7 +339,7 @@
 	=>
 	(do-for-all-facts ((?domanda domanda)) TRUE (retract ?domanda))  ;elimina tutti i fatti di tipo "domanda"
 	(retract ?f1 ?f2)
-	(printout t crlf crlf)
+	(printout t crlf)
 	(set-strategy depth))
 
 
@@ -671,8 +674,8 @@
 	(bind ?*spiegazione* "Se si deve cambiare la disposizione dei sanitari, si deve obbligatoriamente rimuovere il pavimento e il massetto.")
 	(bind ?risposta (yes_or_no_p "Devi cambiare la disposizione dei sanitari?"))
 	(if ?risposta
-		then (assert (nome spostamento_sanitari) (valore si))
-		else (assert (nome spostamento_sanitari) (valore no))))
+		then (assert (car (nome spostamento_sanitari) (valore si)))
+		else (assert (car (nome spostamento_sanitari) (valore no)))))
 
 (defrule domanda_piatrelle_scheggiate_rivestimento
 	(preparazione_utente alta | bassa)
@@ -1100,6 +1103,7 @@
 	(declare (salience ?*high_priority*))
 	(lavoro)
 	=>
+	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
 	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
 	(if (neq (length$ ?*spiegazione*) 0)
 		then (format t (str-cat "%n>>>SPIEGAZIONE:%n" ?*spiegazione* "%n")))
