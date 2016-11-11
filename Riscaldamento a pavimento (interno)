@@ -1,0 +1,326 @@
+;(defrule umidita_impianti
+;	(declare (salience ?*high_priority*))
+;	(preparazione_utente alta | bassa)
+;	(not (lavoro))
+;
+;	(car (nome umidita) (valore si))
+;	(car (nome impianti_umidita) (valore si))
+;	=>
+;	(bind ?*soluzione* "L'umidità potrebbe essere causata da impianti idrici guasti, rimuovi il ;massetto e il pavimento (se presenti) e chiama uno specialista (idraulico).")
+;	(bind ?*spiegazione* "")
+;	(bind ?*help* "")
+;	(assert (lavoro)))
+;
+;(defrule umidita_piano_terra
+;	(declare (salience ?*high_priority*))
+;	(preparazione_utente alta | bassa)
+;	(not (lavoro))
+;
+;	(car (nome umidita) (valore si))
+;	(car (nome impianti_umidita) (valore no))
+;	(car (nome piano_terra) (valore si))
+;	=>
+;	(bind ?*soluzione* "L'umidità potrebbe essere causata dal sottosuolo, occorre rimuovere il ;pavimento e il massetto (se presenti) e procedere alla impermeabilizzazione del nuovo ;pavimento che deve essere fatto.")
+;	(assert (lavoro)))
+;
+;(defrule umidita_no_piano_terra
+;	(declare (salience ?*high_priority*))
+;	(preparazione_utente alta | bassa)
+;	(not (lavoro))
+;
+;	(car (nome umidita) (valore si))
+;	(car (nome impianti_umidita) (valore no))
+;	(car (nome piano_terra) (valore no))
+;	=>
+;	(bind ?*soluzione* "L'umidità potrebbe essere quella di risalita dai muri, bisogna ;impermeabilizzare il muro in modo da non far salire l'umidità.")
+;	(assert (lavoro)))
+;
+;(defrule umidita
+;	(declare (salience ?*high_priority*))
+;	(preparazione_utente alta | bassa)
+;	(not (lavoro))
+;
+;	(car (nome umidita) (valore si))
+;	(car (nome impianti_umidita) (valore no))
+;	(car (nome piano_terra) (valore no))
+;	=>
+;	(bind ?*soluzione* "L'umidità proviene dall'interno, in particolare da un muro che non ;lascia traspirare l'aria, rimuovi l'intonaco esistente e rifallo.")
+;	(assert (lavoro)))
+
+;-------------------------------------------------------------------------------------------
+(defrule no_impianti_fatti
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	
+	(car (nome presenza_massetto) (valore no))
+	(car (nome impianti_fatti) (valore no))
+	=>
+	(bind ?*soluzione* "Devi vedere prima se passeranno degli impianti (acqua, fognatura, elettricità, etc) sotto il massetto.")
+	(assert (lavoro)))
+
+(defrule si_impianti_fatti
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	
+	(car (nome presenza_massetto) (valore no))
+	(car (nome impianti_fatti) (valore si))
+	=>
+	(bind ?*soluzione* "Procedi alla realizzazione del massetto")
+	(assert (lavoro)))
+
+(defrule massetto_non_asciutto
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore no))
+	=>
+	(bind ?*soluzione* "Il massetto deve prima asciugare, non si può continuare con il lavoro.")
+	(assert (lavoro)))
+
+(defrule massetto_fragile
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore si))
+	=>
+	(bind ?*soluzione* "Il massetto è fragile, occorre rimuoverlo e rifarlo.")
+	(assert (lavoro)))
+
+(defrule massetto_non_a_livello
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore interno))
+	(car (nome massetto_a_livello) (valore no))
+	=>
+	(bind ?*soluzione* "Il massetto deve essere rimosso e rifatto poiché non a livello.")
+	(assert (lavoro)))
+
+(defrule no_spessore_piastrella
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore interno))
+	(car (nome massetto_a_livello) (valore si))
+	(car (nome pavimento_da_raccordare) (valore si))
+	(car (nome spessore_pavimento) (valore no))
+	=>
+	(bind ?*soluzione* "Se non si conosce lo spessore della piastrella non si può cominciare la posa del pavimento poiché non si sa a che altezza realizzare il massetto.")
+	(assert (lavoro)))
+
+(defrule massetto_alto
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore interno))
+	(car (nome massetto_a_livello) (valore si))
+	(car (nome pavimento_da_raccordare) (valore si))
+	(car (nome altezza_massetto) (valore alto))
+	=>
+	(bind ?*soluzione* "Il massetto è troppo alto per la posa del pavimento selezionato, rimuoverlo e rifarlo in modo che sia alla giusta altezza.")
+	(assert (lavoro)))
+
+(defrule massetto_basso
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore interno))
+	(car (nome massetto_a_livello) (valore si))
+	(car (nome pavimento_da_raccordare) (valore si))
+	(car (nome altezza_massetto) (valore basso))
+	=>
+	(bind ?*soluzione* "Il massetto è troppo basso per la posa del pavimento selezionato, rimuoverlo e rifarlo in modo che sia alla giusta altezza.")
+	(assert (lavoro)))
+
+(defrule massetto_senza_pendenza
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore esterno))
+	(car (nome pendenza_massetto) (valore no))
+	=>
+	(bind ?*soluzione* "Il massetto non ha la giusta pendenza per lo scolo dell'acqua, rimuoverlo e rifarlo.")
+	(assert (lavoro)))
+
+(defrule muri_non_a_squadra_esterno
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore esterno))
+	(car (nome pendenza_massetto) (valore si))
+	(car (nome muri_a_squadra) (valore no))
+	=>
+	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e una piastrella piccola in modo da camuffare le imperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
+	(assert (lavoro)))
+
+(defrule muri_non_a_squadra_interno_piastrella
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome massetto_a_livello) (valore si))
+	(car (nome luogo) (valore interno))
+	(or (car (nome pavimento_da_raccordare) (valore no))
+		(car (nome altezza_massetto) (valore giusto)))
+	(car (nome muri_a_squadra) (valore no))
+	(car (nome tipo_pavimento_da_porre) (valore piastrella))
+	=>
+	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e una piastrella piccola in modo da camuffare le imperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
+	(assert (lavoro)))
+
+(defrule muri_non_a_squadra_piastrella_interno_parquet
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome massetto_a_livello) (valore si))
+	(car (nome luogo) (valore interno))
+	(or (car (nome pavimento_da_raccordare) (valore no))
+		(car (nome altezza_massetto) (valore giusto)))
+	(car (nome muri_a_squadra) (valore no))
+	(car (nome tipo_pavimento_da_porre) (valore parquet))
+	=>
+	(bind ?*soluzione* "Comincia con la posa del pavimento.")
+	(assert (lavoro)))
+
+(defrule muri_a_squadra_interno
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome massetto_a_livello) (valore si))
+	(car (nome luogo) (valore interno))
+	(or (car (nome pavimento_da_raccordare) (valore no))
+		(car (nome altezza_massetto) (valore giusto)))
+	(car (nome muri_a_squadra) (valore si))
+	=>
+	(bind ?*soluzione* "Comincia con la posa del pavimento.")
+	(assert (lavoro)))
+
+(defrule muri_a_squadra_esterno
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore esterno))
+	(car (nome pendenza_massetto) (valore si))
+	(car (nome muri_a_squadra) (valore si))
+	=>
+	(bind ?*soluzione* "Comincia con la posa del pavimento.")
+	(assert (lavoro)))
+
+
+;RINNOVO
+;- si possono usare pavimenti adesivi (multistrato adesivo) o resina o gres ultrasottile in modo da non modificare gli infissi e le porte
+;- Se c'è umidità perenne meglio pavimento con fughe adeguate
+;
+;PROBLEMA
+;
+;Chiedi a cosa è adibito il locale?
+;Riscaldamento a pavimento? (interno)
+;Ci sono impianti che passano sotto il pavimento o i muri?
+;Materiale pavimento presente
+;Spessore fughe
+;Il vicino sotto si lamenta dei rumori?
+;Ci sono macchie sui muri o sulle piastrelle, le pasitrelle si sollevano o non sono tanto aderenti?
+;Piastrelle alzate o scheggiate [cause: mancanza di giunto di dilatazione ogni 25 mquadri, umidità, tubature idriche con perdite, collante non posto bene]
+;fughe che rilasciano polvere -> applica sigillante
+;
+;
+;
+;
+;
+;Se c'è riscaldamento a pavimento meglio fughe adeguate
+;
+;in caso di cucina può esserci anche solo una fascia di rivestimento
+;
+;Resina prevede un pavimento sottostante in perfette condizioni
+;
+;Il laminato non conviene se il pavimento non è a livello o si è crepato o ci sono piastrelle che si alzano
+;
+;Se il massetto in calcestruzzo è presente occorre farlo asciugare un paio di giorni
+;
+;In caso di posa con colla su pavimento esistente, si rende ruvido il pavimento sottostante e si pone un aggrappante
+;
+;La posa del rivestimento deve avvenire su intonaco grezzo (sabbia e cemento) o su rasato con gesso (preventivamente pitturato con pittura idrorepellente) o su muro pitturato
+;
+;Se il pavimento è tappezzato o con parquet, occorre toglierlo (rifacimento)
+; 
+;Se il rivestimento è tappezzato, occorre toglierlo (rifacimento)
+;
+;
+;SE lavoro_pavimento
+;	Controlla squadro
+;		SE buono allora procedi normalmente
+;		ALTRIMENTI consiglia posa in diagonale oppure uso piastrelle piccole per camuffare imperfezioni
+;
+;SE lavoro_piastrelle
+;	Controlla piombo muri
+;		SE non a piombo
+;			aggiusta muri
+;		ALTRIMENTI
+;			usa piastrelle piccole per camuffare imperfezioni
+;
+;SE esterno
+;	pavimento antiscivolo e idrorepellente, uso di ceramica e gres o clinker
+;	uso di stucco per esterni (impermeabile)
+;
+;SE riscaldamento a pavimento
+;	no parquet perchè conduce meno il calore
+;	posatura galleggiante
+;	aspettare 3 giorni per la chiusura del riscaldamento
+;	aspettare altri 5 giorni per far stabilizzare il paviemnto
+;
+;SE rinfrescare pavimento
+;	Controllo pavimento esistente SE buono
+;		Usa pavimenti adesivi o resina [perchè evita di dover fare modifiche alle porte, economici, posa su pavimento esistente]
+;	ALTRIMENTI rifai pavimento
+;
+;SE rivestimento
+;	bicottura e ceramica
+;
+;SE spostamento sanitari (bagno)
+;	rompi sia muro che paviemtno, togli massetto e pavimento se presenti
