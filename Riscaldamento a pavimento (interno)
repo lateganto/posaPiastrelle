@@ -1,4 +1,5 @@
-;-------------------------------------------------------------------------------------------
+;----------------------------MASSETTO---------------------------------
+
 (defrule no_impianti_fatti
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
@@ -203,19 +204,24 @@
 	(bind ?*soluzione* "Comincia con la posa del pavimento.")
 	(assert (lavoro)))
 
-;---------------------------------------------------------------------------------
+
+;--------------------PAVIMENTO-----------------------
+
 (defrule posa_sopra_si_piastrelle
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(or (car (nome pavimento_livello) (valore si))
 		(car (nome pendenza_pavimento) (valore si)))
 	(car (nome piastrelle_sollevate_pavimento) (valore no))
+	(car (nome piastrelle_scheggiate_rotte_pavimento) (valore no))
+	(car (nome umidita_pavimento) (valore no))
 	=>
 	(bind ?*soluzione* "Puoi optare per la posa sopra usando anche pavimenti ultra sottili come il gres o il multistrato adesivo.")
 	(assert (lavoro)))
@@ -227,7 +233,6 @@
 
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome pavimento_livello) (valore no))
@@ -242,7 +247,6 @@
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome pendenza_pavimento) (valore no))
@@ -257,7 +261,6 @@
 
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome pavimento_livello) (valore si))
@@ -273,7 +276,6 @@
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome pendenza_pavimento) (valore si))
@@ -289,14 +291,11 @@
 
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
-	(or (car (nome tipo_pavimento_presente) (valore parquet))
-		(car (nome tipo_pavimento_presente) (valore moquette)))
+	(car (nome tipo_pavimento_presente) (valore moquette))
+	(car (nome moquette_danneggiata) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
 	(assert (lavoro)))
-
-;-------------------------------------------------------------------------------------------
 
 (defrule umidita_impianti
 	(declare (salience ?*high_priority*))
@@ -304,7 +303,6 @@
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(car (nome umidita_pavimento) (valore si))
 	(car (nome impianti_umidita) (valore si))
 	=>
@@ -317,7 +315,6 @@
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(car (nome umidita_pavimento) (valore si))
 	(car (nome impianti_umidita) (valore no))
 	(car (nome piano_terra) (valore si))
@@ -331,7 +328,6 @@
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(car (nome umidita_pavimento) (valore si))
 	(car (nome impianti_umidita) (valore no))
 	(car (nome piano_terra) (valore no))
@@ -345,7 +341,6 @@
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome piatrelle_scheggiate_pavimento) (valore molte))
@@ -359,7 +354,6 @@
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome piatrelle_scheggiate_pavimento) (valore poche))
@@ -373,7 +367,6 @@
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome rumore_al_calpestio) (valore si))
@@ -387,7 +380,6 @@
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome polvere_sulle_fughe) (valore si))
@@ -395,7 +387,7 @@
 	(bind ?*soluzione* "Usa un impermeabilizzante per ricoprire le fughe.")
 	(assert (lavoro)))
 
-;-------------------------------------------------------------------------------------------
+;-------------------------RIVESTIMENTO----------------------------
 (defrule muri_non_a_piombo
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
@@ -407,7 +399,7 @@
 	(car (nome presenza_rivestimento) (valore no))
 	(car (nome muri_a_piombo) (valore no))
 	=>
-	(bind ?*soluzione* "Aggiustare i muri per garantire una buona posa")
+	(bind ?*soluzione* "Aggiustare i muri per garantire una buona posa.")
 	(assert (lavoro)))
 
 (defrule fondo_gesso_rasato_bagno
@@ -526,74 +518,20 @@
 	(assert (lavoro)))
 
 
-;RINNOVO
 ;- si possono usare pavimenti adesivi (multistrato adesivo) o resina o gres ultrasottile in modo da non modificare gli infissi e le porte
 ;- Se c'è umidità perenne meglio pavimento con fughe adeguate
-;
-;PROBLEMA
-;
+
 ;Chiedi a cosa è adibito il locale?
-;Riscaldamento a pavimento? (interno)
-;Ci sono impianti che passano sotto il pavimento o i muri?
-;Materiale pavimento presente
+
 ;Spessore fughe
-;Il vicino sotto si lamenta dei rumori?
-;Ci sono macchie sui muri o sulle piastrelle, le pasitrelle si sollevano o non sono tanto aderenti?
+
 ;Piastrelle alzate o scheggiate [cause: mancanza di giunto di dilatazione ogni 25 mquadri, umidità, tubature idriche con perdite, collante non posto bene]
-;fughe che rilasciano polvere -> applica sigillante
-;
-;
-;
-;
-;
-;Se c'è riscaldamento a pavimento meglio fughe adeguate
-;
-;in caso di cucina può esserci anche solo una fascia di rivestimento
-;
-;Resina prevede un pavimento sottostante in perfette condizioni
-;
-;Il laminato non conviene se il pavimento non è a livello o si è crepato o ci sono piastrelle che si alzano
-;
-;Se il massetto in calcestruzzo è presente occorre farlo asciugare un paio di giorni
-;
-;In caso di posa con colla su pavimento esistente, si rende ruvido il pavimento sottostante e si pone un aggrappante
-;
-;La posa del rivestimento deve avvenire su intonaco grezzo (sabbia e cemento) o su rasato con gesso (preventivamente pitturato con pittura idrorepellente) o su muro pitturato
-;
-;Se il pavimento è tappezzato o con parquet, occorre toglierlo (rifacimento)
-; 
-;Se il rivestimento è tappezzato, occorre toglierlo (rifacimento)
-;
-;
-;SE lavoro_pavimento
-;	Controlla squadro
-;		SE buono allora procedi normalmente
-;		ALTRIMENTI consiglia posa in diagonale oppure uso piastrelle piccole per camuffare imperfezioni
-;
-;SE lavoro_piastrelle
-;	Controlla piombo muri
-;		SE non a piombo
-;			aggiusta muri
-;		ALTRIMENTI
-;			usa piastrelle piccole per camuffare imperfezioni
-;
-;SE esterno
-;	pavimento antiscivolo e idrorepellente, uso di ceramica e gres o clinker
-;	uso di stucco per esterni (impermeabile)
-;
-;SE riscaldamento a pavimento
-;	no parquet perchè conduce meno il calore
-;	posatura galleggiante
-;	aspettare 3 giorni per la chiusura del riscaldamento
-;	aspettare altri 5 giorni per far stabilizzare il paviemnto
-;
-;SE rinfrescare pavimento
-;	Controllo pavimento esistente SE buono
+
 ;		Usa pavimenti adesivi o resina [perchè evita di dover fare modifiche alle porte, economici, posa su pavimento esistente]
+
 ;	ALTRIMENTI rifai pavimento
-;
-;SE rivestimento
-;	bicottura e ceramica
-;
-;SE spostamento sanitari (bagno)
-;	rompi sia muro che paviemtno, togli massetto e pavimento se presenti
+
+
+
+
+

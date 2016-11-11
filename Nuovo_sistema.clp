@@ -417,7 +417,9 @@
 				 else (assert (car (nome presenza_massetto) (valore no))))))
 
 
+
 ; /-----------------MASSETTO-----------------/
+
 (defrule domanda_massetto_non_presente_impianti
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -552,29 +554,18 @@
 		else (assert (car (nome muri_a_squadra) (valore no)))))
 
 
+
 ; /-----------------PAVIMENTO-----------------/
-(defrule domanda_intenzioni_pavimento
-	(preparazione_utente alta | bassa)
-	(not (lavoro))
-	(not (car (nome tipo_lavoro_pavimento) (valore ?)))
-
-	(car (nome presenza_pavimento) (valore si))
-	=>
-	(bind ?risposta (ask_question "Vuoi rinnovare il pavimento esistente o c'è un problema ad esso legato?" rinnovo risoluzione_problema))
-	(assert (car (nome tipo_lavoro_pavimento) (valore ?risposta))))
-
-;-------------------------rinnovo-----------------------
 
 (defrule domanda_tipo_pavimento_presente_interno
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome tipo_pavimento_presente) (valore ?)))
 
-	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle parquet marmo moquette))
+	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo moquette))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
 (defrule domanda_tipo_pavimento_presente_esterno
@@ -582,114 +573,96 @@
 	(not (lavoro))
 	(not (car (nome tipo_pavimento_presente) (valore ?)))
 
-	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
 	=>
 	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
-(defrule domanda_livello_pavimento_esistente
+(defrule domanda_livello_pavimento_esistente_interno
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome pavimento_livello) (valore ?)))
 
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
 	(bind ?risposta (yes_or_no_p "Il pavimento presente è a livello?"))
 	(if ?risposta
 		then (assert (car (nome pavimento_livello) (valore si)))
 		else (assert (car (nome pavimento_livello) (valore no)))))
 
-(defrule domanda_pendenza_pavimento_esistente
+(defrule domanda_pendenza_pavimento_esistente_esterno
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome pendenza_pavimento) (valore ?)))
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
 	(bind ?risposta (yes_or_no_p "Il pavimento ha la giusta pendenza di 1,5 cm ogni due metri lineari?"))
 	(if ?risposta
 		then (assert (car (nome pendenza_pavimento) (valore si)))
 		else (assert (car (nome pendenza_pavimento) (valore no)))))
 
-(defrule domanda_piastrelle_sollevate_interno
+(defrule domanda_piastrelle_sollevate_pavimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome piastrelle_sollevate_pavimento) (valore ?)))
 
-	(car (nome luogo) (valore interno))
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
-	(car (nome pavimento_livello) (valore si))
 	=>
-	(bind ?risposta (yes_or_no_p "Sono presenti molte piastrelle sollevate o non aderenti nel pavimento (in numero maggiore di 10)?"))
+	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel pavimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_pavimento) (valore si)))
 		else (assert (car (nome piastrelle_sollevate_pavimento) (valore no)))))
 
-(defrule domanda_piastrelle_sollevate_esterno
+(defrule domanda_piastrelle_scheggiate_pavimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
-	(not (car (nome piastrelle_sollevate_pavimento) (valore ?)))
+	(not (car (nome piastrelle_scheggiate_rotte_pavimento) (valore ?)))
 
-	(car (nome luogo) (valore esterno))
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
-	(car (nome pendenza_pavimento) (valore si))
 	=>
-	(bind ?risposta (yes_or_no_p "Sono presenti molte piastrelle sollevate o non aderenti nel pavimento (in numero maggiore di 10)?"))
-	(if ?risposta
-		then (assert (car (nome piastrelle_sollevate_pavimento) (valore si)))
-		else (assert (car (nome piastrelle_sollevate_pavimento) (valore no)))))
+	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate o rotte nel pavimento?"))
+	(if ?risposta1
+		then (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate o rotte?"))
+			 (if ?risposta2
+				 then (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore molte)))
+				 else (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore poche))))
+		else (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore no)))))
 
-;----------------------------------problema pavimento--------------------------------
-
-(defrule domanda_tipo_pavimento_presente_interno
+(defrule domanda_moquette_rovinata
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
-	(not (car (nome tipo_pavimento_presente) (valore ?)))
+	(not (car (nome moquette_danneggiata) (valore ?)))
 
-	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(car (nome luogo) (valore interno))
-	=>
-	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle parquet marmo moquette))
-	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
-
-(defrule domanda_tipo_pavimento_presente_esterno
-	(preparazione_utente alta | bassa)
-	(not (lavoro))
-	(not (car (nome tipo_pavimento_presente) (valore ?)))
-
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
-	(car (nome luogo) (valore esterno))
+	(car (nome tipo_pavimento_presente) (valore moquette))
 	=>
-	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo))
-	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
+	(bind ?risposta (yes_or_no_p "La moquette è rovinata?"))
+	(if ?risposta
+		then (assert (car (nome moquette_danneggiata) (valore si)))
+		else (assert (car (nome moquette_danneggiata) (valore no)))))
 
 (defrule umidita_pavimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome umidita_pavimento) (valore ?)))
 
+	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	=>
-	(bind ?risposta (yes_or_no_p "È presente umidità nelle fughe o diverse piastrelle non aderiscono?"))
+	(bind ?risposta (yes_or_no_p "C'è evidente umidità? (Fughe di colore più scuro, le piastrelle non aderiscono, moquette bagnata)"))
 	(if ?risposta 
 		then (assert (car (nome umidita_pavimento) (valore si)))
 		else (assert (car (nome umidita_pavimento) (valore no)))))
@@ -699,8 +672,8 @@
 	(not (lavoro))
 	(not (car (nome impianti_umidita) (valore ?)))
 
+	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(car (nome umidita_pavimento) (valore si))
 	=>
 	(bind ?*help* "Controllare nei progetti della casa se nella stanza dove si sta lavorando passano degli impianti sotto il pavimento o nei muri.")
@@ -715,8 +688,8 @@
 	(not (lavoro))
 	(not (car (nome piano_terra) (valore ?)))
 
+	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(car (nome umidita_pavimento) (valore si))
 	(car (nome impianti_umidita) (valore no))
 	=>
@@ -725,28 +698,12 @@
 		then (assert (car (nome piano_terra) (valore si)))
 		else (assert (car (nome piano_terra) (valore no)))))
 
-(defrule domanda_piastrelle_scheggiate
-	(preparazione_utente alta | bassa)
-	(not (lavoro))
-	(not (car (nome piatrelle_scheggiate_pavimento) (valore ?)))
-
-	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
-	=>
-	(bind ?risposta (yes_or_no_p "Ci sono piastrelle difettate (scheggiate o sollevate) in numero maggiore di 10?"))
-	(if ?risposta
-		then (assert (car (nome piatrelle_scheggiate_pavimento) (valore molte)))
-		else (assert (car (nome piatrelle_scheggiate_pavimento) (valore poche)))))
-
 (defrule domanda_rumore_calpestio_piastrelle_marmo
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome rumore_calpestio) (valore ?)))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
@@ -761,16 +718,18 @@
 	(not (car (nome polvere_sulle_fughe) (valore ?)))
 
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
-	(bind ?risposta (yes_or_no_p "C'è polvere sulle fughe?"))
+	(bind ?risposta (yes_or_no_p "C'è polvere sulle fughe del pavimento?"))
 	(if ?risposta
 		then (assert (nome polvere_sulle_fughe) (valore si))
 		else (assert (nome polvere_sulle_fughe) (valore no))))
 
+
+
 ; /-----------------RIVESTIMENTO-----------------/
+
 (defrule domanda_muri_a_piombo
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -811,7 +770,7 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
-	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate?"))
+	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel rivestimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_rivestimento) (valore si)))
 		else (assert (car (nome piastrelle_sollevate_rivestimento) (valore no)))))
@@ -826,7 +785,7 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
-	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate?"))
+	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate nel rivestimento?"))
 	(if ?risposta1
 		then (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate?"))
 			 (if ?risposta2
@@ -897,58 +856,3 @@
 	(retract ?f)
 	(chiedi_cambio_scelte_lavoro "Inserisci il numero della scelta che vuoi modificare o 't' per terminare o 'c' per continuare: "))
 
-
-
-
-;(defrule domanda_umidita
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;	(not (car (nome umidita) (valore ?)))
-;
-;	(car (nome luogo) (valore interno))
-;	=>
-;	(bind ?*help* "Rispondere 'si' se sono presenti macchie di umidità sui muri o sulle fughe ;tra le piastrelle.")
-;	(bind ?*spiegazione* "Se c'è umidità allora bisogna eliminare tale problema, altrimenti la ;posa delle piastrelle potrebbe non essere duratura.")
-;	(bind ?risposta (yes_or_no_p "Hai problemi di umidità?"))
-;	(if ?risposta
-;		then (assert (car (nome umidita) (valore si)))
-;		else (assert (car (nome umidita) (valore no)))))
-;
-;(defrule domanda_impianti_umidita
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;	(not (car (nome impianti_umidita) (valore ?)))
-;
-;	(car (nome umidita) (valore si))
-;	=>
-;	(bind ?*help* "Controllare nei progetti della casa se nella stanza dove si sta lavorando ;passano degli impianti sotto il pavimento o nei muri.")
-;	(bind ?*spiegazione* "Se passano dei tubi, potrebbe significare che qualcuno di essi è ;rotto e causa l'umidità.")
-;	(bind ?risposta (ask_question "Passano dei tubi di acqua, fognatura o riscaldamento sotto ;il pavimento o nei muri?" si no non_so))
-;	(if (eq ?risposta no)
-;		then (assert (car (nome impianti_umidita) (valore no)))
-;		else (assert (car (nome impianti_umidita) (valore si)))))
-;
-;(defrule domanda_piano_terra
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;	(not (car (nome piano_terra) (valore ?)))
-;
-;	(car (nome impianti_umidita) (valore no))
-;	=>
-;	(bind ?risposta (yes_or_no_p "Ci si trova a piano terra?"))
-;	(if ?risposta
-;		then (assert (car (nome piano_terra) (valore si)))
-;		else (assert (car (nome piano_terra) (valore no)))))
-;			
-;(defrule domanda_locale_commerciale
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;	(not (car (nome locale_commerciale) (valore ?)))
-;
-;	(car (nome luogo) (valore interno))
-;	(car (nome tipo_stanza) (valore altro))
-;	=>
-;	(bind ?risposta (yes_or_no_p "Il locale è di tipo commerciale?"))
-;	(if ?risposta
-;		then (assert (car (nome locale_commerciale) (valore si)))
-;		else (assert (car (nome locale_commerciale) (valore no)))))
