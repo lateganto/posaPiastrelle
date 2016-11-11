@@ -400,7 +400,8 @@
 	(car (nome muri_a_piombo) (valore no))
 	=>
 	(bind ?*soluzione* "Aggiustare i muri per garantire una buona posa.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 (defrule fondo_gesso_rasato_bagno
 	(declare (salience ?*high_priority*))
@@ -414,7 +415,8 @@
 	(car (nome sottofondo_muri) (valore gesso_rasato))
 	=>
 	(bind ?*soluzione* "Devi passare prima una mano di idropittura, farla asciugare e poi iniziare con la posa.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 (defrule fondo_gesso_rasato_cucina
 	(declare (salience ?*high_priority*))
@@ -428,7 +430,8 @@
 	(car (nome sottofondo_muri) (valore gesso_rasato))
 	=>
 	(bind ?*soluzione* "Devi passare prima una mano di idropittura, farla asciugare e poi iniziare con la posa. Considera che si può anche effettuare la posa delle piastrelle nella fascia dietro la cucina.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 (defrule fondo_ok_cucina
 	(declare (salience ?*high_priority*))
@@ -443,7 +446,8 @@
 		(car (nome sottofondo_muri) (valore sabbia_e_cemento)))
 	=>
 	(bind ?*soluzione* "Puoi iniziare la posa ricordando che puoi anche posare le piastrelle nella fascia dietro la cucina invece di posarle per tutto i muri.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 (defrule fondo_ok_bagno
 	(declare (salience ?*high_priority*))
@@ -472,7 +476,8 @@
 	(car (nome piastrelle_sollevate_rivestimento) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi il rivestimento esistente e rifallo.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 (defrule piastrelle_scheggiate_rivestimento_poche
 	(declare (salience ?*high_priority*))
@@ -486,7 +491,8 @@
 	(car (nome piastrelle_scheggiate_rivestimento) (valore poche))
 	=>
 	(bind ?*soluzione* "Puoi sostituire le piastrelle scheggiate con delle nuove se le possiedi (fai attenzione alla diversa tonalità che potrebbe esserci tra le piastrelle vecchie e quella nuova con cui fare il rattoppo). Altrimenti sostituisci tutto il rivestimento.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 (defrule piastrelle_scheggiate_rivestimento_molte
 	(declare (salience ?*high_priority*))
@@ -500,7 +506,8 @@
 	(car (nome piastrelle_scheggiate_rivestimento) (valore molte))
 	=>
 	(bind ?*soluzione* "Sostituisci tutto il rivestimento.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 (defrule rivestimento_buone_condizioni
 	(declare (salience ?*high_priority*))
@@ -515,7 +522,8 @@
 	(car (nome piastrelle_sollevate_rivestimento) (valore no))
 	=>
 	(bind ?*soluzione* "Il pavimento è in buone condizioni potresti anche rinnovarlo usando gli adesivi in pvc.")
-	(assert (lavoro)))
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
 
 
 ;- si possono usare pavimenti adesivi (multistrato adesivo) o resina o gres ultrasottile in modo da non modificare gli infissi e le porte

@@ -759,7 +759,6 @@
 	(bind ?risposta (ask_question "Come è realizzato il fondo" gesso_rasato muro_pitturato sabbia_e_cemento))
 	(assert (car (nome sottofondo_muri) (valore ?risposta))))
 
-
 (defrule domanda_piastrelle_sollevate_rivestimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -807,6 +806,7 @@
 (defrule lavoro_trovato
 	(declare (salience ?*high_priority*))
 	(lavoro)
+	(not (rivestimento_parte_due))
 	=>
 	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
 	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
@@ -829,6 +829,38 @@
 	(switch ?risposta
 		(case 1 then (assert (rivedi_scelte_lavoro)))
 		(case 2 then (halt))))
+
+(defrule lavoro_trovato_rivestimento
+	(declare (salience ?*high_priority*))
+	?l <- (lavoro)
+	(rivestimento_parte_due)
+	=>
+	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
+	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
+	(if (neq (length$ ?*spiegazione*) 0)
+		then (format t (str-cat "%n>>>SPIEGAZIONE:%n" ?*spiegazione* "%n")))
+	(if (neq (length$ ?*help*) 0) 
+		then (format t (str-cat "%n>>>AIUTO:%n" ?*help* "%n")))
+
+
+	(printout t crlf "Digita il numero corrispondente alla scelta:" crlf
+				"(1) Continua con parte del pavimento" crlf
+				"(2) Rivedi scelte o modifica" crlf 
+				"(3) Termina"crlf)
+
+	(printout t "Scelta: ")
+	(bind ?risposta (read))
+	(while (or (< ?risposta 1) (> ?risposta 3))
+		(printout t "Risposta: ")
+		(bind ?risposta (read)))
+
+	(switch ?risposta
+		(case 1 then 
+			(do-for-all-facts ((?f car)) (not (or (eq ?f:nome presenza_pavimento) (eq ?f:nome presenza_massetto) (eq ?f:nome luogo) (eq ?f:nome tipo_stanza))) 
+				(retract ?f))
+			(retract ?l))
+		(case 2 then (assert (rivedi_scelte_lavoro)))
+		(case 3 then (halt))))
 
 (defrule lavoro_non_trovato
 	(declare (salience ?*lowest_priority*))
