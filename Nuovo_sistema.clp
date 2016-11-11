@@ -770,8 +770,69 @@
 		then (assert (nome polvere_sulle_fughe) (valore si))
 		else (assert (nome polvere_sulle_fughe) (valore no))))
 
-; /-----------------PAVIMENTO-----------------/
+; /-----------------RIVESTIMENTO-----------------/
+(defrule domanda_muri_a_piombo
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome muri_a_piombo) (valore ?)))
 
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore no))
+	=>
+	(bind ?risposta (yes_or_no_p "I muri sono a piombo?"))
+	(if ?risposta
+		then (assert (car (nome muri_a_piombo) (valore si)))
+		else (assert (car (nome muri_a_piombo) (valore no)))))
+
+(defrule domanda_fondo_muri
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome sottofondo_muri) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore no))
+	(car (nome muri_a_piombo) (valore si))
+	=>
+	(bind ?risposta (ask_question "Come è realizzato il fondo" gesso_rasato muro_pitturato sabbia_e_cemento))
+	(assert (car (nome sottofondo_muri) (valore ?risposta))))
+
+
+(defrule domanda_piastrelle_sollevate_rivestimento
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome piastrelle_sollevate_rivestimento) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore si))
+	=>
+	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate?"))
+	(if ?risposta
+		then (assert (car (nome piastrelle_sollevate_rivestimento) (valore si)))
+		else (assert (car (nome piastrelle_sollevate_rivestimento) (valore no)))))
+
+(defrule domanda_piastrelle_scheggiate_rivestimento
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome piastrelle_scheggiate_rivestimento) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore si))
+	=>
+	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate?"))
+	(if ?risposta1
+		then (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate?"))
+			 (if ?risposta2
+				 then (assert (car (nome piastrelle_scheggiate_rivestimento) (valore molte)))
+				 else (assert (car (nome piastrelle_scheggiate_rivestimento) (valore poche))))
+		else (assert (car (nome piastrelle_scheggiate_rivestimento) (valore no)))))
 
 
 
