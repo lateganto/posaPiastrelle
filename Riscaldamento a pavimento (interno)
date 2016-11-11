@@ -1,52 +1,3 @@
-;(defrule umidita_impianti
-;	(declare (salience ?*high_priority*))
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;
-;	(car (nome umidita) (valore si))
-;	(car (nome impianti_umidita) (valore si))
-;	=>
-;	(bind ?*soluzione* "L'umidità potrebbe essere causata da impianti idrici guasti, rimuovi il ;massetto e il pavimento (se presenti) e chiama uno specialista (idraulico).")
-;	(bind ?*spiegazione* "")
-;	(bind ?*help* "")
-;	(assert (lavoro)))
-;
-;(defrule umidita_piano_terra
-;	(declare (salience ?*high_priority*))
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;
-;	(car (nome umidita) (valore si))
-;	(car (nome impianti_umidita) (valore no))
-;	(car (nome piano_terra) (valore si))
-;	=>
-;	(bind ?*soluzione* "L'umidità potrebbe essere causata dal sottosuolo, occorre rimuovere il ;pavimento e il massetto (se presenti) e procedere alla impermeabilizzazione del nuovo ;pavimento che deve essere fatto.")
-;	(assert (lavoro)))
-;
-;(defrule umidita_no_piano_terra
-;	(declare (salience ?*high_priority*))
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;
-;	(car (nome umidita) (valore si))
-;	(car (nome impianti_umidita) (valore no))
-;	(car (nome piano_terra) (valore no))
-;	=>
-;	(bind ?*soluzione* "L'umidità potrebbe essere quella di risalita dai muri, bisogna ;impermeabilizzare il muro in modo da non far salire l'umidità.")
-;	(assert (lavoro)))
-;
-;(defrule umidita
-;	(declare (salience ?*high_priority*))
-;	(preparazione_utente alta | bassa)
-;	(not (lavoro))
-;
-;	(car (nome umidita) (valore si))
-;	(car (nome impianti_umidita) (valore no))
-;	(car (nome piano_terra) (valore no))
-;	=>
-;	(bind ?*soluzione* "L'umidità proviene dall'interno, in particolare da un muro che non ;lascia traspirare l'aria, rimuovi l'intonaco esistente e rifallo.")
-;	(assert (lavoro)))
-
 ;-------------------------------------------------------------------------------------------
 (defrule no_impianti_fatti
 	(declare (salience ?*high_priority*))
@@ -70,13 +21,13 @@
 	(bind ?*soluzione* "Procedi alla realizzazione del massetto")
 	(assert (lavoro)))
 
-(defrule massetto_non_asciutto
+(defrule massetto_fresco
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore no))
+	(car (nome massetto_fresco) (valore si))
 	=>
 	(bind ?*soluzione* "Il massetto deve prima asciugare, non si può continuare con il lavoro.")
 	(assert (lavoro)))
@@ -87,7 +38,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore si))
 	=>
 	(bind ?*soluzione* "Il massetto è fragile, occorre rimuoverlo e rifarlo.")
@@ -99,7 +50,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore interno))
 	(car (nome massetto_a_livello) (valore no))
@@ -113,7 +64,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore interno))
 	(car (nome massetto_a_livello) (valore si))
@@ -129,7 +80,7 @@
 	(not (lavoro))
 	
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore interno))
 	(car (nome massetto_a_livello) (valore si))
@@ -145,7 +96,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore interno))
 	(car (nome massetto_a_livello) (valore si))
@@ -161,7 +112,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore esterno))
 	(car (nome pendenza_massetto) (valore no))
@@ -175,7 +126,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore esterno))
 	(car (nome pendenza_massetto) (valore si))
@@ -190,7 +141,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome massetto_a_livello) (valore si))
 	(car (nome luogo) (valore interno))
@@ -208,7 +159,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome massetto_a_livello) (valore si))
 	(car (nome luogo) (valore interno))
@@ -226,7 +177,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome massetto_a_livello) (valore si))
 	(car (nome luogo) (valore interno))
@@ -243,7 +194,7 @@
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
-	(car (nome massetto_asciutto) (valore si))
+	(car (nome massetto_fresco) (valore no))
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore esterno))
 	(car (nome pendenza_massetto) (valore si))
@@ -252,6 +203,199 @@
 	(bind ?*soluzione* "Comincia con la posa del pavimento.")
 	(assert (lavoro)))
 
+;---------------------------------------------------------------------------------
+(defrule posa_sopra_si_piastrelle
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(or (car (nome pavimento_livello) (valore si))
+		(car (nome pendenza_pavimento) (valore si)))
+	(car (nome piastrelle_sollevate_pavimento) (valore no))
+	=>
+	(bind ?*soluzione* "Puoi optare per la posa sopra usando anche pavimenti ultra sottili come il gres o il multistrato adesivo.")
+	(assert (lavoro)))
+
+(defrule posa_sopra_no_piastrelle_interno1
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome pavimento_livello) (valore no))
+	=>
+	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
+	(assert (lavoro)))
+
+(defrule posa_sopra_no_piastrelle_esterno1
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome pendenza_pavimento) (valore no))
+	=>
+	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
+	(assert (lavoro)))
+
+(defrule posa_sopra_no_piastrelle_interno2
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome pavimento_livello) (valore si))
+	(car (nome piastrelle_sollevate_pavimento) (valore si))
+	=>
+	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
+	(assert (lavoro)))
+
+(defrule posa_sopra_no_piastrelle_esterno2
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome pendenza_pavimento) (valore si))
+	(car (nome piastrelle_sollevate_pavimento) (valore si))
+	=>
+	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
+	(assert (lavoro)))
+
+(defrule rimozione_pavimento_obbligatoria
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore rinnovo))
+	(or (car (nome tipo_pavimento_presente) (valore parquet))
+		(car (nome tipo_pavimento_presente) (valore moquette)))
+	=>
+	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
+	(assert (lavoro)))
+
+;-------------------------------------------------------------------------------------------
+
+(defrule umidita_impianti
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
+	(car (nome umidita_pavimento) (valore si))
+	(car (nome impianti_umidita) (valore si))
+	=>
+	(bind ?*soluzione* "L'umidità potrebbe essere causata da impianti idrici guasti, rimuovi il massetto e il pavimento e chiama uno specialista (idraulico).")
+	(assert (lavoro)))
+
+(defrule umidita_piano_terra
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
+	(car (nome umidita_pavimento) (valore si))
+	(car (nome impianti_umidita) (valore no))
+	(car (nome piano_terra) (valore si))
+	=>
+	(bind ?*soluzione* "L'umidità potrebbe essere causata dal sottosuolo, occorre rimuovere il pavimento e il massetto (se presenti) e procedere alla impermeabilizzazione del nuovo pavimento che deve essere fatto.")
+	(assert (lavoro)))
+
+(defrule umidita_no_piano_terra
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
+	(car (nome umidita_pavimento) (valore si))
+	(car (nome impianti_umidita) (valore no))
+	(car (nome piano_terra) (valore no))
+	=>
+	(bind ?*soluzione* "L'umidità potrebbe essere quella di risalita dai muri, bisogna impermeabilizzare il muro in modo da non far salire l'umidità.")
+	(assert (lavoro)))
+
+(defrule piastrelle_scheggiate_molte
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome piatrelle_scheggiate_pavimento) (valore molte))
+	=>
+	(bind ?*soluzione* "Sostituisci il pavimento poichè le piastrelle scheggiate sono troppe.")
+	(assert (lavoro)))
+
+(defrule piastrelle_scheggiate_poche
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome piatrelle_scheggiate_pavimento) (valore poche))
+	=>
+	(bind ?*soluzione* "Puoi optare per la sostituzione a patto che tu abbia qualche piastrella disponibile.")
+	(assert (lavoro)))
+
+(defrule rumore_calpestio
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome rumore_al_calpestio) (valore si))
+	=>
+	(bind ?*soluzione* "Il pavimento è stato posto senza un opportuno spazio di assestamento lungo il perimetro dei muri, per risolverlo occorre rimuovere il pavimento.")
+	(assert (lavoro)))
+
+(defrule fughe_polvere
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(car (nome presenza_pavimento) (valore si))
+	(car (nome tipo_lavoro_pavimento) (valore risoluzione_problema))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome polvere_sulle_fughe) (valore si))
+	=>
+	(bind ?*soluzione* "Usa un impermeabilizzante per ricoprire le fughe.")
+	(assert (lavoro)))
+
+;-------------------------------------------------------------------------------------------
 
 ;RINNOVO
 ;- si possono usare pavimenti adesivi (multistrato adesivo) o resina o gres ultrasottile in modo da non modificare gli infissi e le porte
