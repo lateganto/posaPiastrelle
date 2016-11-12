@@ -159,8 +159,9 @@
 
 	(bind ?fact-name (fact-slot-value ?f nome))
 	(switch ?fact-name
+		;----------fatti iniziali----------
 		(case luogo
-			then (progn$ (?f1 (get-all-facts-by-names car)) ;elimina tutti i fatti di tipo caratteristica
+			then (do-for-all-facts ((?f1 car)) TRUE ;elimina tutti i fatti di tipo caratteristica
 					(retract ?f1)))
 		(case tipo_stanza
 			then (do-for-all-facts ((?f1 car)) (neq ?f1:valore interno) ;elimina tutti i fatti tranne interno
@@ -174,24 +175,53 @@
 		(case presenza_massetto
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
 					(retract ?f1)))
-		(case umidita
-			then (do-for-all-facts ((?f1 car)) (neq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) ;elimina tutti i fatti tranne interno
-					(retract ?f1)))
-		(case impianti_umidita
-			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome umidita))) ;elimina tutti i fatti tranne interno e umidità e tipo_stanza
-					(retract ?f1)))
-		(case rifacimento_impianti
-			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_pavimento))) ;elimina tutti i fatti tranne interno/esterno e tipo_stanza
-					(retract ?f)))
 
-		(case massetto_friabile
-			then (retract ?f))
-		(case pavimento_da_raccordare
-			then (do-for-all-facts ((?f1 car)) (eq ?f1:nome massetto_altezza)
+		;------------massetto----------
+		(case impianti_fatti
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto)))
+					(retract ?f1)))
+		(case massetto_fresco
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto)))
+					(retract ?f1)))
+		(case massetto_fragile
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco)))
 					(retract ?f1)))
 		(case massetto_a_livello
-			then (do-for-all-facts ((?f1 car)) (eq ?f1:nome massetto_altezza)
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile))) 
 					(retract ?f1)))
+		(case pavimento_da_raccordare
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello)))
+					(retract ?f1)))
+		(case altezza_massetto
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello) (eq ?f1:nome pavimento_da_raccordare)))
+					(retract ?f1)))
+		(case spessore_pavimento
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello) (eq ?f1:nome pavimento_da_raccordare)))
+					(retract ?f1)))
+		(case pendenza_massetto
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello)))
+					(retract ?f1)))
+		(case tipo_pavimento_da_porre
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello) (eq ?f1:nome pavimento_da_raccordare)
+				(eq ?f1:nome spessore_pavimento) (eq ?f1:nome altezza_massetto)))
+					(retract ?f1)))
+		(case muri_a_squadra
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello) (eq ?f1:nome pavimento_da_raccordare)
+				(eq ?f1:nome spessore_pavimento) (eq ?f1:nome altezza_massetto) (eq ?f1:nome pendenza_massetto) (eq ?f1:nome tipo_pavimento_da_porre)))
+					(retract ?f1)))
+
+		;------------PAVIMENTO------------
+		(case tipo_pavimento_presente
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_pavimento) (eq ?f1:nome pavimento_livello) (eq ?f1:nome pendenza_pavimento) (eq ?f1:nome umidita_pavimento) (eq ?f1:nome impianti_umidita) (eq ?f1:nome piano_terra)))
+				(retract ?f1)))
+		(case umidita_pavimento
+			then (do-for-all-facts ((?f1 car)) (or (eq ?f1:nome impianti_umidita) (eq ?f1:nome piano_terra))
+				(retract ?f1)))
+
+		;-----------RIVESTIMENTO-----------
+		(case muri_a_piombo
+			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_rivestimento)))
+				(retract ?f1)))
 
 	 	(default (retract ?f))))
 
@@ -480,7 +510,7 @@
 	(car (nome presenza_massetto) (valore si))
 	(car (nome luogo) (valore interno))
 	=>
-	(bind ?risposta (yes_or_no_p "È presente una stanza adiacente a questa in si cui intende lavorare in cui è presente già un pavimento?"))
+	(bind ?risposta (yes_or_no_p "È presente una stanza adiacente a questa in cui è presente già un pavimento?"))
 	(if ?risposta
 		then (assert (car (nome pavimento_da_raccordare) (valore si)))
 		else (assert (car (nome pavimento_da_raccordare) (valore no)))))
@@ -565,7 +595,7 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo))
+	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo parquet))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
 (defrule domanda_tipo_pavimento_presente_esterno
@@ -748,6 +778,21 @@
 	=>
 	(bind ?risposta (ask_question "Come è realizzato il fondo" gesso_rasato muro_pitturato sabbia_e_cemento))
 	(assert (car (nome sottofondo_muri) (valore ?risposta))))
+
+(defrule domanda_rivestimento_a_piombo
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome rivestimento_a_piombo) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore si))
+	=>
+	(bind ?risposta (yes_or_no_p "Il rivestimento presente è a piombo?"))
+	(if ?risposta
+		then (assert (car (nome rivestimento_a_piombo) (valore si)))
+		else (assert (car (nome rivestimento_a_piombo) (valore no)))))
 
 (defrule domanda_piastrelle_sollevate_rivestimento
 	(preparazione_utente alta | bassa)

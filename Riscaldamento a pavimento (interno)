@@ -494,10 +494,11 @@
 	(or (car (nome tipo_stanza) (valore bagno))
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
+	(car (nome rivestimento_a_piombo) (valore si))
 	(car (nome piastrelle_scheggiate_rivestimento) (valore no))
 	(car (nome piastrelle_sollevate_rivestimento) (valore no))
 	=>
-	(bind ?*soluzione* "Il pavimento è in buone condizioni potresti anche rinnovarlo usando gli adesivi in pvc.")
+	(bind ?*soluzione* "Il pavimento è in buone condizioni potresti anche rinnovarlo usando gli adesivi in PVC.")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
 
