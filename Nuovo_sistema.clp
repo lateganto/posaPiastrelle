@@ -531,9 +531,9 @@
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore interno))
 	=>
-	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare che se un piano è perfettamente orizzontale.")
+	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare se un piano è perfettamente orizzontale o verticale.")
 	(bind ?*spiegazione* "Se il massetto non è a livello o è irregolare occorre rifarlo altrimenti non lo sarà nemmeno il pavimento che verrà posto sopra.")
-	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul pavimento, poni sopra essa una livella e verifica in vari punti della stanza, in modo %nda coprire tutta l'area, che la posizione della bolla sulla livella sia sempre centrale. %n%nIn tutte le misurazioni, la posizione della bolla è sempre in posizione centrale e la stadia poggia perfettamente?"))
+	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul massetto, poni sopra essa una livella e verifica in vari punti della stanza, in modo %nda coprire tutta l'area, che la posizione della bolla sulla livella sia sempre centrale e che la stadia poggi perfettamente. %n%nIn tutte le misurazioni, la posizione della bolla è sempre centrale e la stadia poggia perfettamente?"))
 	(if ?risposta
 		then (assert (car (nome massetto_a_livello) (valore si)))
 		else (assert (car (nome massetto_a_livello) (valore no)))))
@@ -591,7 +591,7 @@
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore esterno))
 	=>
-	(bind ?*help* "Prendi una stadia in alluminio e ponila nella stessa direzione in cui dovrà essere lo scolo dell'acqua. All'estremità più bassa della %nstadia inserisci tra essa e il pavimento uno spessore di 1,5 cm e poni sopra di essa una livella verificando che la bolla sia in posizione %ncentrale. Ripeti l'operazione più volte per coprire tutta l'area.")
+	(bind ?*help* "Prendi una stadia in alluminio e ponila nella stessa direzione in cui dovrà essere lo scolo dell'acqua. All'estremità più bassa della %nstadia inserisci tra essa e il pavimento uno spessore di 1,5 cm e poni sopra di essa una livella verificando che la bolla sia in posizione %ncentrale e che la stadia poggi perfettamente. Ripeti l'operazione più volte per coprire tutta l'area.")
 	(bind ?*spiegazione* "Se il massetto non ha la giusta pendenza, non agevola lo scolo dell'acqua causando anche problemi di umidità.")
 	(bind ?risposta (yes_or_no_p "Il massetto ha la giusta pendenza di 1,5 cm ogni due metri lineari e non è irregolare?"))
 	(if ?risposta
@@ -608,9 +608,9 @@
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore esterno))
 	=>
-	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare che se un piano è perfettamente orizzontale.")
+	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare che se un piano è perfettamente orizzontale o verticale.")
 	(bind ?*spiegazione* "Se il massetto non ha la giusta pendenza o è irregolare, non agevola lo scolo dell'acqua causando anche problemi di umidità.")
-	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul pavimento nella direzione in cui dovrà fuoriuscire l'acqua. Verifica che poggi perfettamente. All'estremità più bassa della stadia, inserisci tra essa e il pavimento uno spessore di 1,5 cm. Poni sopra la stadia una livella e verifica in vari punti della stanza, in modo da coprire tutta l'area, che la posizione della bolla sulla livella sia sempre centrale. %n%n In tutte le misurazioni, la posizione della bolla è sempre in posizione centrale e la stadia poggia perfettamente?"))
+	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul massetto nella direzione in cui dovrà fuoriuscire l'acqua. Verifica che %npoggi perfettamente. All'estremità più bassa della stadia, inserisci tra essa e il massetto uno spessore di 1,5 cm. %nPoni sopra la stadia una livella e verifica in vari punti della stanza, in modo da coprire tutta l'area, che la posizione %ndella bolla sulla livella sia sempre centrale e che la stadia poggi perfettamente. %n%nIn tutte le misurazioni, la posizione della bolla è sempre centrale e la stadia poggia perfettamente?"))
 	(if ?risposta
 		then (assert (car (nome pendenza_massetto) (valore si)))
 		else (assert (car (nome pendenza_massetto) (valore no)))))
@@ -644,7 +644,7 @@
 	(or (car (nome altezza_massetto) (valore giusto))
 		(car (nome pendenza_massetto) (valore si)))
 	=>
-	(bind ?*help* "Due muri sono a squadra se, ponendo la squadra (strumento ad angolo di 90°) negli angoli tra due muri, i due elementi di cui essa è composta poggiano perfettamente senza fare movimenti.")
+	(bind ?*help* "Due muri sono a squadra se, ponendo la squadra (strumento ad angolo di 90°) negli angoli tra due muri, i due elementi di cui essa è %ncomposta poggiano perfettamente senza fare movimenti.")
 	(bind ?*spiegazione* "Se i muri non sono a squadra ci sono alcuni tipi di pose da consigliare.")
 	(bind ?risposta (yes_or_no_p "I muri sono a squadra?"))
 	(if ?risposta
@@ -663,8 +663,8 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Indicare quale tra le scelte presenti corrisponde al pavimento presente. Con piastrelle si intendono quelle di qualunque tipo (ceramica, %ngres, cotto, etc)")
+	(bind ?*spiegazione* "In base al tipo di pavimento presente si può fare un lavoro piuttosto che un altro.")
 	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo parquet))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
@@ -676,37 +676,67 @@
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Indica quale tra le scelte presenti corrisponde al pavimento presente. Con piastrelle si intendono quelle di qualunque tipo (ceramica, %ngres, cotto, etc)")
+	(bind ?*spiegazione* "In base al tipo di pavimento presente si può fare un lavoro piuttosto che un altro.")
 	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
-(defrule domanda_livello_pavimento_esistente_interno
-	(preparazione_utente alta | bassa)
+(defrule domanda_livello_pavimento_esistente_interno_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome pavimento_livello) (valore ?)))
 
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
-	(bind ?risposta (yes_or_no_p "Il pavimento presente è a livello?"))
+	(bind ?*help* "Controlla con una stadia in alluminio e una livella poggiata sopra in vari punti della stanza in modo da coprire tutta l'area %ne verifica che la bolla nella livella sia sempre nella posizione centrale e che la stadia poggi perfettamente.")
+	(bind ?*spiegazione* "Se il pavimento non è a livello o è irregolare occorre rimuoverlo.")
+	(bind ?risposta (yes_or_no_p "Il pavimento presente è a livello e non è irregolare?"))
 	(if ?risposta
 		then (assert (car (nome pavimento_livello) (valore si)))
 		else (assert (car (nome pavimento_livello) (valore no)))))
 
-(defrule domanda_pendenza_pavimento_esistente_esterno
-	(preparazione_utente alta | bassa)
+(defrule domanda_livello_pavimento_esistente_interno_non_esperto
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome pavimento_livello) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare se un piano è perfettamente orizzontale o verticale.")
+	(bind ?*spiegazione* "Se il pavimento non è a livello o è irregolare occorre rimuoverlo.")
+	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul pavimento, poni sopra essa una livella e verifica in vari punti della stanza, in modo %nda coprire tutta l'area, che la posizione della bolla sulla livella sia sempre centrale e che la stadia poggi perfettamente. %n%nIn tutte le misurazioni, la posizione della bolla è sempre centrale e la stadia poggia perfettamente?"))
+	(if ?risposta
+		then (assert (car (nome pavimento_livello) (valore si)))
+		else (assert (car (nome pavimento_livello) (valore no)))))
+
+(defrule domanda_pendenza_pavimento_esistente_esterno_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome pendenza_pavimento) (valore ?)))
 
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
-	(bind ?risposta (yes_or_no_p "Il pavimento ha la giusta pendenza di 1,5 cm ogni due metri lineari?"))
+	(bind ?*help* "Prendi una stadia in alluminio e ponila nella stessa direzione dello scolo dell'acqua. All'estremità più bassa della stadia inserisci %ntra essa e il pavimento uno spessore di 1,5 cm e poni sopra di essa una livella verificando che la bolla sia in posizione %ncentrale e che la stadia poggi perfettamente. Ripeti l'operazione più volte per coprire tutta l'area.")
+	(bind ?*spiegazione* "Se il pavimento non ha la giusta pendenza, non agevola lo scolo dell'acqua causando anche problemi di umidità.")
+	(bind ?risposta (yes_or_no_p "Il pavimento ha la giusta pendenza di 1,5 cm ogni due metri lineari e non è irregolare?"))
+	(if ?risposta
+		then (assert (car (nome pendenza_pavimento) (valore si)))
+		else (assert (car (nome pendenza_pavimento) (valore no)))))
+
+(defrule domanda_pendenza_pavimento_esistente_esterno_non_esperto
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome pendenza_pavimento) (valore ?)))
+
+	(car (nome luogo) (valore esterno))
+	(car (nome presenza_pavimento) (valore si))
+	=>
+	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare che se un piano è perfettamente orizzontale o verticale.")
+	(bind ?*spiegazione* "Se il pavimento non ha la giusta pendenza o è irregolare, non agevola lo scolo dell'acqua causando anche problemi di umidità.")
+	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul pavimento nella direzione in cui dovrà fuoriuscire l'acqua. Verifica che %npoggi perfettamente. All'estremità più bassa della stadia, inserisci tra essa e il pavimento uno spessore di 1,5 cm. %nPoni sopra la stadia una livella e verifica in vari punti della stanza, in modo da coprire tutta l'area, che la posizione %ndella bolla sulla livella sia sempre centrale e che la stadia poggi perfettamente. %n%nIn tutte le misurazioni, la posizione della bolla è sempre centrale e la stadia poggia perfettamente?"))
 	(if ?risposta
 		then (assert (car (nome pendenza_pavimento) (valore si)))
 		else (assert (car (nome pendenza_pavimento) (valore no)))))
@@ -722,8 +752,8 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Per piastrelle sollevate si intendono piastrelle che alzate dal pavimento o che non aderiscono più.")
+	(bind ?*spiegazione* "Se ci sono piastrelle sollevate occorre rimuovere il pavimento.")
 	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel pavimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_pavimento) (valore si)))
@@ -740,12 +770,12 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Verificare che ci siano piastrelle con scheggiature (ammaccature) o lesionate.")
+	(bind ?*spiegazione* "Se ci sono piastrelle scheggiate occorre valutare se sostituirle o rimuovere tutto il pavimento.")
 	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate o rotte nel pavimento?"))
 	(if ?risposta1
-		then (bind ?*help* "")
-			 (bind ?*spiegazione* "")
+		then (bind ?*help* "Indicare se ci sono più di due o tre piastrelle rovinate")
+			 (bind ?*spiegazione* "Se ci sono molte piastrelle scheggiate occorre rimuovere tutto il pavimento.")
 			 (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate o rotte?"))
 			 (if ?risposta2
 				 then (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore molte)))
@@ -760,8 +790,8 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Verificare se si notano elementi che farebbero pensare ad umidità.")
+	(bind ?*spiegazione* "Se c'è umidità potrebbe esserci qualche impianto guasto o umidità che viene dal terreno.")
 	(bind ?risposta (yes_or_no_p "C'è evidente umidità? (Fughe di colore più scuro, le piastrelle non aderiscono, moquette bagnata)"))
 	(if ?risposta 
 		then (assert (car (nome umidita_pavimento) (valore si)))
@@ -793,8 +823,8 @@
 	(car (nome umidita_pavimento) (valore si))
 	(car (nome impianti_umidita) (valore no))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Piano terra è quel piano posto direttamente sul terreno.")
+	(bind ?*spiegazione* "Se ci si trova a piano terra l'umidità potrebbe venire direttamente dal terreno.")
 	(bind ?risposta (yes_or_no_p "Ci si trova a piano terra?"))
 	(if ?risposta
 		then (assert (car (nome piano_terra) (valore si)))
@@ -811,8 +841,8 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Il rumore deve essere sentito nel momento in cui si cammina sul pavimento.")
+	(bind ?*spiegazione* "Se si sente rumore il pavimento non è stato fatto bene e occorre fare una insonorizzazione.")
 	(bind ?risposta (yes_or_no_p "Si sente rumore che si propaga alle pareti al calpestio?"))
 	(if ?risposta
 		then (assert (car (nome rumore_al_calpestio) (valore si)))
@@ -830,7 +860,7 @@
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
 	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*spiegazione* "Se c'è polvere vuol dire che le fughe sono consumate e occorre rinforzarle.")
 	(bind ?risposta (yes_or_no_p "C'è polvere sulle fughe del pavimento?"))
 	(if ?risposta
 		then (assert (car (nome polvere_sulle_fughe) (valore si)))
@@ -840,8 +870,8 @@
 
 ; /-----------------RIVESTIMENTO-----------------/
 
-(defrule domanda_muri_a_piombo
-	(preparazione_utente alta | bassa)
+(defrule domanda_muri_a_piombo_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome muri_a_piombo) (valore ?)))
 
@@ -850,9 +880,26 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore no))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Prendere una livella e controllare poggiandola al muro che la posizione della bolla sia centrale. Ripetere l'operazione più volte")
+	(bind ?*spiegazione* "Se i muri non sono a piombo occorre rifarli per garantire un risultato migliore con la posa del rivestimento.")
 	(bind ?risposta (yes_or_no_p "I muri sono a piombo?"))
+	(if ?risposta
+		then (assert (car (nome muri_a_piombo) (valore si)))
+		else (assert (car (nome muri_a_piombo) (valore no)))))
+
+(defrule domanda_muri_a_piombo_non_esperto
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome muri_a_piombo) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore no))
+	=>
+	(bind ?*help* "La livella è lo strumento che consente di verificare che se un piano è perfettamente orizzontale o verticale.")
+	(bind ?*spiegazione* "Se i muri non sono a piombo occorre rifarli per garantire un risultato migliore con la posa del rivestimento.")
+	(bind ?risposta (yes_or_no_p "Prendere una livella e controllare poggiandola al muro che la posizione della bolla sia centrale. Ripetere l'operazione più volte %nper coprire diversi punti in tutti i muri. %n%nLa posizione della bolla nella livella è sempre centrale?"))
 	(if ?risposta
 		then (assert (car (nome muri_a_piombo) (valore si)))
 		else (assert (car (nome muri_a_piombo) (valore no)))))
@@ -868,13 +915,13 @@
 	(car (nome presenza_rivestimento) (valore no))
 	(car (nome muri_a_piombo) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
-	(bind ?risposta (ask_question "Come è realizzato il fondo" gesso_rasato muro_pitturato sabbia_e_cemento))
+	(bind ?*help* "Indica il tipo di fondo tra quelli presenti.")
+	(bind ?*spiegazione* "In base al fondo presente si potrebbero dover fare dei lavori prima di porre il rivestimento.")
+	(bind ?risposta (ask_question "Come è realizzato il fondo?" gesso_rasato muro_pitturato sabbia_e_cemento))
 	(assert (car (nome sottofondo_muri) (valore ?risposta))))
 
-(defrule domanda_rivestimento_a_piombo
-	(preparazione_utente alta | bassa)
+(defrule domanda_rivestimento_a_piombo_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome rivestimento_a_piombo) (valore ?)))
 
@@ -883,9 +930,26 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Prendi una livella e controlla poggiandola al muro che la posizione della bolla sia centrale. Ripeti l'operazione più volte")
+	(bind ?*spiegazione* "Se i muri sono a piombo e le piastrelle sono in buone condizioni si potrebbe anche optare solo per un restyling del rivestimento.")
 	(bind ?risposta (yes_or_no_p "Il rivestimento presente è a piombo?"))
+	(if ?risposta
+		then (assert (car (nome rivestimento_a_piombo) (valore si)))
+		else (assert (car (nome rivestimento_a_piombo) (valore no)))))
+
+(defrule domanda_rivestimento_a_piombo_non_esperto
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome rivestimento_a_piombo) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore si))
+	=>
+	(bind ?*help* "La livella è lo strumento che consente di verificare che se un piano è perfettamente orizzontale o verticale.")
+	(bind ?*spiegazione* "Se i muri sono a piombo e le piastrelle sono in buone condizioni si potrebbe anche optare solo per un restyling del rivestimento.")
+	(bind ?risposta (yes_or_no_p "Prendere una livella e controllare poggiandola al muro che la posizione della bolla sia centrale. Ripetere l'operazione più volte %nper coprire diversi punti in tutti i muri. %n%nLa posizione della bolla nella livella è sempre centrale?"))
 	(if ?risposta
 		then (assert (car (nome rivestimento_a_piombo) (valore si)))
 		else (assert (car (nome rivestimento_a_piombo) (valore no)))))
@@ -900,8 +964,8 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Per piastrella sollevata si intende una piastrella non aderente o alzata.")
+	(bind ?*spiegazione* "Se ci sono piastrelle sollevate devi rimuovere il rivestimento.")
 	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel rivestimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_rivestimento) (valore si)))
@@ -917,12 +981,12 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
-	(bind ?*help* "")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Per piastrella scheggiata si intende una piastrella lesionata o scheggiata.")
+	(bind ?*spiegazione* "Se ci sono piastrelle rovinate si deve decidere se sostituirle o rimuovere tutto il rivestimento.")
 	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate nel rivestimento?"))
 	(if ?risposta1
-		then (bind ?*help* "")
-			 (bind ?*spiegazione* "")
+		then (bind ?*help* "Verifica se ci sono più di due o tre piastrelle rovinate.")
+			 (bind ?*spiegazione* "Se ci sono troppe piastrelle rovinate occorre rimuovere il rivestimento.")
 			 (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate?"))
 			 (if ?risposta2
 				 then (assert (car (nome piastrelle_scheggiate_rivestimento) (valore molte)))
