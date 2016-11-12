@@ -400,7 +400,6 @@
 	(not (lavoro))
 	(not (car (nome presenza_pavimento) (valore ?)))
 	(not (car (nome presenza_massetto) (valore ?)))
-	(not (car (nome presenza_rivestimento) (valore ?)))
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
@@ -424,6 +423,7 @@
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	(not (car (nome impianti_fatti) (valore ?)))
+
 
 	(car (nome presenza_massetto) (valore no))
 	=>
@@ -565,7 +565,7 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
-	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo moquette))
+	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
 (defrule domanda_tipo_pavimento_presente_esterno
@@ -640,20 +640,6 @@
 				 else (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore poche))))
 		else (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore no)))))
 
-(defrule domanda_moquette_rovinata
-	(preparazione_utente alta | bassa)
-	(not (lavoro))
-	(not (car (nome moquette_danneggiata) (valore ?)))
-
-	(car (nome luogo) (valore interno))
-	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_pavimento_presente) (valore moquette))
-	=>
-	(bind ?risposta (yes_or_no_p "La moquette è rovinata?"))
-	(if ?risposta
-		then (assert (car (nome moquette_danneggiata) (valore si)))
-		else (assert (car (nome moquette_danneggiata) (valore no)))))
-
 (defrule umidita_pavimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -703,6 +689,8 @@
 	(not (lavoro))
 	(not (car (nome rumore_calpestio) (valore ?)))
 
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
@@ -717,14 +705,16 @@
 	(not (lavoro))
 	(not (car (nome polvere_sulle_fughe) (valore ?)))
 
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
 	(bind ?risposta (yes_or_no_p "C'è polvere sulle fughe del pavimento?"))
 	(if ?risposta
-		then (assert (nome polvere_sulle_fughe) (valore si))
-		else (assert (nome polvere_sulle_fughe) (valore no))))
+		then (assert (car (nome polvere_sulle_fughe) (valore si)))
+		else (assert (car (nome polvere_sulle_fughe) (valore no)))))
 
 
 
@@ -800,8 +790,8 @@
 
 
 
-;-----------------------------------------------------------------------------------------------------------------
-;-----------------------------------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------------------------
+;-----------------------------------------------------------------------------------------------
 
 (defrule lavoro_trovato
 	(declare (salience ?*high_priority*))

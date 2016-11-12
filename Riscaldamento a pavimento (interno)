@@ -8,7 +8,7 @@
 	(car (nome presenza_massetto) (valore no))
 	(car (nome impianti_fatti) (valore no))
 	=>
-	(bind ?*soluzione* "Devi vedere prima se passeranno degli impianti (acqua, fognatura, elettricità, etc) sotto il massetto.")
+	(bind ?*soluzione* "Devi vedere prima se passeranno degli impianti (acqua, fognatura, elettricità, etc.) sotto il massetto.")
 	(assert (lavoro)))
 
 (defrule si_impianti_fatti
@@ -207,40 +207,19 @@
 
 ;--------------------PAVIMENTO-----------------------
 
-(defrule posa_sopra_si_piastrelle
-	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
-	(not (lavoro))
-
-	(or (car (nome luogo) (valore interno))
-		(car (nome luogo) (valore esterno)))
-	(car (nome presenza_pavimento) (valore si))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
-	(or (car (nome pavimento_livello) (valore si))
-		(car (nome pendenza_pavimento) (valore si)))
-	(car (nome piastrelle_sollevate_pavimento) (valore no))
-	(car (nome piastrelle_scheggiate_rotte_pavimento) (valore no))
-	(car (nome umidita_pavimento) (valore no))
-	=>
-	(bind ?*soluzione* "Puoi optare per la posa sopra usando anche pavimenti ultra sottili come il gres o il multistrato adesivo.")
-	(assert (lavoro)))
-
-(defrule posa_sopra_no_piastrelle_interno1
+(defrule pavimento_non_a_livello_interno
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome pavimento_livello) (valore no))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
 	(assert (lavoro)))
 
-(defrule posa_sopra_no_piastrelle_esterno1
+(defrule pavimento_senza_pendenza_esterno
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
@@ -254,47 +233,49 @@
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
 	(assert (lavoro)))
 
-(defrule posa_sopra_no_piastrelle_interno2
+(defrule piastrelle_sollevate
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
-	(car (nome luogo) (valore interno))
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
-	(car (nome pavimento_livello) (valore si))
 	(car (nome piastrelle_sollevate_pavimento) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
 	(assert (lavoro)))
 
-(defrule posa_sopra_no_piastrelle_esterno2
+(defrule piastrelle_scheggiate_o_rotte_poche
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
-	(car (nome luogo) (valore esterno))
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
-	(car (nome pendenza_pavimento) (valore si))
-	(car (nome piastrelle_sollevate_pavimento) (valore si))
+	(car (nome piastrelle_scheggiate_rotte_pavimento) (valore poche))
 	=>
-	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
+	(bind ?*soluzione* "Puoi optare per la sostituzione a patto che tu abbia qualche piastrella disponibile.")
 	(assert (lavoro)))
 
-(defrule rimozione_pavimento_obbligatoria
+(defrule piastrelle_scheggiate_o_rotte_molte
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
-	(car (nome luogo) (valore interno))
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
-	(car (nome tipo_pavimento_presente) (valore moquette))
-	(car (nome moquette_danneggiata) (valore si))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(car (nome piastrelle_scheggiate_rotte_pavimento) (valore molte))
 	=>
-	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
+	(bind ?*soluzione* "Sostituisci il pavimento poiché le piastrelle rovinate sono troppe.")
 	(assert (lavoro)))
 
 (defrule umidita_impianti
@@ -302,6 +283,7 @@
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
+	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	(car (nome umidita_pavimento) (valore si))
 	(car (nome impianti_umidita) (valore si))
@@ -335,37 +317,13 @@
 	(bind ?*soluzione* "L'umidità potrebbe essere quella di risalita dai muri, bisogna impermeabilizzare il muro in modo da non far salire l'umidità.")
 	(assert (lavoro)))
 
-(defrule piastrelle_scheggiate_molte
-	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
-	(not (lavoro))
-
-	(car (nome presenza_pavimento) (valore si))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
-	(car (nome piatrelle_scheggiate_pavimento) (valore molte))
-	=>
-	(bind ?*soluzione* "Sostituisci il pavimento poichè le piastrelle scheggiate sono troppe.")
-	(assert (lavoro)))
-
-(defrule piastrelle_scheggiate_poche
-	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
-	(not (lavoro))
-
-	(car (nome presenza_pavimento) (valore si))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
-	(car (nome piatrelle_scheggiate_pavimento) (valore poche))
-	=>
-	(bind ?*soluzione* "Puoi optare per la sostituzione a patto che tu abbia qualche piastrella disponibile.")
-	(assert (lavoro)))
-
 (defrule rumore_calpestio
 	(declare (salience ?*high_priority*))
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
@@ -385,6 +343,24 @@
 	(car (nome polvere_sulle_fughe) (valore si))
 	=>
 	(bind ?*soluzione* "Usa un impermeabilizzante per ricoprire le fughe.")
+	(assert (lavoro)))
+
+(defrule posa_sopra_si_piastrelle
+	(declare (salience ?*high_priority*))
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+
+	(or (car (nome luogo) (valore interno))
+		(car (nome luogo) (valore esterno)))
+	(car (nome presenza_pavimento) (valore si))
+	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
+		(car (nome tipo_pavimento_presente) (valore marmo)))
+	(or (car (nome pavimento_livello) (valore si))
+		(car (nome pendenza_pavimento) (valore si)))
+	(car (nome piastrelle_sollevate_pavimento) (valore no))
+	(car (nome umidita_pavimento) (valore no))
+	=>
+	(bind ?*soluzione* "Puoi optare per la posa sopra usando anche pavimenti ultra sottili come il gres o il multistrato adesivo.")
 	(assert (lavoro)))
 
 ;-------------------------RIVESTIMENTO----------------------------
@@ -445,7 +421,7 @@
 	(or (car (nome sottofondo_muri) (valore muro_pitturato))
 		(car (nome sottofondo_muri) (valore sabbia_e_cemento)))
 	=>
-	(bind ?*soluzione* "Puoi iniziare la posa ricordando che puoi anche posare le piastrelle nella fascia dietro la cucina invece di posarle per tutto i muri.")
+	(bind ?*soluzione* "Puoi iniziare la posa ricordando che puoi anche posare le piastrelle nella fascia dietro la cucina invece di posarle per tutto il muro.")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
 
