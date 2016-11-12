@@ -198,7 +198,7 @@
 	(car (nome muri_a_squadra) (valore si))
 	=>
 	(bind ?*soluzione* "Comincia con la posa del pavimento.")
-	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale interno, che è a livello, è alla giusta altezza e i muri sono a squadra. Il consiglio è dunque di iniziare con la posa del pavimento.")
+	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale interno, che è a livello, è alla %ngiusta altezza e i muri sono a squadra. Il consiglio è dunque di iniziare con la posa del pavimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -214,7 +214,7 @@
 	(car (nome muri_a_squadra) (valore si))
 	=>
 	(bind ?*soluzione* "Comincia con la posa del pavimento.")
-	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale esterno, che è alla giusta pendenza per favorire lo scolo dell'acqua e i muri sono a squadra. Il consiglio è dunque di iniziare con la posa del pavimento.")
+	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale esterno, che è alla giusta pendenza %nper favorire lo scolo dell'acqua e i muri sono a squadra. Il consiglio è dunque di iniziare con la posa del pavimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -230,7 +230,7 @@
 	(car (nome pavimento_livello) (valore no))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ma non è a livello. %nIl consiglio è dunque quello di rimuovere pavimento e massetto e rifarli.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ma non è a livello. %nIl consiglio è dunque quello di %nrimuovere pavimento e massetto e rifarli.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -245,7 +245,7 @@
 	(car (nome pendenza_pavimento) (valore no))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale esterno, il pavimento è presente ma non ha la giusta pendenza per favorire lo scolo dell'acqua. Il consiglio è dunque quello di rimuovere pavimento e massetto e rifarli per evitare problemi di umidità.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale esterno, il pavimento è presente ma non ha la giusta pendenza per favorire lo scolo %ndell'acqua. Il consiglio è dunque quello di rimuovere pavimento e massetto e rifarli per evitare problemi di umidità.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -261,7 +261,7 @@
 	(car (nome piastrelle_sollevate_pavimento) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
-	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmo e vi sono pezzi sollevati o non aderenti. Il consiglio è dunque quello di rimuovere pavimento e massetto e rifarli.")
+	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmo e vi sono pezzi sollevati o non aderenti. Il %nconsiglio è dunque quello di rimuovere pavimento e massetto e rifarli.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -277,7 +277,7 @@
 	(car (nome piastrelle_scheggiate_rotte_pavimento) (valore poche))
 	=>
 	(bind ?*soluzione* "Puoi optare per la sostituzione se il pavimento non è scolorito e si hanno a disposizione pezzi di ricambio.")
-	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmo e che vi sono pochi pezzi scheggiati o lesionati. Il consiglio è dunque quello di optare per il rattoppo, sostituendo solo i pezzi rovinate se sono disponibili pezzi di ricambio e non ci sono differenze di tonalità tra il pezzo di ricambio e il pavimento presente.")
+	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmo e che vi sono pochi pezzi scheggiati o lesionati. %nIl consiglio è dunque quello di optare per il rattoppo, sostituendo solo i pezzi rovinate se sono disponibili pezzi di ricambio %ne non ci sono differenze di tonalità tra il pezzo di ricambio e il pavimento presente.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -293,7 +293,7 @@
 	(car (nome piastrelle_scheggiate_rotte_pavimento) (valore molte))
 	=>
 	(bind ?*soluzione* "Sostituisci il pavimento poiché le piastrelle rovinate sono troppe.")
-	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmo e che vi sono molti pezzi scheggiati o lesionati. Il consiglio è dunque quello di rimuovere pavimento e massetto e rifarli.")
+	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmo e che vi sono molti pezzi scheggiati o lesionati. %nIl consiglio è dunque quello di rimuovere pavimento e massetto e rifarli.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -307,7 +307,7 @@
 	(car (nome impianti_umidita) (valore si))
 	=>
 	(bind ?*soluzione* "L'umidità potrebbe essere causata da impianti idrici guasti, rimuovi il massetto e il pavimento e chiama uno specialista (idraulico).")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente, c'è umidità e passano degli impianti sotto il pavimento. Il consiglio è dunque quello di rimuovere pavimento e massetto e chiamare uno specialista per verificare gli impianti.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente, c'è umidità e passano degli impianti sotto il %npavimento. Il consiglio è dunque quello di rimuovere pavimento e massetto e chiamare uno specialista per verificare gli impianti.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -321,8 +321,8 @@
 	(car (nome impianti_umidita) (valore no))
 	(car (nome piano_terra) (valore si))
 	=>
-	(bind ?*soluzione* "L'umidità potrebbe essere causata dal sottosuolo, occorre rimuovere il pavimento e il massetto (se presenti) e procedere alla impermeabilizzazione del sottofondo.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente, c'è umidità, non passano degli impianti sotto il pavimento ma ci si trova a piano terra. Il consiglio è dunque di rimuovere pavimento e massetto, impermeabilizzare il sottofondo e rifarli.")
+	(bind ?*soluzione* "L'umidità potrebbe essere causata dal sottosuolo, occorre rimuovere il pavimento e il massetto (se presenti) e procedere alla %nimpermeabilizzazione del sottofondo.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente, c'è umidità, non passano degli impianti sotto il %npavimento ma ci si trova a piano terra. Il consiglio è dunque di rimuovere pavimento e massetto, impermeabilizzare il sottofondo e rifarli.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -337,7 +337,7 @@
 	(car (nome piano_terra) (valore no))
 	=>
 	(bind ?*soluzione* "L'umidità potrebbe essere quella di risalita dai muri, bisogna impermeabilizzare il muro in modo da non far salire l'umidità.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente, c'è umidità, non passano degli impianti sotto il pavimento e non ci si trova a piano terra. Il consiglio è dunque di impermeabilizzare il muro in quanto l'umidità potrebbe essere quella di risalita dai muri.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente, c'è umidità, non passano degli impianti sotto il %npavimento e non ci si trova a piano terra. Il consiglio è dunque di impermeabilizzare il muro in quanto l'umidità potrebbe %nessere quella di risalita dai muri.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -352,8 +352,8 @@
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	(car (nome rumore_al_calpestio) (valore si))
 	=>
-	(bind ?*soluzione* "Il pavimento è stato posto senza un opportuno spazio di assestamento lungo il perimetro dei muri, per risolverlo occorre rimuovere il pavimento.")
-	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è costituito da piastrelle o marmi e si sente un rumore al calpestio. Il consiglio è dunque di rimuovere pavimento e massetto e procedere a porre uno spazio adeguato di assestamento al pavimento.")
+	(bind ?*soluzione* "Il pavimento è stato posto senza un opportuno spazio di assestamento lungo il perimetro dei muri, per risolverlo occorre rimuovere %nil pavimento.")
+	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è costituito da piastrelle o marmi e si sente un rumore al calpestio. Il consiglio %nè dunque di rimuovere pavimento e massetto e procedere a porre uno spazio adeguato di assestamento al pavimento.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -367,7 +367,7 @@
 	(car (nome polvere_sulle_fughe) (valore si))
 	=>
 	(bind ?*soluzione* "Usa un impermeabilizzante per ricoprire le fughe.")
-	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente e si vede della polvere sulle fughe. Il consiglio è dunque di procedere ad impermeabilizzarle con appositi prodotti.")
+	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente e si vede della polvere sulle fughe. Il consiglio è dunque di procedere ad %nimpermeabilizzarle con appositi prodotti.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -386,7 +386,7 @@
 	(car (nome umidita_pavimento) (valore no))
 	=>
 	(bind ?*soluzione* "Puoi optare per la posa sopra usando anche pavimenti ultra sottili come il gres o il multistrato adesivo.")
-	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmi, è a livello e non presenta né problemi di umidità e né piastrelle sollevate. Il consiglio è dunque quello di procedere alla posa sopra il pavimento esistente.")
+	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmi, è a livello e non presenta né problemi di %numidità e né piastrelle sollevate. Il consiglio è dunque quello di procedere alla posa sopra il pavimento esistente.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -402,7 +402,7 @@
 	(car (nome muri_a_piombo) (valore no))
 	=>
 	(bind ?*soluzione* "Aggiustare i muri per garantire una buona posa.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di un bagno o cucina, non è presente un rivestimento e i muri non sono a piombo. Il consiglio è dunque quello di rifare i muri per garantire un corretto risultato nella posa del rivestimento.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di un bagno o cucina, non è presente un rivestimento e i muri %nnon sono a piombo. Il consiglio è dunque quello di rifare i muri per garantire un corretto risultato nella posa del rivestimento.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -418,7 +418,7 @@
 	(car (nome sottofondo_muri) (valore gesso_rasato))
 	=>
 	(bind ?*soluzione* "Devi passare prima una mano di idropittura, farla asciugare e poi iniziare con la posa.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di un bagno, non è presente un rivestimento, i muri sono a piombo e il sottofondo del muro è il gesso rasato. Il consiglio è dunque quello di passare una mano di idropittura per garantire che il rivestimento aggrappi nella maniera giusta.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di un bagno, non è presente un rivestimento, i muri sono a %npiombo e il sottofondo del muro è il gesso rasato. Il consiglio è dunque quello di passare una mano di idropittura per %ngarantire che il rivestimento aggrappi nella maniera giusta.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -433,8 +433,8 @@
 	(car (nome muri_a_piombo) (valore si))
 	(car (nome sottofondo_muri) (valore gesso_rasato))
 	=>
-	(bind ?*soluzione* "Devi passare prima una mano di idropittura, farla asciugare e poi iniziare con la posa. Considera che si può anche effettuare la posa delle piastrelle nella fascia dietro la cucina.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di una cucina, non è presente un rivestimento, i muri sono a piombo e il sottofondo del muro è il gesso rasato. Il consiglio è dunque quello di passare una mano di idropittura per garantire che il rivestimento aggrappi nella maniera giusta.")
+	(bind ?*soluzione* "Devi passare prima una mano di idropittura, farla asciugare e poi iniziare con la posa. Considera che si può anche effettuare la %nposa delle piastrelle nella fascia dietro la cucina.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di una cucina, non è presente un rivestimento, i muri sono a %npiombo e il sottofondo del muro è il gesso rasato. Il consiglio è dunque quello di passare una mano di idropittura per garantire %nche il rivestimento aggrappi nella maniera giusta.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -451,7 +451,7 @@
 		(car (nome sottofondo_muri) (valore sabbia_e_cemento)))
 	=>
 	(bind ?*soluzione* "Puoi iniziare la posa ricordando che puoi anche posare le piastrelle nella fascia dietro la cucina invece di posarle per tutto il muro.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di una cucina, non è presente un rivestimento, i muri sono a piombo e il sottofondo è o un muro pitturato o sabbia e cemento. Il consiglio è dunque quello di passare alla posa del rivestimento.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di una cucina, non è presente un rivestimento, i muri sono a %npiombo e il sottofondo è o un muro pitturato o sabbia e cemento. Il consiglio è dunque quello di passare alla posa del rivestimento.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -468,7 +468,7 @@
 		(car (nome sottofondo_muri) (valore sabbia_e_cemento)))
 	=>
 	(bind ?*soluzione* "Puoi iniziare la posa.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di una cucina, non è presente un rivestimento, i muri sono a piombo e il sottofondo è o un muro pitturato o sabbia e cemento. Il consiglio è dunque quello di passare alla posa del rivestimento.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di una cucina, non è presente un rivestimento, i muri sono a %npiombo e il sottofondo è o un muro pitturato o sabbia e cemento. Il consiglio è dunque quello di passare alla posa del rivestimento.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -484,7 +484,7 @@
 	(car (nome piastrelle_sollevate_rivestimento) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi il rivestimento esistente e rifallo.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, di una cucina o di un bagno, è presente un rivestimento e ci sono piastrelle sollevate. Il consiglio è dunque quello di rimuovere il rivestimento esistente e rifarlo.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, di una cucina o di un bagno, è presente un rivestimento e ci sono piastrelle %nsollevate. Il consiglio è dunque quello di rimuovere il rivestimento esistente e rifarlo.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -499,8 +499,8 @@
 	(car (nome presenza_rivestimento) (valore si))
 	(car (nome piastrelle_scheggiate_rivestimento) (valore poche))
 	=>
-	(bind ?*soluzione* "Puoi sostituire le piastrelle scheggiate con delle nuove se le possiedi (fai attenzione alla diversa tonalità che potrebbe esserci tra le piastrelle presenti e quelle nuove con cui fare il rattoppo). Altrimenti sostituisci tutto il rivestimento.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, in particolare di una cucina o di un bagno, è presente un rivestimento e ci sono poche piastrelle rovinate. Il consiglio è dunque di effettuare un rattoppo se si hanno a disposizione dei pezzi di ricambio e se non c'è differenza di tonalità tra le piastrelle presenti e quelle di ricambio.")
+	(bind ?*soluzione* "Puoi sostituire le piastrelle scheggiate con delle nuove se le possiedi (fai attenzione alla diversa tonalità che potrebbe esserci %ntra le piastrelle presenti e quelle nuove con cui fare il rattoppo). Altrimenti sostituisci tutto il rivestimento.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, in particolare di una cucina o di un bagno, è presente un rivestimento e ci %nsono poche piastrelle rovinate. Il consiglio è dunque di effettuare un rattoppo se si hanno a disposizione dei pezzi di %nricambio e se non c'è differenza di tonalità tra le piastrelle presenti e quelle di ricambio.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -516,7 +516,7 @@
 	(car (nome piastrelle_scheggiate_rivestimento) (valore molte))
 	=>
 	(bind ?*soluzione* "Sostituisci tutto il rivestimento.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, in particolare di una cucina o di un bagno, è presente un rivestimento e ci sono molte piastrelle rovinate. Il consiglio è dunque di sostituire il rivestimento.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, in particolare di una cucina o di un bagno, è presente un rivestimento e ci %nsono molte piastrelle rovinate. Il consiglio è dunque di sostituire il rivestimento.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
@@ -534,7 +534,7 @@
 	(car (nome piastrelle_sollevate_rivestimento) (valore no))
 	=>
 	(bind ?*soluzione* "Il pavimento è in buone condizioni potresti anche rinnovarlo usando gli adesivi in PVC.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, in particolare di un bagno o una cucina, è presente un rivestimento, il rivestimento è a piombo e non ci sono piastrelle rovinate o sollevate. Il consiglio è dunque di lasciare il pavimento così com'è o rinnovarlo usando adesivi in PVC.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un luogo interno, in particolare di un bagno o una cucina, è presente un rivestimento, il %nrivestimento è a piombo e non ci sono piastrelle rovinate o sollevate. Il consiglio è dunque di lasciare il pavimento così %ncom'è o rinnovarlo usando adesivi in PVC.")
 	(bind ?*help* "")
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
