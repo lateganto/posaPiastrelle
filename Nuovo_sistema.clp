@@ -27,7 +27,7 @@
 ; /---------------------------------FUNCTIONS---------------------------------/
 ;/---------------------------------------------------------------------------/
 (deffunction ask_question (?question $?allowed_values)
-	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf) 
+	(printout t crlf "*****************************************************************************************************" crlf) 
 	(format t (str-cat "%n" ?question))
 
 	(bind ?i 1)
@@ -73,7 +73,7 @@
      ?answer)
 
 (deffunction yes_or_no_p (?question)
-	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
+	(printout t crlf "*****************************************************************************************************" crlf)
 	(bind ?allowed_values (create$ si no s n))
 
 	(if (neq (length$ ?*spiegazione*) 0)
@@ -107,7 +107,7 @@
          else FALSE))
 
 (deffunction ask_number (?question)
-	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
+	(printout t crlf "*****************************************************************************************************" crlf)
 	(if (neq (length$ ?*spiegazione*) 0)
 		then (format t (str-cat "%n" ?question " (help/perche): "))
 		else (format t (str-cat "%n" ?question " (help): ")))
@@ -259,14 +259,16 @@
 	(set-strategy random)
 	(assert (esperienza (esperto 0) (principiante 0)))
 	(assert (domande_poste (numero 0)))
-	(printout t crlf "*** Un sistema per la posa di pavimenti e rivestimenti in gres porcellanato ***" crlf crlf))
+	(printout t crlf "*****************************************************************************************************" crlf
+					 "******************************************** EXPERT TILER *******************************************" crlf 
+					 "*****************************************************************************************************" crlf crlf))
 
 (defrule domanda_anni
 	(not (domanda (valore one)))
 	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
 	?f2 <- (domande_poste (numero ?x))
 	=>
-	(bind ?*help* "Indicare la propria età.")
+	(bind ?*help* "Indica la tua età.")
 	(bind ?risposta (ask_number "Quanti anni hai?"))
 	(assert (domanda (valore one)))
 	(modify ?f2 (numero (+ ?x 1)))
@@ -293,7 +295,7 @@
 	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
 	?f2 <- (domande_poste (numero ?x))
 	=>
-	(bind ?*help* "Rispondere affermativamente se si è realizzato qualche volta un piccolo lavoro in casa o qualche tipo riparazione, %nnegativamente in caso contrario.")
+	(bind ?*help* "Rispondi affermativamente se hai realizzato qualche volta un piccolo lavoro in casa o qualche tipo riparazione.")
 	(bind ?risposta (yes_or_no_p "Se si rompe qualcosa in casa, cerchi di aggiustarla da solo?"))
 	(assert (domanda (valore two)))
 	(modify ?f2 (numero (+ ?x 1)))
@@ -306,7 +308,7 @@
 	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
 	?f2 <- (domande_poste (numero ?x))
 	=>
-	(bind ?*help* "Rispondere affermativamente se nella propria vita si è mai lavorato come piastrellista professionalmente.")
+	(bind ?*help* "Rispondi affermativamente se nella tua vita hai mai lavorato come piastrellista professionista.")
 	(bind ?risposta (yes_or_no_p "Sei un piastrellista o hai mai lavorato come piastrellista?"))
 	(assert (domanda (valore three)))
 	(modify ?f2 (numero (+ ?x 1)))
@@ -319,7 +321,7 @@
 	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
 	?f2 <- (domande_poste (numero ?x))	
 	=>
-	(bind ?*help* "Rispondere affermativamente nel caso in cui si sia già effettuata la posa di un pavimento o di un rivestimento.")
+	(bind ?*help* "Rispondi affermativamente nel caso in cui hai già effettuato la posa di un pavimento o di un rivestimento.")
 	(bind ?risposta (yes_or_no_p "Hai mai realizzato prima d'ora la posa di un pavimento?"))
 	(assert (domanda (valore four)))
 	(modify ?f2 (numero (+ ?x 1)))
@@ -332,7 +334,7 @@
 	?f1 <- (esperienza (esperto ?val_esp) (principiante ?val_princ))
 	?f2 <- (domande_poste (numero ?x))
 	=>
-	(bind ?*help* "Rispondere affermativamente nel caso in cui si abbia mai svolto nella propria vita un lavoro di tipo manuale (l'operaio ad esempio).")
+	(bind ?*help* "Rispondi affermativamente nel caso in cui tu abbia mai svolto nella tua vita un lavoro di tipo manuale (l'operaio ad esempio).")
 	(bind ?risposta (yes_or_no_p "Hai mai svolto un lavoro di tipo manuale nella tua vita?"))
 	(assert (domanda (valore five)))
 	(modify ?f2 (numero (+ ?x 1)))
@@ -381,8 +383,8 @@
 	(not (lavoro))
 	(not (car (nome luogo) (valore ?)))
 	=>
-	(bind ?*help* "Interno riguarda una qualsiasi stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da letto, etc), Esterno %nin caso contrario (balcone, terrazzo,etc).")
-	(bind ?*spiegazione* "")
+	(bind ?*help* "Interno indica una qualsiasi stanza che non sarà soggetta alle intemperie (bagno, cucina, stanza da letto, etc), %nesterno in caso contrario (balcone, terrazzo,etc).")
+	(bind ?*spiegazione* "La situazione cambia a seconda che il luogo del lavoro sia interno o esterno.")
 	(bind ?risposta (ask_question "La stanza riguarda l'interno o l'esterno?" interno esterno))
 	(if (eq ?risposta interno)
 		then (assert (car (nome luogo) (valore interno)))
@@ -395,8 +397,8 @@
 
 	(car (nome luogo) (valore interno))
 	=>
-	(bind ?*help* "Indicare a quale tipo tra quelli elencati corrisponde la stanza in cui deve essere fatto il lavoro.")
-	(bind ?*spiegazione* "Potrebbero esserci dei problemi specifici relativi al diverso luogo in cui si trova il pavimento.")
+	(bind ?*help* "Indica a quale tipo tra quelli elencati corrisponde la stanza.")
+	(bind ?*spiegazione* "Potrebbero esserci dei lavori specifici relativi alla particolare stanza.")
 	(bind ?risposta (ask_question "Quale è il tipo di stanza?" bagno cucina altro))
 	(assert (car (nome tipo_stanza) (valore ?risposta))))
 
@@ -411,15 +413,21 @@
 	(or (car (nome tipo_stanza) (valore cucina))
 		(car (nome tipo_stanza) (valore bagno)))
 	=>
+	(bind ?*help* "Indica se è presente già un pavimento (parquet, piastrelle, marmo, etc.)")
+	(bind ?*spiegazione* "A seconda che il pavimento sia o meno presente potrebbero esserci dei lavori specifici da fare.")
 	(bind ?risposta1 (yes_or_no_p "È già presente un pavimento?"))
 	(if ?risposta1
 		then (assert (car (nome presenza_pavimento) (valore si)))
 		else (assert (car (nome presenza_pavimento) (valore no)))
+			 (bind ?*help* "Indicare se è presente un fondo si sabbia e cemento al posto di piastrelle o altra pavimentazione.")
+			 (bind ?*spiegazione* "Se il massetto non è presente occorrerà rifarlo.")
 			 (bind ?risposta2 (yes_or_no_p "È presente un massetto?"))
 			 (if ?risposta2
 				 then (assert (car (nome presenza_massetto) (valore si)))
 				 else (assert (car (nome presenza_massetto) (valore no)))))
 
+	(bind ?*help* "Indica se è già presente un rivestimento (piastrelle o altro) sul muro.")
+	(bind ?*spiegazione* "Se è presente e non è in buone condizioni si dovrà rimuoverlo.")
 	(bind ?risposta3 (yes_or_no_p "È già presente un rivestimento?"))
 	(if ?risposta3
 		then (assert (car (nome presenza_rivestimento) (valore si)))
@@ -436,10 +444,14 @@
 	(not (or (car (nome tipo_stanza) (valore cucina))
 		 	 (car (nome tipo_stanza) (valore bagno))))
 	=>
+	(bind ?*help* "Indica se è presente già un pavimento (parquet, piastrelle, marmo, etc.)")
+	(bind ?*spiegazione* "A seconda che il pavimento sia o meno presente potrebbero esserci dei lavori specifici da fare.")
 	(bind ?risposta1 (yes_or_no_p "È già presente un pavimento?"))
 	(if ?risposta1
 		then (assert (car (nome presenza_pavimento) (valore si)))
 		else (assert (car (nome presenza_pavimento) (valore no)))
+			 (bind ?*help* "Indica se è presente un fondo si sabbia e cemento al posto di piastrelle o altra pavimentazione.")
+			 (bind ?*spiegazione* "Se il massetto non è presente occorrerà rifarlo.")
 			 (bind ?risposta2 (yes_or_no_p "È presente un massetto?"))
 			 (if ?risposta2
 				 then (assert (car (nome presenza_massetto) (valore si)))
@@ -454,9 +466,10 @@
 	(not (lavoro))
 	(not (car (nome impianti_fatti) (valore ?)))
 
-
 	(car (nome presenza_massetto) (valore no))
 	=>
+	(bind ?*help* "Gli impianti riguardano quello idrico, elettrico, delle fogna, del riscaldamento, etc")
+	(bind ?*spiegazione* "Se gli impianti non sono stati fatti, non si può continuare con la realizzazione del massetto.")
 	(bind ?risposta (yes_or_no_p "Sono stati fatti tutti gli impianti sottotraccia?"))
 	(if ?risposta
 		then (assert (car (nome impianti_fatti) (valore si)))
@@ -469,7 +482,9 @@
 
 	(car (nome presenza_massetto) (valore si))
 	=>
-	(bind ?risposta (yes_or_no_p "Il massetto è fresco (realizzato da poco)?"))
+	(bind ?*help* "Il massetto è fresco se non sono trascorsi ancora 10 giorni dalla sua realizzazione.")
+	(bind ?*spiegazione* "Se il massetto è ancora fresco, non si può partire con la posa.")
+	(bind ?risposta (yes_or_no_p "Il massetto è fresco (realizzato da poco o umido)?"))
 	(if ?risposta
 		then (assert (car (nome massetto_fresco) (valore si)))
 		else (assert (car (nome massetto_fresco) (valore no)))))
@@ -482,13 +497,15 @@
 	(car (nome presenza_massetto) (valore si))
 	(car (nome massetto_fresco) (valore no))
 	=>
+	(bind ?*help* "Il massetto si sfarina al semplice calpestio o presenta zone in cui è sgretolato.")
+	(bind ?*spiegazione* "Se il massetto è fragile occorre rifarlo.")
 	(bind ?risposta (yes_or_no_p "Il massetto presenta punti in cui è polveroso o friabile?"))
 	(if ?risposta
 		then (assert (car (nome massetto_fragile) (valore si)))
 		else (assert (car (nome massetto_fragile) (valore no)))))
 
-(defrule domanda_massetto_a_livello
-	(preparazione_utente alta | bassa)
+(defrule domanda_massetto_a_livello_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome massetto_a_livello) (valore ?)))
 
@@ -497,7 +514,26 @@
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore interno))
 	=>
-	(bind ?risposta (yes_or_no_p "Il massetto è a livello?"))
+	(bind ?*help* "Controlla con una stadia in alluminio e una livella poggiata sopra in vari punti della stanza in modo da coprire tutta l'area %ne verifica che la bolla nella livella sia sempre nella posizione centrale e che la stadia poggi perfettamente.")
+	(bind ?*spiegazione* "Se il massetto non è a livello o è irregolare occorre rifarlo altrimenti non lo sarà nemmeno il pavimento che verrà posto sopra.")
+	(bind ?risposta (yes_or_no_p "Il massetto è a livello e non è irregolare?"))
+	(if ?risposta
+		then (assert (car (nome massetto_a_livello) (valore si)))
+		else (assert (car (nome massetto_a_livello) (valore no)))))
+
+(defrule domanda_massetto_a_livello_non_esperto
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome massetto_a_livello) (valore ?)))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_fresco) (valore no))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore interno))
+	=>
+	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare che se un piano è perfettamente orizzontale.")
+	(bind ?*spiegazione* "Se il massetto non è a livello o è irregolare occorre rifarlo altrimenti non lo sarà nemmeno il pavimento che verrà posto sopra.")
+	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul pavimento, poni sopra essa una livella e verifica in vari punti della stanza, in modo %nda coprire tutta l'area, che la posizione della bolla sulla livella sia sempre centrale. %n%nIn tutte le misurazioni, la posizione della bolla è sempre in posizione centrale e la stadia poggia perfettamente?"))
 	(if ?risposta
 		then (assert (car (nome massetto_a_livello) (valore si)))
 		else (assert (car (nome massetto_a_livello) (valore no)))))
@@ -510,6 +546,8 @@
 	(car (nome presenza_massetto) (valore si))
 	(car (nome luogo) (valore interno))
 	=>
+	(bind ?*help* "Controlla se esiste nello stesso piano un'altra stanza in cui è già presente un qualsiasi tipo di pavimento.")
+	(bind ?*spiegazione* "Se vi è un pavimento in un'altra stanza occorre raccordarsi ad esso, cioè il nuovo pavimento dovrà essere alla medesima altezza.")
 	(bind ?risposta (yes_or_no_p "È presente una stanza adiacente a questa in cui è presente già un pavimento?"))
 	(if ?risposta
 		then (assert (car (nome pavimento_da_raccordare) (valore si)))
@@ -527,17 +565,24 @@
 	(car (nome massetto_a_livello) (valore si))
 	(car (nome pavimento_da_raccordare) (valore si))
 	=>
+	(bind ?*help* "Indica se sai già il tipo di pavimento che si dovrà porre.")
+	(bind ?*spiegazione* "In base allo spessore del pavimento da porre si può capire a che altezza deve essere il massetto per far in modo che il %npavimento, a fine opera, sia allo stesso livello del pavimento già presente in un'altra stanza.")
 	(bind ?risposta1 (yes_or_no_p "Conosci già il tipo di pavimento che dovrai posare?"))
 	(if ?risposta1
-		then (bind ?risposta2 (ask_number "Indica il suo spessore in millimetri"))
-			 (format t "%n------------------------------------------------------------------------------------------------------")
+		then (bind ?*help* "Indica lo spessore del pavimento da porre in millimetri.")
+			 (bind ?*spiegazione* "In base allo spessore del pavimento da porre si può capire a che altezza deve essere il massetto per far in modo che %nil pavimento, a fine opera, sia allo stesso livello del pavimento già presente in un'altra stanza.")
+			 (bind ?risposta2 (ask_number "Indica il suo spessore in millimetri"))
+
+			 (format t "%n*****************************************************************************************************%n")
 			 (format t "%nIl massetto si dovrà trovare esattamente %d mm sotto il pavimento con cui raccordarsi.%n" (+ ?risposta2 3))
+			 (bind ?*help* "Indica se il massetto presente, considerata l'aggiunta dello spessore del pavimento da porre, è più alto, più basso, o alla %naltezza giusta rispetto al pavimento già presente in un'altra stanza.")
+			 (bind ?*spiegazione* "Se il massetto risultasse troppo alto o basso, dovrà essere rifatto, altrimenti si procederà con la posa.")
 			 (bind ?altezza (ask_question "Com'è allora il pavimento presente?" alto basso giusto))
 			 (assert (car (nome altezza_massetto) (valore ?altezza)))
 		else (assert (car (nome spessore_pavimento) (valore no)))))
 
-(defrule domanda_massetto_pendenza
-	(preparazione_utente alta | bassa)
+(defrule domanda_massetto_pendenza_esperto
+	(preparazione_utente alta)
 	(not (lavoro))
 	(not (car (nome pendenza_massetto) (valore ?)))
 
@@ -546,7 +591,26 @@
 	(car (nome massetto_fragile) (valore no))
 	(car (nome luogo) (valore esterno))
 	=>
-	(bind ?risposta (yes_or_no_p "Il massetto ha la giusta pendenza di 1,5 cm ogni due metri lineari?"))
+	(bind ?*help* "Prendi una stadia in alluminio e ponila nella stessa direzione in cui dovrà essere lo scolo dell'acqua. All'estremità più bassa della %nstadia inserisci tra essa e il pavimento uno spessore di 1,5 cm e poni sopra di essa una livella verificando che la bolla sia in posizione %ncentrale. Ripeti l'operazione più volte per coprire tutta l'area.")
+	(bind ?*spiegazione* "Se il massetto non ha la giusta pendenza, non agevola lo scolo dell'acqua causando anche problemi di umidità.")
+	(bind ?risposta (yes_or_no_p "Il massetto ha la giusta pendenza di 1,5 cm ogni due metri lineari e non è irregolare?"))
+	(if ?risposta
+		then (assert (car (nome pendenza_massetto) (valore si)))
+		else (assert (car (nome pendenza_massetto) (valore no)))))
+
+(defrule domanda_massetto_pendenza_non_esperto
+	(preparazione_utente bassa)
+	(not (lavoro))
+	(not (car (nome pendenza_massetto) (valore ?)))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_fresco) (valore no))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore esterno))
+	=>
+	(bind ?*help* "La stadia è un'asta in alluminio di diverse dimensioni (da 50 a più di 200 cm), usata per verificare i dislivelli, la livella è lo %nstrumento che consente di verificare che se un piano è perfettamente orizzontale.")
+	(bind ?*spiegazione* "Se il massetto non ha la giusta pendenza o è irregolare, non agevola lo scolo dell'acqua causando anche problemi di umidità.")
+	(bind ?risposta (yes_or_no_p "Prendi una stadia in alluminio e poggiala sul pavimento nella direzione in cui dovrà fuoriuscire l'acqua. Verifica che poggi perfettamente. All'estremità più bassa della stadia, inserisci tra essa e il pavimento uno spessore di 1,5 cm. Poni sopra la stadia una livella e verifica in vari punti della stanza, in modo da coprire tutta l'area, che la posizione della bolla sulla livella sia sempre centrale. %n%n In tutte le misurazioni, la posizione della bolla è sempre in posizione centrale e la stadia poggia perfettamente?"))
 	(if ?risposta
 		then (assert (car (nome pendenza_massetto) (valore si)))
 		else (assert (car (nome pendenza_massetto) (valore no)))))
@@ -564,6 +628,8 @@
 	(or (car (nome pavimento_da_raccordare) (valore no))
 		(car (nome altezza_massetto) (valore giusto)))
 	=>
+	(bind ?*help* "Indica tra quelli disponibili il tipo di pavimento da porre sul massetto.")
+	(bind ?*spiegazione* "In base al tipo di pavimento ci sono tipi di pose da consigliare.")
 	(bind ?risposta (ask_question "Che tipo di pavimento intendi porre?" piastrella parquet))
 	(assert (car (nome tipo_pavimento_da_porre) (valore ?risposta))))
 
@@ -578,6 +644,8 @@
 	(or (car (nome altezza_massetto) (valore giusto))
 		(car (nome pendenza_massetto) (valore si)))
 	=>
+	(bind ?*help* "Due muri sono a squadra se, ponendo la squadra (strumento ad angolo di 90°) negli angoli tra due muri, i due elementi di cui essa è composta poggiano perfettamente senza fare movimenti.")
+	(bind ?*spiegazione* "Se i muri non sono a squadra ci sono alcuni tipi di pose da consigliare.")
 	(bind ?risposta (yes_or_no_p "I muri sono a squadra?"))
 	(if ?risposta
 		then (assert (car (nome muri_a_squadra) (valore si)))
@@ -595,6 +663,8 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo parquet))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
@@ -606,6 +676,8 @@
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (ask_question "Quale tipo di pavimento è presente?" piastrelle marmo))
 	(assert (car (nome tipo_pavimento_presente) (valore ?risposta))))
 
@@ -617,6 +689,8 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "Il pavimento presente è a livello?"))
 	(if ?risposta
 		then (assert (car (nome pavimento_livello) (valore si)))
@@ -630,6 +704,8 @@
 	(car (nome luogo) (valore esterno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "Il pavimento ha la giusta pendenza di 1,5 cm ogni due metri lineari?"))
 	(if ?risposta
 		then (assert (car (nome pendenza_pavimento) (valore si)))
@@ -646,6 +722,8 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel pavimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_pavimento) (valore si)))
@@ -662,9 +740,13 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate o rotte nel pavimento?"))
 	(if ?risposta1
-		then (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate o rotte?"))
+		then (bind ?*help* "")
+			 (bind ?*spiegazione* "")
+			 (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate o rotte?"))
 			 (if ?risposta2
 				 then (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore molte)))
 				 else (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore poche))))
@@ -678,6 +760,8 @@
 	(car (nome luogo) (valore interno))
 	(car (nome presenza_pavimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "C'è evidente umidità? (Fughe di colore più scuro, le piastrelle non aderiscono, moquette bagnata)"))
 	(if ?risposta 
 		then (assert (car (nome umidita_pavimento) (valore si)))
@@ -709,6 +793,8 @@
 	(car (nome umidita_pavimento) (valore si))
 	(car (nome impianti_umidita) (valore no))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "Ci si trova a piano terra?"))
 	(if ?risposta
 		then (assert (car (nome piano_terra) (valore si)))
@@ -725,6 +811,8 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "Si sente rumore che si propaga alle pareti al calpestio?"))
 	(if ?risposta
 		then (assert (car (nome rumore_al_calpestio) (valore si)))
@@ -741,6 +829,8 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "C'è polvere sulle fughe del pavimento?"))
 	(if ?risposta
 		then (assert (car (nome polvere_sulle_fughe) (valore si)))
@@ -760,6 +850,8 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore no))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "I muri sono a piombo?"))
 	(if ?risposta
 		then (assert (car (nome muri_a_piombo) (valore si)))
@@ -776,6 +868,8 @@
 	(car (nome presenza_rivestimento) (valore no))
 	(car (nome muri_a_piombo) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (ask_question "Come è realizzato il fondo" gesso_rasato muro_pitturato sabbia_e_cemento))
 	(assert (car (nome sottofondo_muri) (valore ?risposta))))
 
@@ -789,6 +883,8 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "Il rivestimento presente è a piombo?"))
 	(if ?risposta
 		then (assert (car (nome rivestimento_a_piombo) (valore si)))
@@ -804,6 +900,8 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel rivestimento?"))
 	(if ?risposta
 		then (assert (car (nome piastrelle_sollevate_rivestimento) (valore si)))
@@ -819,9 +917,13 @@
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
+	(bind ?*help* "")
+	(bind ?*spiegazione* "")
 	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate nel rivestimento?"))
 	(if ?risposta1
-		then (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate?"))
+		then (bind ?*help* "")
+			 (bind ?*spiegazione* "")
+			 (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate?"))
 			 (if ?risposta2
 				 then (assert (car (nome piastrelle_scheggiate_rivestimento) (valore molte)))
 				 else (assert (car (nome piastrelle_scheggiate_rivestimento) (valore poche))))
@@ -843,7 +945,7 @@
 	(lavoro)
 	(not (rivestimento_parte_due))
 	=>
-	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
+	(printout t crlf "*****************************************************************************************************" crlf)
 	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
 	(if (neq (length$ ?*spiegazione*) 0)
 		then (format t (str-cat "%n>>>SPIEGAZIONE:%n" ?*spiegazione* "%n")))
@@ -870,7 +972,7 @@
 	?l <- (lavoro)
 	(rivestimento_parte_due)
 	=>
-	(printout t crlf "------------------------------------------------------------------------------------------------------" crlf)
+	(printout t crlf "*****************************************************************************************************" crlf)
 	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
 	(if (neq (length$ ?*spiegazione*) 0)
 		then (format t (str-cat "%n>>>SPIEGAZIONE:%n" ?*spiegazione* "%n")))

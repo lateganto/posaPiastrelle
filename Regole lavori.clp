@@ -2,7 +2,6 @@
 
 (defrule no_impianti_fatti
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	
 	(car (nome presenza_massetto) (valore no))
@@ -13,7 +12,6 @@
 
 (defrule si_impianti_fatti
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	
 	(car (nome presenza_massetto) (valore no))
@@ -24,7 +22,6 @@
 
 (defrule massetto_fresco
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -35,7 +32,6 @@
 
 (defrule massetto_fragile
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -47,7 +43,6 @@
 
 (defrule massetto_non_a_livello
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -61,7 +56,6 @@
 
 (defrule no_spessore_piastrella
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -77,7 +71,6 @@
 
 (defrule massetto_alto
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 	
 	(car (nome presenza_massetto) (valore si))
@@ -93,7 +86,6 @@
 
 (defrule massetto_basso
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -109,7 +101,6 @@
 
 (defrule massetto_senza_pendenza
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -123,7 +114,6 @@
 
 (defrule muri_non_a_squadra_esterno
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -138,7 +128,6 @@
 
 (defrule muri_non_a_squadra_interno_piastrella
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -156,7 +145,6 @@
 
 (defrule muri_non_a_squadra_piastrella_interno_parquet
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -174,7 +162,6 @@
 
 (defrule muri_a_squadra_interno
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -191,7 +178,6 @@
 
 (defrule muri_a_squadra_esterno
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_massetto) (valore si))
@@ -209,7 +195,6 @@
 
 (defrule pavimento_non_a_livello_interno
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -221,7 +206,6 @@
 
 (defrule pavimento_senza_pendenza_esterno
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore esterno))
@@ -235,7 +219,6 @@
 
 (defrule piastrelle_sollevate
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(or (car (nome luogo) (valore interno))
@@ -250,7 +233,6 @@
 
 (defrule piastrelle_scheggiate_o_rotte_poche
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(or (car (nome luogo) (valore interno))
@@ -265,7 +247,6 @@
 
 (defrule piastrelle_scheggiate_o_rotte_molte
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(or (car (nome luogo) (valore interno))
@@ -280,7 +261,6 @@
 
 (defrule umidita_impianti
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -293,7 +273,6 @@
 
 (defrule umidita_piano_terra
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
@@ -306,7 +285,6 @@
 
 (defrule umidita_no_piano_terra
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
@@ -319,7 +297,6 @@
 
 (defrule rumore_calpestio
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(or (car (nome luogo) (valore interno))
@@ -334,7 +311,6 @@
 
 (defrule fughe_polvere
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome presenza_pavimento) (valore si))
@@ -347,7 +323,6 @@
 
 (defrule posa_sopra_si_piastrelle
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(or (car (nome luogo) (valore interno))
@@ -366,7 +341,6 @@
 ;-------------------------RIVESTIMENTO----------------------------
 (defrule muri_non_a_piombo
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -381,7 +355,6 @@
 
 (defrule fondo_gesso_rasato_bagno
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -396,7 +369,6 @@
 
 (defrule fondo_gesso_rasato_cucina
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -411,7 +383,6 @@
 
 (defrule fondo_ok_cucina
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -427,7 +398,6 @@
 
 (defrule fondo_ok_bagno
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -442,7 +412,6 @@
 
 (defrule piastrelle_sollevate_rivestimento
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -457,7 +426,6 @@
 
 (defrule piastrelle_scheggiate_rivestimento_poche
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -472,7 +440,6 @@
 
 (defrule piastrelle_scheggiate_rivestimento_molte
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
@@ -487,7 +454,6 @@
 
 (defrule rivestimento_buone_condizioni
 	(declare (salience ?*high_priority*))
-	(preparazione_utente alta | bassa)
 	(not (lavoro))
 
 	(car (nome luogo) (valore interno))
