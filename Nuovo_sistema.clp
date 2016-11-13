@@ -810,46 +810,42 @@
 		then (assert (car (nome pendenza_pavimento) (valore si)))
 		else (assert (car (nome pendenza_pavimento) (valore no)))))
 
-(defrule domanda_piastrelle_sollevate_pavimento
+(defrule domanda_pezzi_sollevati_pavimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
-	(not (car (nome piastrelle_sollevate_pavimento) (valore ?)))
+	(not (car (nome pezzi_sollevati_pavimento) (valore ?)))
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
-	(bind ?*help* "Per piastrelle sollevate si intendono piastrelle che sono alzate dal pavimento o che non aderiscono più.")
-	(bind ?*spiegazione* "Se ci sono piastrelle sollevate occorre rimuovere il pavimento.")
-	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel pavimento?"))
+	(bind ?*help* "Per pezzi sollevati si intendono pezzi di pavimento che sono alzati o che non aderiscono più.")
+	(bind ?*spiegazione* "Se ci sono pezzi sollevati occorre rimuovere il pavimento.")
+	(bind ?risposta (yes_or_no_p "Ci sono pezzi sollevati nel pavimento?"))
 	(if ?risposta
-		then (assert (car (nome piastrelle_sollevate_pavimento) (valore si)))
-		else (assert (car (nome piastrelle_sollevate_pavimento) (valore no)))))
+		then (assert (car (nome pezzi_sollevati_pavimento) (valore si)))
+		else (assert (car (nome pezzi_sollevati_pavimento) (valore no)))))
 
-(defrule domanda_piastrelle_scheggiate_pavimento
+(defrule domanda_pezzi_rovinati_pavimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
-	(not (car (nome piastrelle_scheggiate_rotte_pavimento) (valore ?)))
+	(not (car (nome pezzi_rovinati_pavimento) (valore ?)))
 
 	(or (car (nome luogo) (valore interno))
 		(car (nome luogo) (valore esterno)))
 	(car (nome presenza_pavimento) (valore si))
-	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
-		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
-	(bind ?*help* "Verificare che ci siano piastrelle con scheggiature (ammaccature) o lesionate.")
-	(bind ?*spiegazione* "Se ci sono piastrelle scheggiate occorre valutare se sostituirle o rimuovere tutto il pavimento.")
-	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate o rotte nel pavimento?"))
+	(bind ?*help* "Verificare che ci siano pezzi con scheggiature (ammaccature) o lesionati.")
+	(bind ?*spiegazione* "Se ci sono pezzi scheggiati o rotti occorre valutare se sostituirli o rimuovere tutto il pavimento.")
+	(bind ?risposta1 (yes_or_no_p "Ci sono pezzi scheggiati o lesionati nel pavimento?"))
 	(if ?risposta1
-		then (bind ?*help* "Indicare se ci sono più di due o tre piastrelle rovinate")
-			 (bind ?*spiegazione* "Se ci sono molte piastrelle scheggiate occorre rimuovere tutto il pavimento.")
-			 (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate o rotte?"))
+		then (bind ?*help* "Indicare se ci sono più di due o tre pezzi rovinati")
+			 (bind ?*spiegazione* "Se ci sono molti pezzi rovinati occorre rimuovere tutto il pavimento.")
+			 (bind ?risposta2 (yes_or_no_p "Nel pavimento ci sono più di un paio di pezzi scheggiati o lesionati?"))
 			 (if ?risposta2
-				 then (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore molte)))
-				 else (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore poche))))
-		else (assert (car (nome piastrelle_scheggiate_rotte_pavimento) (valore no)))))
+				 then (assert (car (nome pezzi_rovinati_pavimento) (valore molti)))
+				 else (assert (car (nome pezzi_rovinati_pavimento) (valore pochi))))
+		else (assert (car (nome pezzi_rovinati_pavimento) (valore no)))))
 
 (defrule umidita_pavimento
 	(preparazione_utente alta | bassa)
@@ -1023,44 +1019,44 @@
 		then (assert (car (nome rivestimento_a_piombo) (valore si)))
 		else (assert (car (nome rivestimento_a_piombo) (valore no)))))
 
-(defrule domanda_piastrelle_sollevate_rivestimento
+(defrule domanda_pezzi_sollevati_rivestimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
-	(not (car (nome piastrelle_sollevate_rivestimento) (valore ?)))
+	(not (car (nome pezzi_sollevati_rivestimento) (valore ?)))
 
 	(car (nome luogo) (valore interno))
 	(or (car (nome tipo_stanza) (valore bagno))
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
-	(bind ?*help* "Per piastrella sollevata si intende una piastrella non aderente o alzata.")
-	(bind ?*spiegazione* "Se ci sono piastrelle sollevate devi rimuovere il rivestimento.")
-	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel rivestimento?"))
+	(bind ?*help* "Per pezzo sollevato si intende un pezzo non aderente o alzato.")
+	(bind ?*spiegazione* "Se ci sono pezzi sollevati devi rimuovere il rivestimento.")
+	(bind ?risposta (yes_or_no_p "Ci sono pezzi sollevati nel rivestimento?"))
 	(if ?risposta
-		then (assert (car (nome piastrelle_sollevate_rivestimento) (valore si)))
-		else (assert (car (nome piastrelle_sollevate_rivestimento) (valore no)))))
+		then (assert (car (nome pezzi_sollevati_rivestimento) (valore si)))
+		else (assert (car (nome pezzi_sollevati_rivestimento) (valore no)))))
 
-(defrule domanda_piastrelle_scheggiate_rivestimento
+(defrule domanda_pezzi_rovinati_rivestimento
 	(preparazione_utente alta | bassa)
 	(not (lavoro))
-	(not (car (nome piastrelle_scheggiate_rivestimento) (valore ?)))
+	(not (car (nome pezzi_rovinati_rivestimento) (valore ?)))
 
 	(car (nome luogo) (valore interno))
 	(or (car (nome tipo_stanza) (valore bagno))
 		(car (nome tipo_stanza) (valore cucina)))
 	(car (nome presenza_rivestimento) (valore si))
 	=>
-	(bind ?*help* "Per piastrella scheggiata si intende una piastrella lesionata o scheggiata.")
-	(bind ?*spiegazione* "Se ci sono piastrelle rovinate si deve decidere se sostituirle o rimuovere tutto il rivestimento.")
-	(bind ?risposta1 (yes_or_no_p "Ci sono piastrelle scheggiate nel rivestimento?"))
+	(bind ?*help* "Per pezzo rovinato si intende un pezzo lesionato o scheggiato.")
+	(bind ?*spiegazione* "Se ci sono pezzi rovinati si deve decidere se sostituirli o rimuovere tutto il rivestimento.")
+	(bind ?risposta1 (yes_or_no_p "Ci sono pezzi scheggiati nel rivestimento?"))
 	(if ?risposta1
-		then (bind ?*help* "Verifica se ci sono più di due o tre piastrelle rovinate.")
-			 (bind ?*spiegazione* "Se ci sono troppe piastrelle rovinate occorre rimuovere il rivestimento.")
-			 (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di piastrelle scheggiate?"))
+		then (bind ?*help* "Verifica se ci sono più di due o tre pezzi rovinati.")
+			 (bind ?*spiegazione* "Se ci sono troppi pezzi rovinati occorre rimuovere il rivestimento.")
+			 (bind ?risposta2 (yes_or_no_p "Ci sono più di un paio di pezzi scheggiati o lesionati?"))
 			 (if ?risposta2
-				 then (assert (car (nome piastrelle_scheggiate_rivestimento) (valore molte)))
-				 else (assert (car (nome piastrelle_scheggiate_rivestimento) (valore poche))))
-		else (assert (car (nome piastrelle_scheggiate_rivestimento) (valore no)))))
+				 then (assert (car (nome pezzi_rovinati_rivestimento) (valore molti)))
+				 else (assert (car (nome pezzi_rovinati_rivestimento) (valore pochi))))
+		else (assert (car (nome pezzi_rovinati_rivestimento) (valore no)))))
 
 
 
@@ -1082,8 +1078,6 @@
 	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
 	(if (neq (length$ ?*spiegazione*) 0)
 		then (format t (str-cat "%n>>>SPIEGAZIONE:%n" ?*spiegazione* "%n")))
-	(if (neq (length$ ?*help*) 0) 
-		then (format t (str-cat "%n>>>AIUTO:%n" ?*help* "%n")))
 
 
 	(printout t crlf "Digita il numero corrispondente alla scelta:" crlf
@@ -1109,8 +1103,6 @@
 	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
 	(if (neq (length$ ?*spiegazione*) 0)
 		then (format t (str-cat "%n>>>SPIEGAZIONE:%n" ?*spiegazione* "%n")))
-	(if (neq (length$ ?*help*) 0) 
-		then (format t (str-cat "%n>>>AIUTO:%n" ?*help* "%n")))
 
 
 	(printout t crlf "Digita il numero corrispondente alla scelta:" crlf
