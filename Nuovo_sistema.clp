@@ -186,12 +186,10 @@
 		(case massetto_fragile
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome presenza_pavimento) (eq ?f1:nome massetto_fresco)))
 					(retract ?f1)))
-
 		(case umidita_massetto
 			then (do-for-all-facts ((?f1 car)) (or (eq ?f1:nome impianti_umidita) (eq ?f1:nome piano_terra))
 				(retract ?f1))
 				(retract ?f))
-
 		(case massetto_a_livello
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome presenza_pavimento) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile))) 
 					(retract ?f1)))
@@ -279,10 +277,7 @@
 	(bind ?risposta (ask_number "Quanti anni hai?"))
 	(assert (domanda (valore one)))
 	(modify ?f2 (numero (+ ?x 1)))
-	(if (< ?risposta 14) 
-		then (printout t crlf "Forse non hai l'età per lavorare!" crlf) 
-	 		 (halt))
-	(if (and (>= ?risposta 14) (<= ?risposta 20)) 
+	(if (<= ?risposta 20)
 		then (modify ?f1 (principiante (+ ?val_princ 3))))
 	(if (and (>= ?risposta 21) (<= ?risposta 30)) 
 		then (modify ?f1 (principiante (+ ?val_princ 2))))
@@ -291,11 +286,8 @@
 			(modify ?f1 (principiante (+ ?val_princ 1))))
 	(if (and (>= ?risposta 51) (<= ?risposta 60)) 
 		then (modify ?f1 (esperto (+ ?val_esp 2))))
-	(if (and (>= ?risposta 61) (<= ?risposta 70)) 
-		then (modify ?f1 (esperto (+ ?val_esp 3))))
-	(if (> ?risposta 70)
-		then (printout t "Forse non hai più l'età per fare certi lavori!" crlf)
-			 (halt)))
+	(if (>= ?risposta 61) 
+		then (modify ?f1 (esperto (+ ?val_esp 3)))))
 
 (defrule domanda_fai_da_te
 	(not (domanda (valore two)))
@@ -357,7 +349,7 @@
 
 (defrule principiante
 	(declare (salience ?*high_priority*))
-	(esperienza (principiante ?val_princ&: (> ?val_princ 10)))
+	(esperienza (principiante ?val_princ&: (>= ?val_princ 10)))
 	=>
 	(assert (preparazione_utente bassa)))
 

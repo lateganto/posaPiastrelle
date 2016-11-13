@@ -98,7 +98,6 @@
 	=>
 	(bind ?*soluzione* "Il massetto deve essere rimosso e rifatto poiché non a livello.")
 	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale interno, ma non è a livello. Il %nconsiglio è quindi di rimuoverlo e rifarlo poichè non è possibile farvi la posa di un qualsiasi tipo di pavimento sopra.")
-	
 	(assert (lavoro)))
 
 (defrule no_spessore_piastrella
