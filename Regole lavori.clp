@@ -542,6 +542,21 @@
 	(assert (lavoro))
 	(assert (rivestimento_parte_due)))
 
+(defrule rivestimento_non_a_piombo
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(or (car (nome tipo_stanza) (valore bagno))
+		(car (nome tipo_stanza) (valore cucina)))
+	(car (nome presenza_rivestimento) (valore si))
+	(car (nome rivestimento_a_piombo) (valore no))
+	=>
+	(bind ?*soluzione* "Rimuovi il rivestimento e rifallo poichè non è a piombo.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, in particolare di un bagno o cucina, è presente un rivestimento e i muri %nnon sono a piombo. Il consiglio è dunque quello di rimuovere il rivestimento e rifarlo.")
+	(assert (lavoro))
+	(assert (rivestimento_parte_due)))
+
 (defrule pezzi_sollevati_rivestimento
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
