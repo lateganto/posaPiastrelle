@@ -189,7 +189,8 @@
 
 		(case umidita_massetto
 			then (do-for-all-facts ((?f1 car)) (or (eq ?f1:nome impianti_umidita) (eq ?f1:nome piano_terra))
-				(retract ?f1)))
+				(retract ?f1))
+				(retract ?f))
 
 		(case massetto_a_livello
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome presenza_pavimento) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile))) 
@@ -221,7 +222,8 @@
 				(retract ?f1)))
 		(case umidita_pavimento
 			then (do-for-all-facts ((?f1 car)) (or (eq ?f1:nome impianti_umidita) (eq ?f1:nome piano_terra))
-				(retract ?f1)))
+				(retract ?f1))
+				(retract ?f))
 
 		;-----------RIVESTIMENTO-----------
 		(case muri_a_piombo
@@ -503,7 +505,7 @@
 	=>
 	(bind ?*help* "Verificare se si notano elementi che farebbero pensare ad umidità.")
 	(bind ?*spiegazione* "Se c'è umidità potrebbe esserci qualche impianto guasto o umidità che viene dal terreno.")
-	(bind ?risposta (yes_or_no_p "C'è evidente umidità (il massetto ha un colore scuro?"))
+	(bind ?risposta (yes_or_no_p "C'è evidente umidità (il massetto ha un colore scuro)?"))
 	(if ?risposta 
 		then (assert (car (nome umidita_massetto) (valore si)))
 		else (assert (car (nome umidita_massetto) (valore no)))))
