@@ -174,7 +174,7 @@
 	(car (nome pendenza_massetto) (valore si))
 	(car (nome muri_a_squadra) (valore no))
 	=>
-	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e pezzi piccoli in modo da camuffare le %nimperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
+	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e pezzi piccoli in modo da camuffare le imperfezioni. %nInoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
 	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale esterno e che è alla giusta %npendenza per favorire lo scolo dell'acqua, ma i muri non sono a squadra. Il consiglio è dunque di scegliere un certo tipo di %nposa (quella in diagonale o obliqua) e pezzi piccoli per camuffare le imperfezioni.")
 	(assert (lavoro)))
 
@@ -193,7 +193,7 @@
 	(or (car (nome tipo_pavimento_da_porre) (valore piastrella))
 		(car (nome tipo_pavimento_da_porre) (valore marmo)))
 	=>
-	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e pezzi piccoli in modo da camuffare le %nimperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
+	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e pezzi piccoli in modo da camuffare le imperfezioni. %nInoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
 	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale interno e che è a livello ma i %nmuri non sono a squadra. Il consiglio è dunque di scegliere un certo tipo di posa (quella in diagonale o obliqua) e %npezzi piccoli per camuffare le imperfezioni.")
 	(assert (lavoro)))
 
@@ -301,7 +301,7 @@
 	(car (nome pezzi_sollevati_pavimento) (valore si))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e rifallo.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è costituito da parquet e vi sono pezzi sollevati o non aderenti. Il %nconsiglio è dunque quello di rimuovere pavimento e rifarlo.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è costituito da parquet e vi sono pezzi sollevati o %nnon aderenti. Il consiglio è dunque quello di rimuovere pavimento e rifarlo.")
 	(assert (lavoro)))
 
 (defrule pezzi_rovinati_pochi_piastrelle_marmo
@@ -344,7 +344,7 @@
 	(car (nome pezzi_rovinati_pavimento) (valore pochi))
 	=>
 	(bind ?*soluzione* "Puoi optare per la sostituzione se il pavimento non è scolorito e si hanno a disposizione pezzi di ricambio, altrimenti rifai il pavimento.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è composto da parquet e che vi sono pochi pezzi scheggiati o lesionati. %nIl consiglio è dunque quello di optare per il rattoppo, sostituendo solo i pezzi rovinati se sono disponibili pezzi di ricambio %ne non ci sono differenze di tonalità tra il pezzo di ricambio e il pavimento presente, altrimenti procedere alla sostituzione del pavimento.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è composto da parquet e che vi sono pochi pezzi %nscheggiati o lesionati. Il consiglio è dunque quello di optare per il rattoppo, sostituendo solo i pezzi rovinati se sono disponibili %npezzi di ricambio e non ci sono differenze di tonalità tra il pezzo di ricambio e il pavimento presente, altrimenti procedere %nalla sostituzione del pavimento.")
 	(assert (lavoro)))
 
 (defrule pezzi_rovinati_molti_parquet
@@ -357,7 +357,7 @@
 	(car (nome pezzi_rovinati_pavimento) (valore molti))
 	=>
 	(bind ?*soluzione* "Sostituisci il pavimento poiché le piastrelle rovinate sono troppe.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è composto da parquet e che vi sono molti pezzi scheggiati o lesionati. %nIl consiglio è dunque quello di rimuovere il pavimento e rifarlo.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è composto da parquet e che vi sono molti pezzi %nscheggiati o lesionati. Il consiglio è dunque quello di rimuovere il pavimento e rifarlo.")
 	(assert (lavoro)))
 
 (defrule umidita_impianti
@@ -444,7 +444,7 @@
 	(car (nome umidita_pavimento) (valore no))
 	=>
 	(bind ?*soluzione* "Puoi optare per la posa sopra usando anche pavimenti ultra sottili come il gres o gli adesivi in PVC.")
-	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmi, è a livello e non presenta né problemi di %numidità e né pezzi sollevati. Il consiglio è dunque quello di procedere alla posa sopra il pavimento esistente o se si vuole rinnovarlo si possono porre gli adesivi in PVC.")
+	(bind ?*spiegazione* "È stato dedotto che il pavimento è presente ed è composto da piastrelle o marmi, è a livello e non presenta né problemi di %numidità e né pezzi sollevati. Il consiglio è dunque quello di procedere alla posa sopra il pavimento esistente o se si vuole rinnovarlo %nsi possono porre gli adesivi in PVC.")
 	(assert (lavoro)))
 
 (defrule posa_sopra_parquet
@@ -459,7 +459,7 @@
 	(car (nome umidita_pavimento) (valore no))
 	=>
 	(bind ?*soluzione* "Se si desidera sostituire il pavimento occorre rimuoverlo altrimenti si può lasciarlo com'è.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è composto da parquet, è a livello e non presenta né problemi di %numidità e né pezzi sollevati. Il consiglio è dunque quello di rimuovere il pavimento se si desidera rinnovarlo altrimenti lasciarlo com'è poiché è in buone condizioni.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ed è composto da parquet, è a livello e non presenta %nné problemi di umidità e né pezzi sollevati. Il consiglio è dunque quello di rimuovere il pavimento se si desidera rinnovarlo %naltrimenti lasciarlo com'è poiché è in buone condizioni.")
 	(assert (lavoro)))
 
 
