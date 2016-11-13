@@ -208,7 +208,7 @@
 					(retract ?f1)))
 		(case tipo_pavimento_da_porre
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello) (eq ?f1:nome pavimento_da_raccordare)
-				(eq ?f1:nome spessore_pavimento) (eq ?f1:nome altezza_massetto)))
+				(eq ?f1:nome spessore_pavimento) (eq ?f1:nome altezza_massetto) (eq ?f1:nome pendenza_massetto)))
 					(retract ?f1)))
 		(case muri_a_squadra
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile) (eq ?f1:nome massetto_a_livello) (eq ?f1:nome pavimento_da_raccordare)
