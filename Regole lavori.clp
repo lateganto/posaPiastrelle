@@ -258,7 +258,7 @@
 	(car (nome pavimento_livello) (valore no))
 	=>
 	(bind ?*soluzione* "Rimuovi il pavimento esistente e lo strato di fondo sottostante e rifallo.")
-	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ma non è a livello. %nIl consiglio è dunque quello di %nrimuovere pavimento e massetto e rifarli.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il pavimento è presente ma non è a livello. %nIl consiglio è dunque quello di rimuovere pavimento e massetto e rifarli.")
 	(assert (lavoro)))
 
 (defrule pavimento_senza_pendenza_esterno
