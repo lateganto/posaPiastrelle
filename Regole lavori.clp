@@ -36,6 +36,50 @@
 	(bind ?*help* "")
 	(assert (lavoro)))
 
+(defrule umidita_impianti_massetto
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome umidita_massetto) (valore si))
+	(car (nome impianti_umidita) (valore si))
+	=>
+	(bind ?*soluzione* "L'umidità potrebbe essere causata da impianti idrici guasti, rimuovi il massetto e chiama uno specialista (idraulico).")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il massetto è presente, c'è umidità e passano degli impianti sotto il %nmassetto. Il consiglio è dunque quello di rimuovere il massetto e chiamare uno specialista per verificare gli impianti.")
+	(bind ?*help* "")
+	(assert (lavoro)))
+
+(defrule umidita_piano_terra_massetto
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome umidita_massetto) (valore si))
+	(car (nome impianti_umidita) (valore no))
+	(car (nome piano_terra) (valore si))
+	=>
+	(bind ?*soluzione* "L'umidità potrebbe essere causata dal sottosuolo, occorre rimuovere il massetto (se presenti) e procedere alla %nimpermeabilizzazione del sottofondo.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il massetto è presente, c'è umidità, non passano degli impianti sotto il %nmassetto ma ci si trova a piano terra. Il consiglio è dunque di rimuovere il massetto, e rifarlo con l'impermeabilizzazione.")
+	(bind ?*help* "")
+	(assert (lavoro)))
+
+(defrule umidita_no_piano_terra_massetto
+	(declare (salience ?*high_priority*))
+	(not (lavoro))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome umidita_massetto) (valore si))
+	(car (nome impianti_umidita) (valore no))
+	(car (nome piano_terra) (valore no))
+	=>
+	(bind ?*soluzione* "L'umidità potrebbe essere quella di risalita dai muri, bisogna impermeabilizzare il muro in modo da non far salire l'umidità.")
+	(bind ?*spiegazione* "È stato dedotto che si tratta di un locale interno, il massetto è presente, c'è umidità, non passano degli impianti sotto il %nmassetto e non ci si trova a piano terra. Il consiglio è dunque di impermeabilizzare il muro in quanto l'umidità potrebbe %nessere quella di risalita dai muri.")
+	(bind ?*help* "")
+	(assert (lavoro)))
+
 (defrule massetto_fragile
 	(declare (salience ?*high_priority*))
 	(not (lavoro))
@@ -141,8 +185,8 @@
 	(car (nome pendenza_massetto) (valore si))
 	(car (nome muri_a_squadra) (valore no))
 	=>
-	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e una piastrella piccola in modo da camuffare le %nimperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
-	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale esterno e che è alla giusta %npendenza per favorire lo scolo dell'acqua, ma i muri non sono a squadra. Il consiglio è dunque di scegliere un certo tipo di %nposa (quella in diagonale o obliqua) e piastrelle piccole per camuffare le imperfezioni.")
+	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e pezzi piccoli in modo da camuffare le %nimperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
+	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale esterno e che è alla giusta %npendenza per favorire lo scolo dell'acqua, ma i muri non sono a squadra. Il consiglio è dunque di scegliere un certo tipo di %nposa (quella in diagonale o obliqua) e pezzi piccoli per camuffare le imperfezioni.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 
@@ -158,10 +202,11 @@
 	(or (car (nome pavimento_da_raccordare) (valore no))
 		(car (nome altezza_massetto) (valore giusto)))
 	(car (nome muri_a_squadra) (valore no))
-	(car (nome tipo_pavimento_da_porre) (valore piastrella))
+	(or (car (nome tipo_pavimento_da_porre) (valore piastrella))
+		(car (nome tipo_pavimento_da_porre) (valore marmo)))
 	=>
-	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e una piastrella piccola in modo da camuffare le %nimperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
-	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale interno e che è a livello ma i %nmuri non sono a squadra. Il consiglio è dunque di scegliere un certo tipo di posa (quella in diagonale o obliqua) e %npiastrelle piccole per camuffare le imperfezioni.")
+	(bind ?*soluzione* "I muri non sono a squadra, conviene usare un tipo di posa in diagonale e pezzi piccoli in modo da camuffare le %nimperfezioni. Inoltre parti dal punto più a vista nella stanza, in genere il lato opposto all'entrata.")
+	(bind ?*spiegazione* "È stato dedotto che il massetto è presente, non è fresco o fragile, che si trova in un locale interno e che è a livello ma i %nmuri non sono a squadra. Il consiglio è dunque di scegliere un certo tipo di posa (quella in diagonale o obliqua) e %npezzi piccoli per camuffare le imperfezioni.")
 	(bind ?*help* "")
 	(assert (lavoro)))
 

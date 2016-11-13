@@ -186,6 +186,11 @@
 		(case massetto_fragile
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco)))
 					(retract ?f1)))
+
+		(case umidita_massetto
+			then (do-for-all-facts ((?f1 car)) (or (eq ?f1:nome impianti_umidita) (eq ?f1:nome piano_terra))
+				(retract ?f1)))
+
 		(case massetto_a_livello
 			then (do-for-all-facts ((?f1 car)) (not (or (eq ?f1:nome luogo) (eq ?f1:nome tipo_stanza) (eq ?f1:nome presenza_massetto) (eq ?f1:nome massetto_fresco) (eq ?f1:nome massetto_fragile))) 
 					(retract ?f1)))
@@ -439,10 +444,9 @@
 	(not (car (nome presenza_pavimento) (valore ?)))
 	(not (car (nome presenza_massetto) (valore ?)))
 
-	(or (car (nome luogo) (valore interno))
-		(car (nome luogo) (valore esterno)))
-	(not (or (car (nome tipo_stanza) (valore cucina))
-		 	 (car (nome tipo_stanza) (valore bagno))))
+	(or (car (nome luogo) (valore esterno))
+		(and (car (nome luogo) (valore interno))
+			 (car (nome tipo_stanza) (valore altro))))
 	=>
 	(bind ?*help* "Indica se è presente già un pavimento (parquet, piastrelle, marmo, etc.)")
 	(bind ?*spiegazione* "A seconda che il pavimento sia o meno presente potrebbero esserci dei lavori specifici da fare.")
@@ -488,6 +492,55 @@
 	(if ?risposta
 		then (assert (car (nome massetto_fresco) (valore si)))
 		else (assert (car (nome massetto_fresco) (valore no)))))
+
+(defrule umidita_massetto
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome umidita_massetto) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	=>
+	(bind ?*help* "Verificare se si notano elementi che farebbero pensare ad umidità.")
+	(bind ?*spiegazione* "Se c'è umidità potrebbe esserci qualche impianto guasto o umidità che viene dal terreno.")
+	(bind ?risposta (yes_or_no_p "C'è evidente umidità (il massetto ha un colore scuro?"))
+	(if ?risposta 
+		then (assert (car (nome umidita_massetto) (valore si)))
+		else (assert (car (nome umidita_massetto) (valore no)))))
+
+(defrule domanda_impianti_umidita_massetto
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome impianti_umidita) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome umidita_massetto) (valore si))
+	=>
+	(bind ?*help* "Controllare nei progetti della casa se nella stanza dove si sta lavorando passano degli impianti sotto il massetto o nei muri.")
+	(bind ?*spiegazione* "Se passano dei tubi, potrebbe significare che qualcuno di essi è rotto e causa l'umidità.")
+	(bind ?risposta (ask_question "Passano dei tubi di acqua, fognatura o riscaldamento sotto il massetto o nei muri?" si no non_so))
+	(if (eq ?risposta no)
+		then (assert (car (nome impianti_umidita) (valore no)))
+		else (assert (car (nome impianti_umidita) (valore si)))))
+
+(defrule domanda_piano_terra_massetto
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome piano_terra) (valore ?)))
+
+	(car (nome luogo) (valore interno))
+	(car (nome presenza_massetto) (valore si))
+	(car (nome umidita_massetto) (valore si))
+	(car (nome impianti_umidita) (valore no))
+	=>
+	(bind ?*help* "Piano terra è quel piano posto direttamente sul terreno.")
+	(bind ?*spiegazione* "Se ci si trova a piano terra l'umidità potrebbe venire direttamente dal terreno.")
+	(bind ?risposta (yes_or_no_p "Ci si trova a piano terra?"))
+	(if ?risposta
+		then (assert (car (nome piano_terra) (valore si)))
+		else (assert (car (nome piano_terra) (valore no)))))
+;---
 
 (defrule domanda_massetto_fragile
 	(preparazione_utente alta | bassa)
@@ -628,9 +681,25 @@
 	(or (car (nome pavimento_da_raccordare) (valore no))
 		(car (nome altezza_massetto) (valore giusto)))
 	=>
-	(bind ?*help* "Indica tra quelli disponibili il tipo di pavimento da porre sul massetto.")
+	(bind ?*help* "Indica tra quelli disponibili il tipo di pavimento da porre sul massetto. Con piastrelle si intendono quelle di qualunque tipo (ceramica, %ngres, cotto, etc)")
 	(bind ?*spiegazione* "In base al tipo di pavimento ci sono tipi di pose da consigliare.")
-	(bind ?risposta (ask_question "Che tipo di pavimento intendi porre?" piastrella parquet))
+	(bind ?risposta (ask_question "Che tipo di pavimento intendi porre?" piastrella parquet marmo))
+	(assert (car (nome tipo_pavimento_da_porre) (valore ?risposta))))
+
+(defrule domanda_pavimento_esterno
+	(preparazione_utente alta | bassa)
+	(not (lavoro))
+	(not (car (nome tipo_pavimento_da_porre) (valore ?)))
+
+	(car (nome presenza_massetto) (valore si))
+	(car (nome massetto_fresco) (valore no))
+	(car (nome massetto_fragile) (valore no))
+	(car (nome luogo) (valore esterno))
+	(car (nome pendenza_massetto) (valore si))
+	=>
+	(bind ?*help* "Indica tra quelli disponibili il tipo di pavimento da porre sul massetto. Con piastrelle si intendono quelle di qualunque tipo (ceramica, %ngres, cotto, etc)")
+	(bind ?*spiegazione* "In base al tipo di pavimento ci sono tipi di pose da consigliare.")
+	(bind ?risposta (ask_question "Che tipo di pavimento intendi porre?" piastrella marmo))
 	(assert (car (nome tipo_pavimento_da_porre) (valore ?risposta))))
 
 (defrule domanda_muri_a_squadra
@@ -752,7 +821,7 @@
 	(or (car (nome tipo_pavimento_presente) (valore piastrelle))
 		(car (nome tipo_pavimento_presente) (valore marmo)))
 	=>
-	(bind ?*help* "Per piastrelle sollevate si intendono piastrelle che alzate dal pavimento o che non aderiscono più.")
+	(bind ?*help* "Per piastrelle sollevate si intendono piastrelle che sono alzate dal pavimento o che non aderiscono più.")
 	(bind ?*spiegazione* "Se ci sono piastrelle sollevate occorre rimuovere il pavimento.")
 	(bind ?risposta (yes_or_no_p "Ci sono piastrelle sollevate nel pavimento?"))
 	(if ?risposta
@@ -1033,8 +1102,8 @@
 
 (defrule lavoro_trovato_rivestimento
 	(declare (salience ?*high_priority*))
-	?l <- (lavoro)
-	(rivestimento_parte_due)
+	?f1 <- (lavoro)
+	?f2 <- (rivestimento_parte_due)
 	=>
 	(printout t crlf "*****************************************************************************************************" crlf)
 	(format t (str-cat "%n>>>SOLUZIONE:%n" ?*soluzione* "%n"))
@@ -1045,7 +1114,7 @@
 
 
 	(printout t crlf "Digita il numero corrispondente alla scelta:" crlf
-				"(1) Continua con parte del pavimento" crlf
+				"(1) Continua con seconda parte (pavimento)" crlf
 				"(2) Rivedi scelte o modifica" crlf 
 				"(3) Termina"crlf)
 
@@ -1059,7 +1128,7 @@
 		(case 1 then 
 			(do-for-all-facts ((?f car)) (not (or (eq ?f:nome presenza_pavimento) (eq ?f:nome presenza_massetto) (eq ?f:nome luogo) (eq ?f:nome tipo_stanza))) 
 				(retract ?f))
-			(retract ?l))
+			(retract ?f1 ?f2))
 		(case 2 then (assert (rivedi_scelte_lavoro)))
 		(case 3 then (halt))))
 
